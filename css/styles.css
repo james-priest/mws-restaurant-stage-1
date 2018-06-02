@@ -58,9 +58,11 @@ nav {
   height: 80px;
   background-color: #252831;
   text-align:center;
+  display: grid;
 }
 nav h1 {
   margin: auto;
+  display: inline-block;
 }
 nav h1 a {
   color: #fff;
@@ -139,7 +141,8 @@ nav h1 a {
   background-color: #f3f3f3;
   list-style: outside none none;
   margin: 0;
-  padding: 30px 15px 60px;
+  /* padding: 30px 15px 60px; */
+  padding: 20px 15px;
   text-align: center;
   
   display: flex;
