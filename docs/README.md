@@ -71,7 +71,7 @@ Here's what I did
 }
 ```
 
-#### Gruntfil.js
+#### Gruntfile.js
 
  ```js
 responsive_images: {
@@ -142,9 +142,24 @@ Here are the steps I applies
     ```html
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     ```
-3. Commented out all unnecessary css style rules
-4. Added `display: grid` and `display: flexbox` where appropriate
-
+3. Increased default `font-size` to `16px` for small displays
+    ```css
+    /* font-family: Arial, Helvetica, sans-serif; */
+    /* font-size: 10pt; */
+    /* line-height: 1.5; */
+    body,td,th,p {
+      font: 16px/1.6 Arial, Helvetica, sans-serif;
+    }
+    ```
+4. Commented out all unnecessary css style rules in 'styles.css'. This included
+    - Hardcoded `width` settings on various elements
+    - Hardcoded `font-size` settings on various elements
+    - Unnecessary `margin` or `padding`
+    - Unnecessary `position: fixed` and `position: absolute`
+5. Added `display: grid` and `display: flexbox` for content centering
+    - Header nav
+    - Restaurant list
+6. Went back and set `width: 100%` so elements would fill available space.
 
 ### 2.4 Viewing updated flow layout
 
