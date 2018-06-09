@@ -39,7 +39,7 @@ This is done so that I can automate the process of compressing screen captured i
 to create a Gruntfile.js to work with my setup.
 
 Here's what I did
-1. Create a 'docs/src/' folder to contain all original JPGs.
+1. Create a 'docs/src/images/' folder to contain all original JPGs.
 2. Created a packages.json under 'docs/'. Steps to do so are in [Grunt Getting Started](https://gruntjs.com/getting-started).
 3. Created my Gruntfile.js.
 4. Run `npm install`.
@@ -106,7 +106,7 @@ watch: {
 }
 ```
 
-## 2. Work on site
+## 2. Normalize Layout
 
 ### 2.1 Starting the http-server
 I then fired up the server to look at the site in its current state.
@@ -115,7 +115,7 @@ I then fired up the server to look at the site in its current state.
 http-server . -p 8000
 ```
 
-### 2.2 Viewing the original site
+### 2.2 View original site
 Here are some screen grabs of the site without as it looked "out-of-the-box".
 
 #### BEFORE
@@ -161,7 +161,7 @@ Here are the steps I applies
     - Restaurant list
 6. Went back and set `width: 100%` so elements would fill available space.
 
-### 2.4 Viewing updated flow layout
+### 2.4 View new flow layout
 
 #### AFTER HTML & CSS UPDATES
 [![Homepage map with flow layout](assets/images/5-small.jpg)](assets/images/5.jpg)
@@ -176,3 +176,32 @@ Here are the steps I applies
 [![Detail restaurant page: reviews with flow layout](assets/images/8-small.jpg)](assets/images/8.jpg)
 **Figure 8:** Detail restaurant page: reviews with flow layout
 
+## 3. Responsive Design
+### 3.1 Open DevTools
+Starting small, I created various breakpoints according to where the layout naturally needed it. Here are the steps I followed:
+
+Opened up DevTools and made the viewport somewhat small to see how it would affect the site.
+
+[![homepage: DevTools open to smallest viewport](assets/images/9-small.jpg)](assets/images/9.jpg)
+**Figure 9:** Homepage: DevTools open to smallest viewport
+
+### 3.2 Toggle Device Toolbar
+Then I toggled on the device toolbar. From here I could set various viewport widths.
+
+I was also able to see my media queries and adjust various style settings from DevTools as I stretch and shrunk the viewport.
+
+[![homepage: DevTools with device toolbar](assets/images/10-small.jpg)](assets/images/10.jpg)
+**Figure 10:** Homepage: DevTools with device toolbar
+
+### 3.2 Determine Breakpoints
+I started small and worked my was up, making sure each breakpoint transitioned smoothly to the next.
+
+Each successful change in DevTools was reflected in the stylesheet I had open in my code editor.
+
+When I was done I ended up with a site that looked great across viewport sizes.
+
+[![Homepage across multiple device display sizes](assets/images/11-small.jpg)](assets/images/11.jpg)
+**Figure 11:** Homepage across multiple device display sizes
+
+[![Detail page across multiple device display sizes](assets/images/12-small.jpg)](assets/images/12.jpg)
+**Figure 12:** Detail page across multiple device display sizes
