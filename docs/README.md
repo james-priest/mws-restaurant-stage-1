@@ -205,3 +205,153 @@ When I was done I ended up with a site that looked great across viewport sizes.
 
 [![Detail page across multiple device display sizes](assets/images/12-small.jpg)](assets/images/12.jpg)
 **Figure 12:** Detail page across multiple device display sizes
+
+## 4. Responsive Images
+### 4.1 Determine image sizes
+The first step was to go through my now wonderfully responsive site and determine the various sizes I need to target for each image at various viewport sizes.
+
+[![Homepage with image selected](assets/images/13-small.jpg)](assets/images/13.jpg)
+**Figure 13:** Homepage with image selected
+
+I settled on the following.
+
+- 300px
+- 400px
+- 600px (2x device pixel density)
+- 800px (2x dpp)
+
+Currently all images are sized at 800x600 pixels.
+
+### 4.2 Setup Grunt
+Next I had to set Grunt up to do the responsive image compression.
+
+Here's the important part of the Gruntfile.js config I created.
+
+```js
+      responsive_images: {
+        dev: {
+          options: {
+            engine: 'gm',
+            sizes: [
+              {
+                width: 300,
+                quality: 60
+              },
+              {
+                width: 400,
+                quality: 60
+              },
+              {
+                width: 600,
+                quality: 60,
+                suffix: '_2x'
+              },
+              {
+                width: 800,
+                quality: 60,
+                suffix: '_2x'
+              }
+            ]
+          },
+          files: [{
+            expand: true,
+            cwd: 'img_src/',
+            src: ['*.{gif,jpg,png}'],
+            dest: 'img/'
+          }]
+        }
+      }
+```
+
+Given '1.jpg', this creates the following set of compressions for each image:
+
+- 1-300.jpg
+- 1-400.jpg
+- 1-600_2x.jpg
+- 1-800_2x.jpg
+
+### 4.3 Update the data
+The next step was to update the data. In this case, the restaurants.json file. It contains all the relevant restaurant data. I added in `srcset` info for each restaurant image.
+
+```json
+ "restaurants": [{
+    "id": 1,
+    "name": "Mission Chinese Food",
+    "neighborhood": "Manhattan",
+    "photograph": "1-300.jpg",
+    "srcset_index": "img/1-300.jpg 1x, img/1-600_2x.jpg 2x",
+    "srcset_restaurant": "img/1-300.jpg 300w, img/1-400.jpg 400w,
+                          img/1-600_2x.jpg 600w, img/1-800_2x.jpg 800w",
+    "address": "171 E Broadway, New York, NY 10002",
+    "latlng": {
+      "lat": 40.713829,
+      "lng": -73.989667
+    },
+```
+
+Here I chose to use Pixel Density Descriptor (1x, 2x, 3x) syntax for the index page's srcset and image size for the restaurant detail page srcset.
+
+### 4.4 Update the code
+The next step was to update the code so that it pulled the data from the database (json) and used it to properly update the html output.
+
+DB Helper.js has helper methods to format the data. Currently we are not formatting the return data but it's wrapped in template literals in order to allow this in the future.
+
+dbhelper.js
+
+```js
+ /**
+   * Index image Srcset.
+   */
+  static imageSrcsetForIndex(restaurant) {
+    return (`${restaurant.srcset_index}`);
+  }
+
+  /**
+   * Restaurant image Srcset.
+   */
+  static imageSrcsetForRestaurant(restaurant) {
+    return (`${restaurant.srcset_restaurant}`);
+  }
+```
+
+restaurant_info.js
+
+```js
+// detail page
+fillRestaurantHTML = (restaurant = self.restaurant) => {
+  const name = document.getElementById('restaurant-name');
+  name.innerHTML = restaurant.name;
+
+  const address = document.getElementById('restaurant-address');
+  address.innerHTML = restaurant.address;
+
+  const image = document.getElementById('restaurant-img');
+  image.className = 'restaurant-img'
+  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.srcset = DBHelper.imageSrcsetForRestaurant(restaurant);
+  image.sizes = "(max-width: 320px) 300px, (max-width: 425px) 400px,
+                 (max-width: 635px) 600px, (min-width: 636px) 400px";
+  ...
+}
+```
+
+main.js
+
+```js
+// index page
+createRestaurantHTML = (restaurant) => {
+  const li = document.createElement('li');
+
+  const image = document.createElement('img');
+  image.className = 'restaurant-img';
+  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.srcset = DBHelper.imageSrcsetForIndex(restaurant);
+  image.sizes = "300px";
+```
+
+Here I could have pulled the sizes data from the json file but since this data won't be changing from image to image, I decided to just hard code it here.
+
+The final result is shown here.
+
+[![Homepage with image srcset & sizes attributes](assets/images/14-small.jpg)](assets/images/14.jpg)
+**Figure 14:** Homepage with image srcset & sizes attributes
