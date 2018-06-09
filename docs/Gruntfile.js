@@ -1,4 +1,4 @@
-// This uses a src/ dir for originals and makes both a high and low res version
+// This uses a src/images/ dir for originals and makes both a high and low res version
 module.exports = function (grunt) {
   grunt.initConfig({
     clean: {
@@ -42,6 +42,5 @@ module.exports = function (grunt) {
 
   grunt.registerTask('all', ['clean', 'responsive_images']);
   
-  // grunt.registerTask('default', ['copy', 'responsive_images']);
   grunt.registerTask('default', ['responsive_images', 'watch']);
 };
