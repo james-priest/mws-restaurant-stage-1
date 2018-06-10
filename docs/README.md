@@ -409,7 +409,7 @@ a:hover, a:focus {
 }
 ```
 
-### 5.3 Look & Feel
+### 5.3 Better affordance
 Some of the other style changes I made were cosmetic but these helped to create a better looking layout which added to the overall affordance and usability.
 
 This includes:
@@ -442,7 +442,7 @@ The changes to the links consisted of the following:
 [![Updated link treatment](assets/images/18-small.jpg)](assets/images/18.jpg)
 **Figure 18:** Updated link treatment
 
-### 5.4 Usability
+### 5.4 Better usability
 The changes that were about usability consisted of updating the cursor to a pointer when it hovered over a button and also setting a hover color.
 
 [![Updated button treatment](assets/images/19-small.jpg)](assets/images/19.jpg)
@@ -465,3 +465,13 @@ The css changes were:
   cursor: pointer;
 }
 ```
+
+### 5.5 Updated look and feel
+The site now has a new look and feel across multiple viewports and devices.
+
+[![New homepage treatment](assets/images/20-small.jpg)](assets/images/20.jpg)
+**Figure 20:** New homepage treatment
+
+Here's the details page
+[![New restaurant page treatment](assets/images/21-small.jpg)](assets/images/21.jpg)
+**Figure 21:** New restaurant page treatment
