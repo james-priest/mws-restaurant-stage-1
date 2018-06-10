@@ -475,3 +475,31 @@ The site now has a new look and feel across multiple viewports and devices.
 Here's the details page
 [![New restaurant page treatment](assets/images/21-small.jpg)](assets/images/21.jpg)
 **Figure 21:** New restaurant page treatment
+
+## 6. Service Worker
+### 6.1 Register SW code
+The first step was to register the Service Worker. I did this by creating 'register_sw.js' with the following code.
+
+```js
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register('sw.js')
+  .then(registration => {
+    console.log(`Registration successful, scope is ${registration.scope}`);
+  }).catch(error => {
+    console.log(`Service worker registration failed, error: ${error}`);
+  });
+}
+```
+
+Then the script must be included on every page. In this case, 'index.html' and 'restaurant.html'
+
+```html
+  <script src="js/dbhelper.js"></script>
+  <script src="js/register_sw.js"></script> <!-- new -->
+  <script src="js/main.js"></script>
+```
+
+this is the result when I open the page in the browser with DevTools open.
+
+[![Chrome DevTools showing successful service worker registration](assets/images/22-small.jpg)](assets/images/22.jpg)
+**Figure 22:** Chrome DevTools showing successful service worker registration
