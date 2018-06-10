@@ -56,10 +56,9 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   address.innerHTML = restaurant.address;
 
   const image = document.getElementById('restaurant-img');
-  image.className = 'restaurant-img'
+  image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
   image.srcset = DBHelper.imageSrcsetForRestaurant(restaurant);
-  // image.sizes = "(max-width: 320px) 300px, (max-width: 425px) 400px, (min-width: 426px) 400px";
   image.sizes = "(max-width: 320px) 300px, (max-width: 425px) 400px, (max-width: 635px) 600px, (min-width: 636px) 400px";
   const altText = restaurant.name + ' restaurant in ' + restaurant.neighborhood;
   image.title = altText;
@@ -133,6 +132,7 @@ createReviewHTML = (review) => {
 
   const rating = document.createElement('p');
   rating.innerHTML = `Rating: ${review.rating}`;
+  rating.dataset.rating = review.rating;
   li.appendChild(rating);
 
   const comments = document.createElement('p');
