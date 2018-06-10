@@ -355,3 +355,113 @@ The final result is shown here.
 
 [![Homepage with image srcset & sizes attributes](assets/images/14-small.jpg)](assets/images/14.jpg)
 **Figure 14:** Homepage with image srcset & sizes attributes
+
+## 5. Accessibility
+### 5.1 DevTools Audit
+I opened up DevTools and navigated to the Audits tab.
+
+[![DevTools Audits tab](assets/images/15-small.jpg)](assets/images/15.jpg)
+**Figure 15:** DevTools Audits tab
+
+From there you can choose to run an audit on any or all of the following:
+
+- Performance
+- Progressive Web App
+- Best Practices
+- Accessibility
+- SEO
+
+For this I deselected everything except accessibility.
+
+[![DevTools Audits selection screen](assets/images/16-small.jpg)](assets/images/16.jpg)
+**Figure 16:** DevTools Audits selection screen
+
+This returned a series of recommendations including
+
+- use of better contrast between colors
+- proper alt & title tags for images
+- title for iframe
+
+### 5.2 Better contrast
+This was very straight forward. The audit specified which elements to target. In my case, the things I needed to update were
+
+- contrast between link colors
+- contrast between footer and footer text
+
+The following style rules were updated.
+
+```css
+a {
+  /* color: orange; */
+  /* color: #d85b5b; */
+  color: #ff9292;
+  text-decoration: none;
+}
+a:hover, a:focus {
+  /* color: #3397db; */
+  color: #d85b5b;  
+  text-decoration: none;
+}
+#footer {
+  background-color: #444;
+  /* color: #aaa; */
+  color: #ccc;
+}
+```
+
+### 5.3 Look & Feel
+Some of the other style changes I made were cosmetic but these helped to create a better looking layout which added to the overall affordance and usability.
+
+This includes:
+
+- Updating the color scheme for buttons, links, and nav to use a dark burgundy.
+- Changing Link buttons to actual `<button>` controls
+- Updating links to use a subtle dotted underline for better affordance
+
+[![New look for buttons](assets/images/17-small.jpg)](assets/images/17.jpg)
+**Figure 17:** New look for buttons
+
+The changes to the links consisted of the following:
+
+```css
+#breadcrumb li a {
+  /* color: #0275d8; */
+  color: #d85b5b;
+  text-decoration: none;
+  border-bottom: 1px dotted #d85b5b;
+}
+/* Add a color on mouse-over */
+#breadcrumb li a:hover {
+  /* color: #01447e; */
+  color: #333;
+  text-decoration: underline;
+  border: none;
+}
+```
+
+[![Updated link treatment](assets/images/18-small.jpg)](assets/images/18.jpg)
+**Figure 18:** Updated link treatment
+
+### 5.4 Usability
+The changes that were about usability consisted of updating the cursor to a pointer when it hovered over a button and also setting a hover color.
+
+[![Updated button treatment](assets/images/19-small.jpg)](assets/images/19.jpg)
+**Figure 19:** Updated button treatment
+
+The css changes were:
+
+```css
+#restaurants-list li button {
+  /* background-color: orange; */
+  background-color: brown;
+  color: #fff;
+  padding: 10px 30px;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 0 20px;
+}
+#restaurants-list li button:hover {
+  color: #ff9292;
+  cursor: pointer;
+}
+```
