@@ -503,3 +503,68 @@ this is the result when I open the page in the browser with DevTools open.
 
 [![Chrome DevTools showing successful service worker registration](assets/images/22-small.jpg)](assets/images/22.jpg)
 **Figure 22:** Chrome DevTools showing successful service worker registration
+
+### 6.2 Cache assets on install
+Created the Service Worker script in the root of the application ('/sw.js'). This contained the following code for creating a cache store.
+
+```js
+const staticCacheName = 'restaurant-static-001';
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(staticCacheName)
+      .then(cache => {
+        return cache.addAll([
+          '/index.html',
+          // '/restaurant.html',
+          '/css/styles.css',
+          '/js/dbhelper.js',
+          '/js/register_sw.js',
+          '/js/main.js',
+          '/js/restaurant_info.js',
+          '/data/restaurants.json',
+          '/restaurant.html?id=1',
+          '/restaurant.html?id=2',
+          '/restaurant.html?id=3',
+          '/restaurant.html?id=4',
+          '/restaurant.html?id=5',
+          '/restaurant.html?id=6',
+          '/restaurant.html?id=7',
+          '/restaurant.html?id=8',
+          '/restaurant.html?id=9',
+          '/restaurant.html?id=10',
+        ]).catch(error => {
+          console.log('Caches open failed: ' + error);
+        });
+      })
+  );
+});
+```
+
+This opens a cache store based on the staticCacheName constant. It then takes an array of Requests or URLs, fetches them and puts the Response into the cache.
+
+I specifically listed each of the restaurant details pages to be cached by specifying the page with the appropriate querystring ('/restaurant.html?id=1').
+
+### 6.3 Serve cached assets
+This event handler intercepts are requests and either returns the cached asset or performs a fetch to get the resource from network if we don't have it in our cache.
+
+```js
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    }).catch(error => {
+      return new Response('Not connected to the internet', {
+        status: 404,
+        statusText: "Not connected to the internet"
+      });
+      console.log(error, 'no cache entry for:', event.request.url);
+    })
+  );
+});
+```
+
+Here is a screenshot of the cached site when the browser has been taken offline.
+
+[![Cached site delivered when browser is offline](assets/images/23-small.jpg)](assets/images/23.jpg)
+**Figure 23:** Cached site delivered when browser is offline
