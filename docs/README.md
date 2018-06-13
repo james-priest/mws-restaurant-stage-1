@@ -568,3 +568,153 @@ Here is a screenshot of the cached site when the browser has been taken offline.
 
 [![Cached site delivered when browser is offline](assets/images/23-small.jpg)](assets/images/23.jpg)
 **Figure 23:** Cached site delivered when browser is offline
+
+### 6.4 Generic offline image
+In order to provide responsive image capabilities, we have 4 different sized versions of each image. These are
+
+- *-300.jpg
+- *-400.jpg
+- *.600_2x.jpg
+- *.800_2x.jpg
+
+Since we can't be sure which image the browser will request (based on viewport and pixel density requirements), we can't guarantee the required image will have been in cached.
+
+In order to solve for that I've added a standard generic image which is to be served if the site if offline and the requested image is not in the cache store.
+
+The image looks like this.
+
+![Offline image](assets/images/offline_img1.png)<br>
+**Figure 24:** Offline image
+
+The changes to the code in the 'sw.js' file include:
+
+- Adding the generic image to the cache store
+- Modifying the fetch handler to serve the generic image if the app is offline and the requested image doesn't exist in cache
+
+Here's the code to add this is to cache.
+
+```js
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(staticCacheName)
+      .then(cache => {
+        return cache.addAll([
+          '/index.html',
+          '/css/styles.css',
+          '/js/dbhelper.js',
+          '/js/register_sw.js',
+          '/js/main.js',
+          '/js/restaurant_info.js',
+          '/data/restaurants.json',
+          '/restaurant.html?id=1',
+          '/restaurant.html?id=2',
+          '/restaurant.html?id=3',
+          ...                         // <-- Additional cached assets
+          '/img/offline_img1.png'     // <-- new
+        ]).catch(error => {
+          console.log('Caches open failed: ' + error);
+        });
+      })
+  );
+});
+```
+
+This is the code to serve the generic offline image if the app is offline and the reuqested image does not exist in cache.
+
+```js
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    }).catch(error => {
+      if (event.request.url.includes('.jpg')) {         // <-- new
+        return caches.match('/img/offline_img1.png');   // <-- new
+      }                                                 // <-- new
+      return new Response('Not connected to the internet', {
+        status: 404,
+        statusText: "Not connected to the internet"
+      });
+    })
+  );
+});
+
+```
+
+Here's what the site looks like when it's taken offline and the image assets don't exist in the cache store or the browser's http cache.
+
+[![Chrome showing site in Offline Mode](assets/images/24-small.jpg)](assets/images/24.jpg)
+**Figure 24:** Chrome showing site in Offline Mode
+
+## 7. Final Touches
+### 7.1 Add favicon
+This was a simple addition.
+
+I searched for a knife and fork svg image online and once I found one I it to a png with transparency.
+
+Next I added the following line to each of the HTML pages
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" sizes="32x32" href="img/icon.png">  <!-- New line here -->
+  <link rel="stylesheet" href="css/styles.css">
+  <title>Restaurant Reviews</title>
+</head>
+...
+```
+
+The Restaurant App now has a more professional look to it by displaying an branding icon in the tab bar.
+
+[![New app icon in tab bar](assets/images/25-small.jpg)](assets/images/25.jpg)
+**Figure 25:** New app icon in tab bar
+
+### 7.2 Add accessibility labels
+I added labels for each of the filter combobox controls but hid them from view.
+
+[![Filter Results section with hidden control labels](assets/images/26-small.jpg)](assets/images/26.jpg)
+**Figure 26:** Filter Results section with hidden control labels
+
+This allows a screen reader to pick up the control's name (label) rather than just listing the control type (role), control state (state) and selectable options (values).
+
+```html
+<div class="filter-options">
+  <h2>Filter Results</h2>
+  <label for="neighborhoods-select">Neighborhoods Filter</label> <!-- new -->
+  <select id="neighborhoods-select" name="neighborhoods"
+    onchange="updateRestaurants()">
+    <option value="all">All Neighborhoods</option>
+  </select>
+  <label for="cuisines-select">Cuisines Filter</label>           <!-- new -->
+  <select id="cuisines-select" name="cuisines"
+    onchange="updateRestaurants()">
+    <option value="all">All Cuisines</option>
+  </select>
+</div>
+```
+
+We want the labels to be read by the screen reader but we don't want the labels to show on the screen.
+
+Setting `display: none` or `visibility: hidden` also removes it from the screen reader.
+
+Styling the labels with a zero width and hidden overflow did the trick.
+
+```css
+.filter-options label {
+  width: 0;
+  overflow: hidden;
+}
+```
+
+Now when we navigate to the Neighborhoods Filter control, the screen reader says the following:
+> "Neighborhoods Filter." (Name/Label)<br>
+> "All Neighborhoods." (Value)<br>
+> "Combobox, one of four" (Role/State)<br>
+
+When I tab to the Cuisines Filter, I hear the following:
+> "Cuisines Filter." (Name/Label)<br>
+> "All Cuisines." (Value)<br>
+> "Combobox, one of five" (Role/State)<br>
