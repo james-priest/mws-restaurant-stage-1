@@ -1,4 +1,4 @@
-let staticCacheName = 'restaurant-static-012';
+const staticCacheName = 'restaurant-static-019';
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -25,6 +25,7 @@ self.addEventListener('install', event => {
           '/restaurant.html?id=8',
           '/restaurant.html?id=9',
           '/restaurant.html?id=10',
+          '/img/offline_img1.png'
         ]).catch(error => {
           console.log('Caches open failed: ' + error);
         });
@@ -32,8 +33,8 @@ self.addEventListener('install', event => {
   );
 });
 
-// intercept all http requests
-// return cached asset or fetch from network
+// intercept all requests
+// either return cached asset or fetch from network
 self.addEventListener('fetch', event => {
   event.respondWith(
     // new Response('Hello world', {
@@ -55,14 +56,14 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(response => {
       return response || fetch(event.request);
     }).catch(error => {
-      // if (event.request.url.includes('.jpg')) {
-        // return na image
-      // }
+      if (event.request.url.includes('.jpg')) {
+        return caches.match('/img/offline_img1.png');
+      }
+      // console.log(error, 'no cache entry for:', event.request.url);
       return new Response('Not connected to the internet', {
         status: 404,
         statusText: "Not connected to the internet"
       });
-      console.log(error, 'no cache entry for:', event.request.url);
     })
   );
 });
