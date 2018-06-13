@@ -178,6 +178,10 @@ nav h1 a {
   padding: 0 10px;
   width: 200px;
 }
+.filter-options label {
+  width: 0;
+  overflow: hidden;
+}
 
 /* ====================== Restaurant Listing ====================== */
 #restaurants-list {
@@ -300,6 +304,7 @@ nav h1 a {
   /* width: 90%; */
   width: 100%;
   max-width: 100%;
+  border: 1px solid #ccc;
 }
 #restaurant-address {
   /* font-size: 12pt; */
