@@ -645,6 +645,39 @@ Here's what the site looks like when it's taken offline and the image assets don
 [![Chrome showing site in Offline Mode](assets/images/24-small.jpg)](assets/images/24.jpg)
 **Figure 24:** Chrome showing site in Offline Mode
 
+### 6.5 Cache assets on fetch
+In order for our app to continue to explicity build up a cache of assets we must save to the
+cache store on each fetch request.
+
+Then we query the cache store on each request and serve that asset if available. If not, we do a fetch.
+
+Note: this is necessary on top of the cache on install code because install simply does a one-time cache of assets specified explicitly in the install event.
+
+```js
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request).then(fetchResponse => { // new
+        return caches.open(staticCacheName).then(cache => {           // new
+          cache.put(event.request, fetchResponse.clone());            // new
+          return fetchResponse;                                       // new
+        });                                                           // new
+      });                                                             // new
+    }).catch(error => {
+      if (event.request.url.includes('.jpg')) {
+        return caches.match('/img/fixed/offline_img1.png');
+      }
+      return new Response('Not connected to the internet', {
+        status: 404,
+        statusText: "Not connected to the internet"
+      });
+    })
+  );
+});
+```
+
+If we go offline and the generic image is served, then when we go back online we need this code in order to update the cache with the requested image that is now available. 
+
 ## 7. Final Touches
 ### 7.1 Add favicon
 This was a simple addition.
@@ -718,3 +751,39 @@ When I tab to the Cuisines Filter, I hear the following:
 > "Cuisines Filter." (Name/Label)<br>
 > "All Cuisines." (Value)<br>
 > "Combobox, one of five" (Role/State)<br>
+
+### 7.3 Increase touch target
+In order to make sure the buttons are large enough to accommodate a finger press on mobile device, the recommended minimum touch target size is 48dp.
+
+If the image is smaller than this, the recommended approach is to add the appropriate amount of padding around the image so the touch target increases without affecting image size.
+
+The recommended margin around a touch target is 32dp so pressing one touch target will not overlap to press another touch target.
+
+I achieved this by increasing the padding on each of my 'View Details' buttons to 15px from 10px.
+
+```css
+#restaurants-list li button {
+  background-color: brown;
+  color: #fff;
+  padding: 15px 30px;   /* <-- here */
+  text-align: center;
+  text-transform: uppercase;
+  margin: 0 20px;
+}
+```
+
+[![Increase touch target size on buttons](assets/images/27-small.jpg)](assets/images/27.jpg)
+**Figure 27:** Increase touch target size on buttons
+
+## 8. Audit Restaurant App
+### 8.1 Run Chrome Audit
+Once all my changes were completed I ran the Chrome audit. The ones I selected were
+
+- Performance
+- Accessibility
+- Best Practices
+
+[![Chrome Audit Results](assets/images/28-small.jpg)](assets/images/28.jpg)
+**Figure 28:** Chrome Audit Results
+
+This looked good enough for my first submission!
