@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
       clean: {
         dev: {
-          src: ['img/'],
+          src: ['img/*.jpg'],
         }
       },
       responsive_images: {
@@ -13,20 +13,20 @@ module.exports = function(grunt) {
             sizes: [
               {
                 width: 300,
-                quality: 60
+                quality: 40
               },
               {
                 width: 400,
-                quality: 60
+                quality: 40
               },
               {
                 width: 600,
-                quality: 60,
+                quality: 40,
                 suffix: '_2x'
               },
               {
                 width: 800,
-                quality: 60,
+                quality: 40,
                 suffix: '_2x'
               }
             ]
