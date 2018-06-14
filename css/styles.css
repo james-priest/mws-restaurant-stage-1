@@ -179,7 +179,10 @@ nav h1 a {
   width: 200px;
 }
 .filter-options label {
-  width: 0;
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
 }
 
@@ -220,8 +223,8 @@ nav h1 a {
   min-width: 100%;
 }
 #restaurants-list .restaurant-info {
-  margin: 0 20px 20px;
-  height: 120px;
+  margin: 0 20px;
+  height: 150px;
 }
 
 #restaurants-list li h2 {
@@ -249,7 +252,7 @@ nav h1 a {
   /* display: inline-block; */
   /* font-size: 10pt; */
   /* margin: 15px 0 0; */
-  padding: 10px 30px;
+  padding: 15px 30px;
   text-align: center;
   /* text-decoration: none; */
   text-transform: uppercase;
