@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-019';
+const staticCacheName = 'restaurant-static-034';
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -25,7 +25,7 @@ self.addEventListener('install', event => {
           '/restaurant.html?id=8',
           '/restaurant.html?id=9',
           '/restaurant.html?id=10',
-          '/img/offline_img1.png'
+          '/img/fixed/offline_img1.png'
         ]).catch(error => {
           console.log('Caches open failed: ' + error);
         });
@@ -53,11 +53,31 @@ self.addEventListener('fetch', event => {
     // }).catch(error => {
     //   return new Response('Uh-oh, that totally failed:', error);
     // })
+
+    // caches.match(event.request).then(response => {
+    //   return response || fetch(event.request);
+    // }).catch(error => {
+    //   if (event.request.url.includes('.jpg')) {
+    //     return caches.match('/img/fixed/offline_img1.png');
+    //   }
+    //   // console.log(error, 'no cache entry for:', event.request.url);
+    //   return new Response('Not connected to the internet', {
+    //     status: 404,
+    //     statusText: "Not connected to the internet"
+    //   });
+    // })
+
+    // Add cache.put to cache images on each fetch
     caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+      return response || fetch(event.request).then(fetchResponse => {
+        return caches.open(staticCacheName).then(cache => {
+          cache.put(event.request, fetchResponse.clone());
+          return fetchResponse;
+        });
+      });
     }).catch(error => {
       if (event.request.url.includes('.jpg')) {
-        return caches.match('/img/offline_img1.png');
+        return caches.match('/img/fixed/offline_img1.png');
       }
       // console.log(error, 'no cache entry for:', event.request.url);
       return new Response('Not connected to the internet', {
