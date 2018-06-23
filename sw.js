@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-034';
+const staticCacheName = 'restaurant-static-039';
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -33,40 +33,11 @@ self.addEventListener('install', event => {
   );
 });
 
+
 // intercept all requests
 // either return cached asset or fetch from network
 self.addEventListener('fetch', event => {
   event.respondWith(
-    // new Response('Hello world', {
-    //   headers: {
-    //     'content-type': 'text/html'
-    //   }
-    // })
-    // fetch('/img/1-300a.jpg').catch(error => {
-    //   console.log('it failed. error:', error);
-    // }
-    // fetch(event.request).then(response => {
-    //   if (response.status === 404) {
-    //     return new Response('Whoops, not found');
-    //   }
-    //   return response;
-    // }).catch(error => {
-    //   return new Response('Uh-oh, that totally failed:', error);
-    // })
-
-    // caches.match(event.request).then(response => {
-    //   return response || fetch(event.request);
-    // }).catch(error => {
-    //   if (event.request.url.includes('.jpg')) {
-    //     return caches.match('/img/fixed/offline_img1.png');
-    //   }
-    //   // console.log(error, 'no cache entry for:', event.request.url);
-    //   return new Response('Not connected to the internet', {
-    //     status: 404,
-    //     statusText: "Not connected to the internet"
-    //   });
-    // })
-
     // Add cache.put to cache images on each fetch
     caches.match(event.request).then(response => {
       return response || fetch(event.request).then(fetchResponse => {
@@ -79,7 +50,6 @@ self.addEventListener('fetch', event => {
       if (event.request.url.includes('.jpg')) {
         return caches.match('/img/fixed/offline_img1.png');
       }
-      // console.log(error, 'no cache entry for:', event.request.url);
       return new Response('Not connected to the internet', {
         status: 404,
         statusText: "Not connected to the internet"
