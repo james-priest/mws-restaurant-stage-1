@@ -150,6 +150,9 @@ nav h1 a {
   width: 100%;
 }
 /* ====================== Restaurant Filtering ====================== */
+#filter-list-container {
+  width: 100%;
+}
 .filter-options {
   /* width: 100%; */
   /* height: 50px; */
