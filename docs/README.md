@@ -787,3 +787,34 @@ Once all my changes were completed I ran the Chrome audit. The ones I selected w
 **Figure 28:** Chrome Audit Results
 
 This looked good enough for my first submission!
+
+## 9. Review Round 1
+### 9.1 Review results
+Here's the results of my first review:
+
+> Hi Udacian,
+>
+>Great first attempt this time :fire:
+>Your work with this project is really appreciable and the code log you made is awesome. It totally describes that you had done your project with your full efficiency :clap:
+>But you may forget to implement the `ARIA roles` in your code. They play a great role in your application. I had provided some links please check it down they would give you a fair idea of these tags :smiley:
+>
+>Excited to see your work in next submission.
+>
+>Stay learning, stay udacian
+
+The area that needed revision was Accessibility; specifically with respect to ARIA roles. The links supplied were the following:
+
+- [Using ARIA roles to make your website more accessible - InformIT](http://www.informit.com/articles/article.aspx?p=2464970)
+- [ARIA on MDN web docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)
+
+### 9.2 Code changes
+Here's a list of additions and changes.
+
+1. Removed unnecessary comments form source code
+2. Added `role="banner"` to `<header>`
+3. Added `role="main"` to `<main>`
+4. Added `role="application"` and  `aria-label="Google Map"` to `<section id="map-container">`
+5. Added `role="contentinfo"` to `<footer>`
+6. Added `role="navigation"` and `aria-label="breadcrumb"` to `<ul id="breadcrumb">`
+7. Added `aria-labelledby="restaurant-name"` to `<section id="restaurant-container">`
+8. Added `aria-label="Reviews"` to `<section id="reviews-container">`
