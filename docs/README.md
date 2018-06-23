@@ -807,6 +807,12 @@ The area that needed revision was Accessibility; specifically with respect to AR
 - [Using ARIA roles to make your website more accessible - InformIT](http://www.informit.com/articles/article.aspx?p=2464970)
 - [ARIA on MDN web docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)
 
+Additional links used
+
+- [WAI-ARIA 1.1 - 5.3.4 Landmark Roles](https://www.w3.org/TR/wai-aria-1.1/#dfn-landmark)
+- [WAI-ARIA Authoring Practices 1.1 - Breadcrumb](https://www.w3.org/TR/wai-aria-practices-1.1/#breadcrumb)
+- [WAI-ARIA Authoring Practices 1.1 - Breadcrumb Example](https://www.w3.org/TR/wai-aria-practices-1.1/examples/breadcrumb/index.html)
+
 ### 9.2 Code changes
 Here's a list of additions and changes.
 
