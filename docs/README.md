@@ -824,3 +824,8 @@ Here's a list of additions and changes.
 6. Added `role="navigation"` and `aria-label="breadcrumb"` to `<ul id="breadcrumb">`
 7. Added `aria-labelledby="restaurant-name"` to `<section id="restaurant-container">`
 8. Added `aria-label="Reviews"` to `<section id="reviews-container">`
+
+### 9.3 Submission
+Submitted updated stage 1 of Restaurant Review App.
+
+[![Updated ARIA roles](assets/images/29-small.jpg)](assets/images/29.jpg)
