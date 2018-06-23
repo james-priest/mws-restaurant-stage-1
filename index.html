@@ -11,17 +11,17 @@
 </head>
 
 <body>
-  <header>
+  <header role="banner">
     <nav>
       <h1><a href="/">Restaurant Reviews</a></h1>
     </nav>
   </header>
 
-  <main id="maincontent">
-    <section id="map-container">
+  <main id="maincontent" role="main">
+    <section id="map-container" role="application" aria-label="Google Map">
       <div id="map"></div>
     </section>
-    <section aria-labelledby="filter-label" role="region">
+    <section id="filter-list-container" aria-labelledby="filter-label" role="region">
       <div class="filter-options">
         <h2 id="filter-label">Filter Results</h2>
         <label for="neighborhoods-select">Neighborhoods Filter</label>
@@ -43,7 +43,7 @@
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8t7l62kYtqOt__4uT9ePmEMAH3aUxg7Q&libraries=places&callback=initMap"></script>
 
 
-  <footer id="footer">
+  <footer id="footer" role="contentinfo">
     Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
   </footer>
 
