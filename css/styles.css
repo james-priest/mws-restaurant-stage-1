@@ -28,7 +28,8 @@ ul, li {
 a {
 	/* color: orange; */
 	/* color: #d85b5b; */
-  color: #ff9292;
+  /* color: #ff9292; */
+  color: #ffabab;
 	text-decoration: none;
 }
 a:hover, a:focus {
@@ -127,7 +128,8 @@ nav h1 a {
 /* Add a color to all links inside the list */
 #breadcrumb li a {
     /* color: #0275d8; */
-    color: #d85b5b;
+    /* color: #d85b5b; */
+    color: #961515;
     text-decoration: none;
     border-bottom: 1px dotted #d85b5b;
 }
@@ -387,7 +389,8 @@ nav h1 a {
 #reviews-list li p:nth-of-type(3) {
   clear: both;
   /* color: #d85b5b; */
-  color: #0ca50c;
+  /* color: #0ca50c; */
+    color: 008800;
   /* font-weight: bold; */
 }
 #reviews-list li p:nth-of-type(3)[data-rating="3"] {
