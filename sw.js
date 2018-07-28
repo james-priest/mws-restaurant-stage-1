@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-042';
+const staticCacheName = 'restaurant-static-054';
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
           '/js/register_sw.js',
           '/js/main.js',
           '/js/restaurant_info.js',
-          '/data/restaurants.json',
+          // '/data/restaurants.json',
           '/restaurant.html?id=1',
           '/restaurant.html?id=2',
           '/restaurant.html?id=3',

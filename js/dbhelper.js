@@ -8,14 +8,15 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const port = 8000; // Change this to your server port
-    return `http://localhost:${port}/data/restaurants.json`;
+    const port = 1337; // Change this to your server port
+    return `http://localhost:${port}/restaurants`;
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
+    /*
     let xhr = new XMLHttpRequest();
     xhr.open('GET', DBHelper.DATABASE_URL);
     xhr.onload = () => {
@@ -29,6 +30,25 @@ class DBHelper {
       }
     };
     xhr.send();
+    */
+    
+    fetch(DBHelper.DATABASE_URL)
+      .then(response => {
+        if (!response.ok) {
+          throw Error(`Request failed. Returned status of ${response.statusText}`);
+        }
+        const restaurants = response.json();
+        return restaurants;
+      })
+      .then(restaurants => callback(null, restaurants))
+      .catch(err => callback(err, null));
+    
+    /*
+    fetch(DBHelper.DATABASE_URL)
+      .then(response => response.json())
+      .then(restaurants => callback(null, restaurants))
+      .catch(err => callback(err, null));
+    */
   }
 
   /**
@@ -150,21 +170,28 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    // return (`/img/${restaurant.photograph}`);
+    return (`/img/${restaurant.id}-300.jpg`);
   }
 
   /**
    * Index image Srcset.
    */
   static imageSrcsetForIndex(restaurant) {
-    return (`${restaurant.srcset_index}`);
+    // return (`${restaurant.srcset_index}`);
+    return (`/img/${restaurant.id}-300.jpg 1x,
+            /img/${restaurant.id}-600_2x.jpg 2x`);
   }
 
   /**
    * Restaurant image Srcset.
    */
   static imageSrcsetForRestaurant(restaurant) {
-    return (`${restaurant.srcset_restaurant}`);
+    // return (`${restaurant.srcset_restaurant}`);
+    return (`/img/${restaurant.id}-300.jpg 300w,
+            /img/${restaurant.id}-400.jpg 400w,
+            /img/${restaurant.id}-600_2x.jpg 600w,
+            /img/${restaurant.id}-800_2x.jpg 800w`);
   }
 
   /**
@@ -180,5 +207,4 @@ class DBHelper {
     );
     return marker;
   }
-
 }
