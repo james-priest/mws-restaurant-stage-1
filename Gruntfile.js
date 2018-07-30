@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
       clean: {
         dev: {
-          src: ['img/*.jpg'],
+          src: ['dest/img/*.jpg'],
         }
       },
       responsive_images: {
@@ -33,9 +33,9 @@ module.exports = function(grunt) {
           },
           files: [{
             expand: true,
-            cwd: 'img_src/',
+            cwd: 'app/img/',
             src: ['*.{gif,jpg,png}'],
-            dest: 'img/'
+            dest: 'dist/img/'
           }]
         }
       }
