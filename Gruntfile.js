@@ -9,11 +9,24 @@ module.exports = function(grunt) {
     copy: {
       dev: {
         files: [
-          { expand: true, cwd: 'app/', src: ['*.html', 'sw.js'], dest: 'dist/'},
+          { expand: true, cwd: 'app/', src: ['sw.js'], dest: 'dist/'},
           { expand: true, cwd: 'app/', src: ['css/*'], dest: 'dist/' },
           { expand: true, cwd: 'app/', src: ['js/*'], dest: 'dist/'},
           { expand: true, cwd: 'app/', src: ['img/fixed/*'], dest: 'dist/' }
         ]
+      }
+    },
+    'string-replace': {
+      dist: {
+        files: [{
+          expand: true, cwd: 'app/', src: ['*.html'], dest: 'dist/'
+        }],
+        options: {
+          replacements: [{
+            pattern: '<API_KEY_HERE>',
+            replacement: '<%= grunt.file.read("GM_API_KEY") %>'
+          }]
+        }
       }
     },
     responsive_images: {
@@ -53,8 +66,9 @@ module.exports = function(grunt) {
     
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-string-replace');
   grunt.loadNpmTasks('grunt-responsive-images');
   
-  grunt.registerTask('default', ['clean', 'copy', 'responsive_images']);
-  };
+  grunt.registerTask('default', ['clean', 'copy', 'string-replace', 'responsive_images']);
+};
   

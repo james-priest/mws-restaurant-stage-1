@@ -411,3 +411,6 @@ typings/
 # build & dist directories
 build/
 dist/
+
+# Google Maps API key
+GM_API_KEY
