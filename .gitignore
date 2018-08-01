@@ -408,9 +408,10 @@ typings/
 # next.js build output
 .next
 
-# build & dist directories
+# build, dist, & tmp directories
 build/
 dist/
+tmp/
 
 # Google Maps API key
 GM_API_KEY
