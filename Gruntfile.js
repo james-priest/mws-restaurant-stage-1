@@ -69,6 +69,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-string-replace');
   grunt.loadNpmTasks('grunt-responsive-images');
   
+  grunt.registerTask('quick', ['copy', 'string-replace']);
+
   grunt.registerTask('default', ['clean', 'copy', 'string-replace', 'responsive_images']);
 };
   
