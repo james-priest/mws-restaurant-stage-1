@@ -125,14 +125,18 @@ The advantage of an app like this is
 1. You don't need to write complex code in the console to make it work. Just submit your fetch string as the request
 2. The response is color coded and easier to read than browser output.
 
-## 3. Build Environment Prep
+## 3. Change Folder structure
+This was done to prep my code so it would fit into a more traditional build process.
+
+This is one in which source files from one directory are transformed and copied to a working or distribution directory.
+
 ### 3.1 Organization Benefits
 The next step I took was to organize my code into a build folder structure. This does the following.
 
 - Cleans the clutter out of the project root
-- Sets a source location to use as part of my build process (`/src/` or `app/`)
-- Allows me to set a `tmp/` folder where code will be copied after it's processed
-- Allows me to set a `dist/` folder for minified code.
+- Sets the folder where my source code goes to use as part of my build process (`/src/` or `app/`)
+- Allows me to set a `tmp/` folder where code will be copied and served by a dev server after it's processed
+- Allows me to set a `dist/` folder for minified code
 
 ### 3.2 New Folder Structure
 I decided to put all source files into an `app/` folder. From there I can have my Grunt or Gulp tasks process those files and place the transpiled and minified code into a `dist/` folder.
@@ -140,8 +144,159 @@ I decided to put all source files into an `app/` folder. From there I can have m
 [![New Folder Structure](assets/images/2-5-small.jpg)](assets/images/2-5.jpg)
 **Figure 5:** New Folder Structure
 
-<!--
+### 3.3 Update .gitignore
+Along with the folder structure changes, I made an update to my `.gitignore` file.
+
+```bash
+# build, dist, & tmp directories
+build/
+dist/
+tmp/
+```
+
+This prevents build or output folders from being copied to GitHub which is unnecessary since those folders (and files) will be created when the build tasks are run.
+
 ## 4. Fix Grunt Tasks
+Changing the folder structure broke my old Grunt tasks. I wanted to fix that before moving on to Gulp.
+
+### 4.1 Original Build
+In Stage 1, Grunt was designed to only to create a set of responsive images. This consisted of the following tasks:
+
+- `clean` - Delete everything from the `img/` directory
+- `responsive_images` - Take each image in `img_src/`, process at different resolutions (300, 400, 600, 800), and save to `img/` folder.
+
+### 4.2 Copy Task
+Since the files will be served from a new folder, I had to copy all non-processed files to the `dist/` folder.
+
+This required a `copy` task to move css, js, & unprocessed image files.
+
+```js
+copy: {
+  dev: {
+    files: [
+      { expand: true, cwd: 'app/', src: ['sw.js'], dest: 'dist/'},
+      { expand: true, cwd: 'app/', src: ['css/*'], dest: 'dist/' },
+      { expand: true, cwd: 'app/', src: ['js/*'], dest: 'dist/'},
+      { expand: true, cwd: 'app/', src: ['img/fixed/*'], dest: 'dist/' }
+    ]
+  }
+},
+```
+
+### 4.3 String Replace Task
+Next, I moved my Google Maps API key out of my HTML files so it won't be visible, stolen, or used by someone else browsing my source code on GitHub.
+
+I moved it to a file named `GM_API_KEY` and placed that file at the project root. I also updated `.gitignore` with this filename so it wouldn't be copied to GitHub.
+
+```bash
+# Google Maps API key
+GM_API_KEY
+```
+
+Next, I added this task
+
+```js
+'string-replace': {
+  dist: {
+    files: [{
+      expand: true, cwd: 'app/', src: ['*.html'], dest: 'dist/'
+    }],
+    options: {
+      replacements: [{
+        pattern: '<API_KEY_HERE>',
+        replacement: '<%= grunt.file.read("GM_API_KEY") %>'
+      }]
+    }
+  }
+},
+```
+
+It looks in the `app/` folder for any HTML files and replaces `<API_KEY_HERE>` with the actual key value and then copies that to the `dist/` folder.
+
+### 4.4 Final Gruntfile
+The last steps were to update the existing `clean` and `responsive-images` tasks to use the new directory structure.
+
+Here's the final `Gruntfile.js` configuration.
+
+```js
+module.exports = function(grunt) {
+
+  grunt.initConfig({
+    clean: {
+      dev: {
+        src: ['dist/*'],
+      }
+    },
+    copy: {
+      dev: {
+        files: [
+          { expand: true, cwd: 'app/', src: ['sw.js'], dest: 'dist/'},
+          { expand: true, cwd: 'app/', src: ['css/*'], dest: 'dist/' },
+          { expand: true, cwd: 'app/', src: ['js/*'], dest: 'dist/'},
+          { expand: true, cwd: 'app/', src: ['img/fixed/*'], dest: 'dist/' }
+        ]
+      }
+    },
+    'string-replace': {
+      dist: {
+        files: [{
+          expand: true, cwd: 'app/', src: ['*.html'], dest: 'dist/'
+        }],
+        options: {
+          replacements: [{
+            pattern: '<API_KEY_HERE>',
+            replacement: '<%= grunt.file.read("GM_API_KEY") %>'
+          }]
+        }
+      }
+    },
+    responsive_images: {
+      dev: {
+        options: {
+          engine: 'gm',
+          sizes: [
+            {
+              width: 300,
+              quality: 40
+            },
+            {
+              width: 400,
+              quality: 40
+            },
+            {
+              width: 600,
+              quality: 40,
+              suffix: '_2x'
+            },
+            {
+              width: 800,
+              quality: 40,
+              suffix: '_2x'
+            }
+          ]
+        },
+        files: [{
+          expand: true,
+          cwd: 'app/img/',
+          src: ['*.{gif,jpg,png}'],
+          dest: 'dist/img/'
+        }]
+      }
+    }
+  });
+
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-string-replace');
+  grunt.loadNpmTasks('grunt-responsive-images');
+  
+  grunt.registerTask('quick', ['copy', 'string-replace']);
+
+  grunt.registerTask('default', ['clean', 'copy', 'string-replace', 
+    'responsive_images']);
+};
+  
+```
 
 ## 5. Gulp Tasks
 ### 5.1 Gulp Prep
@@ -150,4 +305,4 @@ I decided to put all source files into an `app/` folder. From there I can have m
 ### 5.3 Transpile & Bundle
 
 ### 5.4 Responsive Images
-  -->
+ 
