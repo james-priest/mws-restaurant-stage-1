@@ -1,3 +1,5 @@
+/* exported DBHelper */
+
 /**
  * Common database helper functions.
  */
@@ -111,7 +113,7 @@ class DBHelper {
       if (error) {
         callback(error, null);
       } else {
-        let results = restaurants
+        let results = restaurants;
         if (cuisine != 'all') { // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
@@ -133,9 +135,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all neighborhoods from all restaurants
-        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood)
+        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
         // Remove duplicates from neighborhoods
-        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i)
+        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
         callback(null, uniqueNeighborhoods);
       }
     });
@@ -151,9 +153,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all cuisines from all restaurants
-        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type)
+        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
         // Remove duplicates from cuisines
-        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i)
+        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) === i);
         callback(null, uniqueCuisines);
       }
     });
@@ -179,8 +181,7 @@ class DBHelper {
    */
   static imageSrcsetForIndex(restaurant) {
     // return (`${restaurant.srcset_index}`);
-    return (`/img/${restaurant.id}-300.jpg 1x,
-            /img/${restaurant.id}-600_2x.jpg 2x`);
+    return (`/img/${restaurant.id}-300.jpg 1x, /img/${restaurant.id}-600_2x.jpg 2x`);
   }
 
   /**
@@ -188,10 +189,7 @@ class DBHelper {
    */
   static imageSrcsetForRestaurant(restaurant) {
     // return (`${restaurant.srcset_restaurant}`);
-    return (`/img/${restaurant.id}-300.jpg 300w,
-            /img/${restaurant.id}-400.jpg 400w,
-            /img/${restaurant.id}-600_2x.jpg 600w,
-            /img/${restaurant.id}-800_2x.jpg 800w`);
+    return (`/img/${restaurant.id}-300.jpg 300w, /img/${restaurant.id}-400.jpg 400w, /img/${restaurant.id}-600_2x.jpg 600w, /img/${restaurant.id}-800_2x.jpg 800w`);
   }
 
   /**
