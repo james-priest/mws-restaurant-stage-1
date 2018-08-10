@@ -43,12 +43,12 @@ var paths = {
 
 // gulp.task('default', ['clean','copy', 'lint', 'js', 'sw'], function () {
 gulp.task('default', ['copy', 'lint', 'js', 'sw'], function () {
-  
+
   // browserSync.init({
   //   server: paths.tmp,
   //   port: 8000
   // });
-  
+
   // gulp.watch(paths.srcJS, ['js-watch']);
 });
 
@@ -69,11 +69,11 @@ gulp.task('watch', function () {
     server: paths.tmp,
     port: 8000
   });
-  
+
   gulp.watch(paths.srcJS, ['js-watch']);
 });
 
-// build & watch 
+// build & watch
 gulp.task('watch-all', ['copy', 'lint', 'js', 'sw', 'watch']);
 
 // create a task that ensures the `js` task is complete before reloading browsers
