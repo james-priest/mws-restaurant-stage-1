@@ -5,7 +5,7 @@ description: Code Notes by James Priest
 <!-- markdownlint-disable MD022 MD032 -->
 # Code Notes
 
-[<-- back to Restaurant Review Code Notes homepage](../index.html)
+[<-- back to Restaurant Review Code Notes homepage](index.html)
 
 ---
 

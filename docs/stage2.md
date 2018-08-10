@@ -5,7 +5,7 @@ description: Code Notes by James Priest
 <!-- markdownlint-disable MD022 MD032 -->
 # Code Notes
 
-[<-- back to Restaurant Review Code Notes homepage](../index.html)
+[<-- back to Restaurant Review Code Notes homepage](index.html)
 
 ---
 
@@ -298,6 +298,7 @@ module.exports = function(grunt) {
   
 ```
 
+<!-- 
 ## 5. Gulp Tasks
 ### 5.1 Gulp Prep
 ### 5.2 Basic config
@@ -305,4 +306,4 @@ module.exports = function(grunt) {
 ### 5.3 Transpile & Bundle
 
 ### 5.4 Responsive Images
- 
+  -->
