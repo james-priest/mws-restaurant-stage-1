@@ -10,10 +10,12 @@ description: Code Notes by James Priest
 ---
 
 These notes chronicle the following:
-- Administrative prep & set-up
+- Creating a build process for these notes (Prep)
+- Normalizing the layout
 - Making the Restaurant Review App fully responsive
-- Writing code required to meet that objective
-- Making any other additions necessary to meet the [project specifications](https://review.udacity.com/#!/rubrics/1090/view)
+- Making the Restaurant Review App fully accessible
+- Implementing offline caching using a Service Worker and the Cache API
+- Project submission
 
 ## 1. Prep
 ### 1.1 Local Setup
