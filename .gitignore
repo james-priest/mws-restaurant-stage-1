@@ -412,6 +412,8 @@ typings/
 build/
 dist/
 tmp/
+tmp1/
+tmp2/
 
 # Google Maps API key
 GM_API_KEY
