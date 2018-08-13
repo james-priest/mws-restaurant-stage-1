@@ -6,22 +6,24 @@ var browserSync = require('browser-sync').create();
 // var clean_css = require('gulp-clean-css');
 var autoprefixer = require('gulp-autoprefixer');
 
-var babelify = require('babelify');
 var browserify = require('browserify');
+var babelify = require('babelify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
-// var concat = require('gulp-concat');
+var concat = require('gulp-concat');
 // var sourcemaps = require('gulp-sourcemaps');
-// var uglify = require('gulp-uglify');
-var uglify = require('gulp-uglify-es').default;
+// var uglify = require('gulp-uglify'); // ES5 only
+var uglify = require('gulp-uglify-es').default; // ES6
 var size = require('gulp-size');
-var babel = require('gulp-babel'); // probably don't need
+var babel = require('gulp-babel');
+var eslint = require('gulp-eslint');
+var useref = require('gulp-useref');
+var gIf = require('gulp-if');
 
 var fs = require('fs');
 var replace = require('gulp-string-replace');
 var responsive = require('gulp-responsive');
 
-var eslint = require('gulp-eslint');
 
 var paths = {
   src: 'app/**/*',
@@ -41,30 +43,48 @@ var paths = {
   distJS: 'dist/**/*.js'
 };
 
+// build
 // gulp.task('default', ['clean','copy', 'lint', 'js', 'sw'], function () {
-gulp.task('default', ['copy', 'lint', 'js', 'sw'], function () {
+gulp.task('default', ['copy', 'lint', 'js', 'sw']);
 
-  // browserSync.init({
-  //   server: paths.tmp,
-  //   port: 8000
-  // });
-
-  // gulp.watch(paths.srcJS, ['js-watch']);
+/* 
+gulp.task('useref', function(){
+  return gulp.src('app/*.html')
+    .pipe(useref())
+    // Minifies only if it's a JavaScript file
+    .pipe(gulpIf('*.js', uglify()))
+    .pipe(gulp.dest('dist'));
 });
+gulp.task('useref1', function(){
+  return gulp.src('app/index.html')
+    .pipe(useref())
+    // Minifies only if it's a JavaScript file
+    // .pipe(gulpIf('*.js', uglify()))
+    .pipe(gulp.dest('dist'));
+});
+gulp.task('useref2', function(){
+  return gulp.src('app/restaurant.html')
+    .pipe(useref())
+    // Minifies only if it's a JavaScript file
+    // .pipe(gulpIf('*.js', uglify()))
+    .pipe(gulp.dest('dist'));
+});
+ */
 
+// used for testing js build
 var gu = require('gulp-util');
-
-gulp.task('concat', function() {
+gulp.task('concat', function () {
+  del(['tmp1/*', 'tmp2/*']);
   return gulp.src('app/**/*.js')
-    // .pipe(concat('script.js'))
+    .pipe(concat('script.min.js'))  // minified js file name
     .pipe(babel())
-    .pipe(uglify())
+    // .pipe(uglify())
     .on('error', function (err) { gu.log(gu.colors.red('[Error]'), err.toString()); })
-    .pipe(gulp.dest('./tmp2/'));
+    .pipe(gulp.dest('./tmp1/'));
 });
 
-// dev server
-gulp.task('watch', function () {
+// serve & watch
+gulp.task('serve', function () {
   browserSync.init({
     server: paths.tmp,
     port: 8000
@@ -73,11 +93,10 @@ gulp.task('watch', function () {
   gulp.watch(paths.srcJS, ['js-watch']);
 });
 
-// build & watch
-gulp.task('watch-all', ['copy', 'lint', 'js', 'sw', 'watch']);
+// build, serve, & watch
+gulp.task('serve:build', ['copy', 'lint', 'js', 'sw', 'serve']);
 
-// create a task that ensures the `js` task is complete before reloading browsers
-// gulp.task('js-watch', ['js','sw'], function (done) {
+// this task ensures the `js` task is complete before reloading browsers
 gulp.task('js-watch', ['lint', 'js', 'sw'], function (done) {
   browserSync.reload();
   done();
@@ -88,7 +107,15 @@ gulp.task('clean', function () {
   del(['tmp/*', 'dist/*']); // del files rather than dirs to avoid error
 });
 
-// Copy HTML
+
+// gulp.task('useref', function(){
+//   return gulp.src('app/*.html')
+//     .pipe(useref())
+//     // Minifies only if it's a JavaScript file
+//     .pipe(gulpIf('*.js', uglify()))
+//     .pipe(gulp.dest('dist'));
+// });
+// HTML
 gulp.task('html', function () {
   var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
 
@@ -96,30 +123,30 @@ gulp.task('html', function () {
     .pipe(replace('<API_KEY_HERE>', apiKey))
     .pipe(gulp.dest(paths.tmp));
 });
-// Copy CSS
+// CSS
 gulp.task('css', function () {
   return gulp.src(paths.srcCSS)
     .pipe(gulp.dest(paths.tmp));
 });
-// Copy JS
+// JS
 gulp.task('js', function () {
   return gulp.src(paths.srcJS)
     .pipe(babel())
-    // .pipe(uglify())
-    .pipe(size())
+    .pipe(uglify())
+    .pipe(size({title: 'scripts'}))
     .pipe(gulp.dest(paths.tmp));
 });
 // Service Worker
 gulp.task('sw', function () {
-  var bundler = browserify('./app/sw.js');
+  var bundler = browserify('./app/sw.js'); // ['1.js', '2.js']
 
   return bundler
-    .transform('babelify')
-    .bundle()
-    .pipe(source('sw.js'))
-    .pipe(buffer())
-    // .pipe(uglify())
-    .pipe(size())
+    .transform(babelify)    // required for ES6 'import' syntax
+    .bundle()               // combine code
+    .pipe(source('sw.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugin
+    .pipe(uglify())      // condense & minify
+    .pipe(size({title: 'sw'}))           // outputs file size to console
     .pipe(gulp.dest(paths.tmp));
 });
 
