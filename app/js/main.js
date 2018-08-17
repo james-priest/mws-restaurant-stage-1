@@ -1,8 +1,8 @@
-let restaurants,
-  neighborhoods,
-  cuisines;
-var map;
-var markers = [];
+let restaurants,  // eslint-disable-line no-unused-vars 
+  neighborhoods,  // eslint-disable-line no-unused-vars 
+  cuisines; // eslint-disable-line no-unused-vars 
+var map;  // eslint-disable-line no-unused-vars 
+var markers = []; // eslint-disable-line no-unused-vars 
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchNeighborhoods();
   fetchCuisines();
 });
+
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -81,11 +82,32 @@ window.initMap = () => {
     center: loc,
     scrollwheel: false
   });
+  // map.controls.prototype.alt = 'img';
   updateRestaurants();
   // this helps accessibility test pass
   google.maps.event.addListenerOnce(self.map, 'idle', () => {
     document.getElementsByTagName('iframe')[0].title = 'Google Maps';
   });
+  // add alt tags to maps images
+  // // google.maps.event.addListener(self.map, 'domready', function() { // none
+  // // google.maps.event.addListener(self.map, 'idle', function() { // only 1
+  // google.maps.event.addListener(self.map, 'tilesloaded', function () { // 26 should be 48
+  //   // there is no map event that fires after controls loaded. only way is to poll
+  //   var images = window.parent.document.querySelectorAll('#map img');
+  //   // console.log(images.length);
+  //   var count = 0;
+  //   images.forEach(function (image) {
+  //     if (image.src === 'https://maps.gstatic.com/mapfiles/api-3/images/google4.png') {
+  //       console.log('Got Google!');
+  //     }
+  //     if (!image.alt) {
+  //       console.log(image.nodeName, image.src, image.alt);
+  //       image.alt = '';
+  //       count += 1;
+  //       console.log(count);
+  //     }
+  //   });
+  // });
 };
 
 /**

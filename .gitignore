@@ -414,6 +414,7 @@ dist/
 tmp/
 tmp1/
 tmp2/
+.tmp
 
 # Google Maps API key
 GM_API_KEY

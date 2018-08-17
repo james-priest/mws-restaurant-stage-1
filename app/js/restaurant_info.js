@@ -1,5 +1,5 @@
-let restaurant;
-var map;
+let restaurant; // eslint-disable-line no-unused-vars 
+var map;  // eslint-disable-line no-unused-vars 
 
 /**
  * Initialize Google map, called from HTML.
@@ -30,7 +30,7 @@ const fetchRestaurantFromURL = (callback) => {
   }
   const id = getParameterByName('id');
   if (!id) { // no id found in URL
-    error = 'No restaurant id in URL';
+    const error = 'No restaurant id in URL';
     callback(error, null);
   } else {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
@@ -158,7 +158,8 @@ const fillBreadcrumb = (restaurant = self.restaurant) => {
 const getParameterByName = (name, url) => {
   if (!url)
     url = window.location.href;
-  name = name.replace(/[\[\]]/g, '\\$&');
+  // name = name.replace(/[\[\]]/g, '\\$&');
+  name = name.replace(/[[\]]/g, '\\$&');
   const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
     results = regex.exec(url);
   if (!results)

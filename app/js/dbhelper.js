@@ -1,9 +1,7 @@
-/* exported DBHelper */
-
 /**
  * Common database helper functions.
  */
-class DBHelper {
+class DBHelper {  // eslint-disable-line no-unused-vars 
 
   /**
    * Database URL.
