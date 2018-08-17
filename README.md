@@ -1,5 +1,57 @@
 # Mobile Web Specialist Certification Course
+
 ---
+> **NOTE:** These are updated README instructions.
+---
+
+## Restaurant App Stage 2 - client app
+
+Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 includes a build system that will automatically serve  the optimized site.
+
+Two things must happen to run this project:
+
+1. Create a file containing a valid Google Maps API key
+2. Run the build system which will serve the optimized site
+
+### Google API Key
+
+A file named `GM_API_KEY` needs to be created in the root folder (`\`) with a valid Google Maps API key.
+
+### Serve optimized site
+
+Run the following command to build & serve the optimized site.
+
+```bash
+grunt serve:dist
+```
+
+This will start the server at `http://localhost:8000`.
+
+### Build System
+If you want to develop you can use the following commands.
+
+#### Start the dev server
+
+```bash
+grunt serve
+```
+
+This will start the server at `http://localhost:8001`.
+
+Changes can be made to the files in the `app/` directory. The browser will reload the changes on each file save.
+
+#### Build & Optimize
+
+```bash
+grunt
+```
+
+This will build and optimize the project ready for deployment. It will output to the `dist/` folder
+
+---
+> **NOTE:** The original README notes are below this line
+---
+
 #### _Three Stage Course Material Project - Restaurant Reviews_
 
 ## Project Overview: Stage 1
