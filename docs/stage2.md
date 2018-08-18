@@ -631,7 +631,7 @@ gulp
 I then get the following output.
 
 [![Gulp Build](assets/images/2-7-small.jpg)](assets/images/2-7.jpg)
-**Figure 6:** Gulp Build
+**Figure 7:** Gulp Build
 
 This shows me two things.
 
@@ -773,5 +773,114 @@ gulp.task('fixed-images', function () {
 When the task is run it produces the following output.
 
 [![Responsive Images Task](assets/images/2-8-small.jpg)](assets/images/2-8.jpg)
-**Figure 6:** Responsive Images Task
+**Figure 8:** Responsive Images Task
 
+### 6.7 Concat & Optimize
+The next plugin I used is called `gulp-useref` and it scans your html to determine your CSS & script files. It then concatenates & optimizes them and updates the references in your html.
+
+The HTML starts out like this:
+
+```html
+  <!-- build:css css/styles.css -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- endbuild -->
+
+  <!-- build:js js/index.min.js defer -->
+  <script src="js/dbhelper.js"></script>
+  <script src="js/register_sw.js"></script>
+  <script src="js/main.js"></script>
+  <!-- endbuild -->
+```
+
+It then concatenates & optimizes the code and produces the following html.
+
+```html
+  <link rel=stylesheet href=css/styles.css>
+
+  <script src=js/index.min.js defer></script>
+```
+
+The optimizations can include:
+
+- bundle
+- minify
+- sourcemaps
+- autoprefixing
+- sass
+- es2015 transpiling
+
+Here's the task for my dev build
+
+```js
+// Prep assets for dev
+gulp.task('html', function () {
+  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.useref())
+    .pipe($.if('*.css', $.autoprefixer()))
+    .pipe($.if('*.js', $.babel()))
+    .pipe($.if('*.html', $.htmlmin({
+      removeComments: true,
+      collapseBooleanAttributes: true,
+      removeAttributeQuotes: true,
+      removeRedundantAttributes: true,
+      removeEmptyAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeOptionalTags: true
+    })))
+
+    .pipe(gulp.dest('.tmp'));
+});
+```
+
+The task for my production build contains a few more optimizations
+
+```js
+// Scan HTML for js & css and optimize them
+gulp.task('html:dist', function () {
+  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.size({title: 'html (before)'}))
+    .pipe($.useref({},
+      lazypipe().pipe($.sourcemaps.init)
+      // lazypipe().pipe(babel) // no coz css
+      // transforms assets before concat
+    ))
+    .pipe($.if('*.css', $.size({ title: 'styles (before)' })))
+    .pipe($.if('*.css', $.cssnano()))
+    .pipe($.if('*.css', $.size({ title: 'styles (after) ' })))
+    .pipe($.if('*.css', $.autoprefixer()))
+    .pipe($.if('*.js', $.babel()))
+    .pipe($.if('*.js', $.size({title: 'scripts (before)'})))
+    .pipe($.if('*.js', $.uglifyEs.default()))
+    .pipe($.if('*.js', $.size({title: 'scripts (after) '})))
+    .pipe($.sourcemaps.write('.'))
+    .pipe($.if('*.html', $.htmlmin({
+      removeComments: true,
+      collapseWhitespace: true,
+      collapseBooleanAttributes: true,
+      removeAttributeQuotes: true,
+      removeRedundantAttributes: true,
+      minifyJS: {compress: {drop_console: true}},
+      removeEmptyAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeOptionalTags: true
+    })))
+
+    .pipe($.if('*.html', $.size({ title: 'html (after) ', showFiles: false })))
+    .pipe(gulp.dest('dist'));
+});
+```
+
+This ended up replacing my previous `styles` and `scripts` tasks since `useref` will do it all in one go.
+
+Once done I can run `gulp html` or `gulp html:dist`
+
+[![HTML, Scripts, & Styles Task](assets/images/2-9-small.jpg)](assets/images/2-9.jpg)
+**Figure 9:** HTML, Scripts, & Styles Task
