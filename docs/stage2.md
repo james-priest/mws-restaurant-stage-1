@@ -734,7 +734,44 @@ Here's a list of resources to see other examples.
 - [vinyl-source-stream](https://www.npmjs.com/package/vinyl-source-stream) (with basic example)
 - [vinyl-buffer](https://www.npmjs.com/package/vinyl-buffer) (with basic example)
 
-<!-- 
 ### 6.6 Responsive Images
+This task required transforming & optimizing each source image into four separate sized images for use in the responsive design of the site.
 
-### 6.7 Concat & Inject -->
+I used a package called `gulp-responsive` and added the following tasks
+
+```js
+// Build responsive images
+var gulp = require('gulp');
+var $ = require('gulp-load-plugins')();
+
+gulp.task('images', ['fixed-images'], function () {
+  return gulp.src('app/img/*.jpg')
+    .pipe($.responsive({
+      '*.jpg': [
+        { width: 300, rename: { suffix: '-300' }, },
+        { width: 400, rename: { suffix: '-400' }, },
+        { width: 600, rename: { suffix: '-600_2x' }, },
+        { width: 800, rename: { suffix: '-800_2x' }, }
+      ]
+    }, {
+      quality: 40,
+      progressive: true,
+      withMetadata: false,
+    }))
+    .pipe(gulp.dest('.tmp/img'))
+    .pipe(gulp.dest('dist/img'));
+});
+
+// Copy fixed images
+gulp.task('fixed-images', function () {
+  return gulp.src('app/img/fixed/**')
+    .pipe(gulp.dest('.tmp/img/fixed'))
+    .pipe(gulp.dest('dist/img/fixed'));
+});
+```
+
+When the task is run it produces the following output.
+
+[![Responsive Images Task](assets/images/2-8-small.jpg)](assets/images/2-8.jpg)
+**Figure 6:** Responsive Images Task
+
