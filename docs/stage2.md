@@ -884,3 +884,290 @@ Once done I can run `gulp html` or `gulp html:dist`
 
 [![HTML, Scripts, & Styles Task](assets/images/2-9-small.jpg)](assets/images/2-9.jpg)
 **Figure 9:** HTML, Scripts, & Styles Task
+
+### 6.8 Build & Serve
+The final part of this build system involved serving the pages and providing live reload on code changes.
+
+This was done with a plugin called `browsersync`.
+
+The other thing I did was create three main tasks. These are:
+
+- `gulp serve` - creates a development server with live reload
+
+    The scripts & stylesheets are processed and concatenated before being copied to `.tmp`. Images are processed & copied along with the html. Once there the site is served uncompressed and without optimization for quick development.
+- `gulp serve:dist` - optimizes code and create a preview for a production build
+- `gulp` - builds a production ready site without spinning up a server
+
+The code looks like this:
+
+```js
+// Watch files for changes & reload
+gulp.task('serve', function () {
+  runSequence(['clean'], ['images', 'lint', 'html', 'sw'], function() {
+    browserSync.init({
+      server: '.tmp',
+      port: 8001
+    });
+
+    gulp.watch(['app/*.html'], ['html', reload]);
+    gulp.watch(['app/css/*.css'], ['html', reload]);
+    gulp.watch(['app/js/*.js'], ['lint', 'html', reload]);
+    gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+  });
+});
+
+// Build and serve the fully optimized site
+gulp.task('serve:dist', ['default'], function () {
+  browserSync.init({
+    server: 'dist',
+    port: 8000
+  });
+
+  gulp.watch(['app/*.html'], ['html:dist', reload]);
+  gulp.watch(['app/css/*.css'], ['html:dist', reload]);
+  gulp.watch(['app/js/*.js'], ['lint', 'html:dist', reload]);
+  gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+});
+
+// Build production files, the default task
+gulp.task('default', ['clean:dist'], function (done) {
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist'], done);
+});
+```
+
+When I run either `gulp serve` I get the following output showing linting warnings, build times, & statistics.
+
+[![Gulp output](assets/images/2-11-small.jpg)](assets/images/2-11.jpg)
+**Figure 11:** Gulp output
+
+Eventually when the build is done, I get browsersync reporting the internal and external URLs available for the site.
+
+[![Browsersync Info](assets/images/2-12-small.jpg)](assets/images/2-12.jpg)
+**Figure 12:** Browsersync Info
+
+#### New Gulpfile structure
+
+Ideally, it would have been nice to be able to use either *[Yeoman's webapp generator](https://github.com/yeoman/generator-webapp)* or *[Google's Web Starter Kit](https://developers.google.com/web/tools/starter-kit/)* as an out-of-the-box build system solution, but two requirements made that not workable.
+
+1. Needed to preprocess (inject) Google Maps API key in HTML for the site to work
+2. Ability to process ES6 (import statements) as part of my build process
+
+I did use both of the projects below as reference when building out the structure of my build solution.
+
+> #### Yeoman webapp generator
+> - [gulpfile.js](https://github.com/yeoman/generator-webapp/blob/master/app/templates/gulpfile.js)
+> - [ package.json](https://github.com/yeoman/generator-webapp/blob/master/app/templates/_package.json)
+> - [GitHub Repo](https://github.com/yeoman/generator-webapp)
+>
+> #### Google Web Starter Kit
+> - [gulpfile.js](https://github.com/yeoman/generator-webapp/blob/master/app/templates/gulpfile.js)
+> - [package.json](https://github.com/google/web-starter-kit/blob/master/package.json)
+> - [Website](https://developers.google.com/web/tools/starter-kit/)
+
+It was necessary to follow this path rather than the more simplified solution I had originally started as outlined by following this article:
+
+- [How to automate all things with Gulp](https://hackernoon.com/how-to-automate-all-the-things-with-gulp-b21a3fc96885)
+
+While the article was great in giving a structure and context to each of the plugins and build tasks, it didn't quite fit the need.
+
+When all was said and done, I had close to 30 plugins in use.
+
+[![package.json](assets/images/2-10-small.jpg)](assets/images/2-10.jpg)
+**Figure 10:** package.json
+
+#### Completed gulpfile build script
+Now I can efficiently lint, bundle, transpile, concatenate, minify, autoprefix, & optimize my code on every save.
+
+This is now done automatically, and allows me to spend more time writing code.
+
+The final gulpfile.js looks like this.
+
+```js
+var gulp = require('gulp');
+var gulpLoadPlugins = require('gulp-load-plugins')
+var fs = require('fs');
+var del = require('del');
+var browserify = require('browserify');
+var babelify = require('babelify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var runSequence = require('run-sequence');
+var lazypipe = require('lazypipe');
+var browserSync = require('browser-sync').create();
+
+var $ = gulpLoadPlugins();
+var reload = browserSync.reload;
+
+// Lint JavaScript
+gulp.task('lint', function () {
+  return gulp.src(['app/**/*.js', '!node_modules/**'])
+    .pipe($.eslint())
+    .pipe($.eslint.format())
+    .pipe($.eslint.failOnError());
+});
+
+// Build responsive images
+gulp.task('images', ['fixed-images'], function () {
+  return gulp.src('app/img/*.jpg')
+    .pipe($.responsive({
+      '*.jpg': [
+        { width: 300, rename: { suffix: '-300' }, },
+        { width: 400, rename: { suffix: '-400' }, },
+        { width: 600, rename: { suffix: '-600_2x' }, },
+        { width: 800, rename: { suffix: '-800_2x' }, }
+      ]
+    }, {
+      quality: 40,
+      progressive: true,
+      withMetadata: false,
+    }))
+    .pipe(gulp.dest('.tmp/img'))
+    .pipe(gulp.dest('dist/img'));
+});
+
+// Copy fixed images
+gulp.task('fixed-images', function () {
+  return gulp.src('app/img/fixed/**')
+    .pipe(gulp.dest('.tmp/img/fixed'))
+    .pipe(gulp.dest('dist/img/fixed'));
+});
+
+// Prep assets for dev
+gulp.task('html', function () {
+  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.useref())
+    .pipe($.if('*.css', $.autoprefixer()))
+    .pipe($.if('*.js', $.babel()))
+    .pipe($.if('*.html', $.htmlmin({
+      removeComments: true,
+      collapseBooleanAttributes: true,
+      removeAttributeQuotes: true,
+      removeRedundantAttributes: true,
+      removeEmptyAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeOptionalTags: true
+    })))
+
+    .pipe(gulp.dest('.tmp'));
+});
+
+// Scan HTML for js & css and optimize them
+gulp.task('html:dist', function () {
+  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.size({title: 'html (before)'}))
+    .pipe($.useref({},
+      lazypipe().pipe($.sourcemaps.init)
+      // lazypipe().pipe(babel) // no coz css
+      // transforms assets before concat
+    ))
+    .pipe($.if('*.css', $.size({ title: 'styles (before)' })))
+    .pipe($.if('*.css', $.cssnano()))
+    .pipe($.if('*.css', $.size({ title: 'styles (after) ' })))
+    .pipe($.if('*.css', $.autoprefixer()))
+    .pipe($.if('*.js', $.babel()))
+    .pipe($.if('*.js', $.size({title: 'scripts (before)'})))
+    .pipe($.if('*.js', $.uglifyEs.default()))
+    .pipe($.if('*.js', $.size({title: 'scripts (after) '})))
+    .pipe($.sourcemaps.write('.'))
+    .pipe($.if('*.html', $.htmlmin({
+      removeComments: true,
+      collapseWhitespace: true,
+      collapseBooleanAttributes: true,
+      removeAttributeQuotes: true,
+      removeRedundantAttributes: true,
+      minifyJS: {compress: {drop_console: true}},
+      removeEmptyAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeOptionalTags: true
+    })))
+
+    .pipe($.if('*.html', $.size({ title: 'html (after) ', showFiles: false })))
+    .pipe(gulp.dest('dist'));
+});
+
+// Process Service Worker
+gulp.task('sw', function () {
+  var bundler = browserify('./app/sw.js', {debug: true}); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: true})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('sw.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp'));
+});
+
+// Optimize Service Worker
+gulp.task('sw:dist', function () {
+  var bundler = browserify('./app/sw.js', {debug: true}); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: true})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('sw.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.size({ title: 'Service Worker (before)' }))
+    .pipe($.sourcemaps.init({loadMaps: true}))
+    .pipe($.uglifyEs.default())         // minify
+    .pipe($.size({title: 'Service Worker (after) '}))
+    .pipe($.sourcemaps.write('./'))
+    .pipe(gulp.dest('dist'));
+});
+
+// Clean temp directory
+gulp.task('clean', function () {
+  return del(['.tmp/**/*']); // del files rather than dirs to avoid error
+});
+
+// Clean output directory
+gulp.task('clean:dist', function () {
+  return del(['dist/**/*']); // del files rather than dirs to avoid error
+});
+
+// Watch files for changes & reload
+gulp.task('serve', function () {
+  runSequence(['clean'], ['images', 'lint', 'html', 'sw'], function() {
+    browserSync.init({
+      server: '.tmp',
+      port: 8001
+    });
+
+    gulp.watch(['app/*.html'], ['html', reload]);
+    gulp.watch(['app/css/*.css'], ['html', reload]);
+    gulp.watch(['app/js/*.js'], ['lint', 'html', reload]);
+    gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+  });
+});
+
+// Build and serve the fully optimized site
+gulp.task('serve:dist', ['default'], function () {
+  browserSync.init({
+    server: 'dist',
+    port: 8000
+  });
+
+  gulp.watch(['app/*.html'], ['html:dist', reload]);
+  gulp.watch(['app/css/*.css'], ['html:dist', reload]);
+  gulp.watch(['app/js/*.js'], ['lint', 'html:dist', reload]);
+  gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+});
+
+// Build production files, the default task
+gulp.task('default', ['clean:dist'], function (done) {
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist'], done);
+});
+```
+
+In all this took a solid five days to create, test, and fine-tune.
+
+It originally had twice as much code and went through many iterations before being reduced to the essentials.
+
+Overall it was a great exercise in rolling my own build system before moving to something more automated such as Webpack or Parcel.
