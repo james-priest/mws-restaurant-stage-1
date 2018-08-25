@@ -47,6 +47,13 @@ gulp.task('fixed-images', function () {
     .pipe(gulp.dest('dist/img/fixed'));
 });
 
+// Copy manifest
+gulp.task('manifest', function () {
+  return gulp.src('app/manifest.json')
+    .pipe(gulp.dest('.tmp/'))
+    .pipe(gulp.dest('dist/'));
+});
+
 // Prep assets for dev
 gulp.task('html', function () {
   var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
@@ -149,7 +156,7 @@ gulp.task('clean:dist', function () {
 
 // Watch files for changes & reload
 gulp.task('serve', function () {
-  runSequence(['clean'], ['images', 'lint', 'html', 'sw'], function() {
+  runSequence(['clean'], ['images', 'lint', 'html', 'sw', 'manifest'], function() {
     browserSync.init({
       server: '.tmp',
       port: 8001
@@ -159,6 +166,7 @@ gulp.task('serve', function () {
     gulp.watch(['app/css/*.css'], ['html', reload]);
     gulp.watch(['app/js/*.js'], ['lint', 'html', reload]);
     gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+    gulp.watch(['app/manifest.json'], ['manifest', reload]);
   });
 });
 
@@ -173,9 +181,10 @@ gulp.task('serve:dist', ['default'], function () {
   gulp.watch(['app/css/*.css'], ['html:dist', reload]);
   gulp.watch(['app/js/*.js'], ['lint', 'html:dist', reload]);
   gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+  gulp.watch(['app/manifest.json'], ['manifest', reload]);
 });
 
 // Build production files, the default task
 gulp.task('default', ['clean:dist'], function (done) {
-  runSequence(['images', 'lint', 'html:dist', 'sw:dist'], done);
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'manifest'], done);
 });

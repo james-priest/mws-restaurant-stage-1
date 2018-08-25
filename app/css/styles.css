@@ -185,6 +185,7 @@ nav h1 a {
   padding: 0 10px;
   width: 200px;
   font-size: 18px;
+  border-radius: 5px;
 }
 .filter-options label {
   position: absolute;
@@ -270,6 +271,7 @@ nav h1 a {
   text-transform: uppercase;
   margin: 0 20px;
   font-size: 1em;
+  border-radius: 6px;
 }
 #restaurants-list li button:hover {
   color: #ff9292;

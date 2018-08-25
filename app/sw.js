@@ -1,7 +1,7 @@
 import idb from 'idb';
 // let idb = require('idb');
 
-const staticCacheName = 'restaurant-static-136'; 
+const staticCacheName = 'restaurant-static-140'; 
 
 const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
   switch (upgradeDB.oldVersion) {
