@@ -1368,6 +1368,19 @@ The next step is to run DevTools Audits. My project needs to score above the fol
 | Performance | > 70 |
 | Accessibility | > 90 |
 
+#### Use Optimized Build
+One thing I needed to do was audit off of the optimized site.
+
+In order to do this I needed to shut down my gulp dev build server and serve the distribution build.
+
+This is done with the following command.
+
+```bash
+gulp serve:dist
+```
+
+Once gulp generates and serves the site it is accessed at `http://localhost:8000`.
+
 #### Audits panel
 You can select the audits you'd like to execute and then click the Run audits button.
 
