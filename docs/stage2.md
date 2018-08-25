@@ -1,4 +1,4 @@
----
+****---
 title: Restaurant Review App - Stage 2
 description: Code Notes by James Priest
 ---
@@ -1171,3 +1171,218 @@ In all this took a solid five days to create, test, and fine-tune.
 It originally had twice as much code and went through many iterations before being reduced to the essentials.
 
 Overall it was a great exercise in rolling my own build system before moving to something more automated such as Webpack or Parcel.
+
+## 7. SW with IndexedDB
+### 7.1 IDBPromise library
+The instruction was:
+
+> "Make sure the client application works offline."
+> 
+> "JSON responses are cached using the IndexedDB API. Any data previously accessed while connected is reachable while offline."
+
+The first thing I did was check out Jake Archibald's [IndexedDB Promise library](https://github.com/jakearchibald/idb).
+
+This replaces the `IDBRequest` objects with promises to allow chaining and better management of asynchronous operations.
+
+I first set up a constant called `dbPromise` which is assigned the results of the `idb.open` operation.
+
+```js
+const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore('restaurants');
+  }
+});
+```
+
+I then used the following code as a starting point for getting and setting to the IDB object store.
+
+```js
+// IndexedDB object with get & set methods
+// https://github.com/jakearchibald/idb
+const idbKeyVal = {
+  get(key) {
+    return dbPromise.then(db => {
+      return db
+        .transaction('restaurants')
+        .objectStore('restaurants')
+        .get(key);
+    });
+  },
+  set(key, val) {
+    return dbPromise.then(db => {
+      const tx = db.transaction('restaurants', 'readwrite');
+      tx.objectStore('restaurants').put(val, key);
+      return tx.complete;
+    });
+  }
+};
+```
+
+### 7.2 Modify fetch handler
+Next I took my original intercept fetch handler which save my app resources to cache and modified it to also save site data to IndexedDB.
+
+This allows the site to still function even when offline.
+
+#### Original Code
+Here's an edited version of the original code
+
+```js
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    // Add cache.put to cache images on each fetch
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request).then(fetchResponse => {
+        return caches.open(staticCacheName).then(cache => {
+          // filter out browser-sync resources otherwise it will err
+          if (!fetchResponse.url.includes('browser-sync')) { // prevent err
+            cache.put(event.request, fetchResponse.clone());
+          }
+          return fetchResponse;
+        });
+      });
+    }).catch(error => new Response(error));
+  );
+});
+```
+
+#### Updated handler
+This new handler now tests if the request is for data (port 1337) or resources and it directs to the appropriate function.
+
+```js
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+
+  if (requestUrl.port === '1337') {
+    event.respondWith(idbResponse(request));
+  }
+  else {
+    event.respondWith(cacheResponse(request));
+  }
+});
+```
+
+### 7.3 Create Cache function
+Next I took the previous cache handler code and place it in a new `cacheResponse` function.
+
+#### Cache handler
+
+```js
+function cacheResponse(request) {
+  // match request...
+  return caches.match(request)
+    .then(response => {
+    // return matched response OR if no match then
+    // fetch, open cache, cache.put response.clone, return response
+      return 
+        response || 
+        fetch(request).then(fetchResponse => {
+          return caches.open(staticCacheName).then(cache => {
+            // filter out browser-sync resources otherwise it will err
+            if (!fetchResponse.url.includes('browser-sync')) { // prevent err
+              cache.put(request, fetchResponse.clone()); // put clone in cache
+            }
+            return fetchResponse; // send original back to browser
+          });
+      });
+  }).catch(error => new Response(error));
+}
+```
+
+### 7.4 Create IDB function
+Lastly, I placed the IndexedDB code into it's own function.
+
+This is the new code that first tries to get the data from the IDB object store. If it doesn't get a match then it
+
+- fetches data
+- saves to object store
+- returns data as json
+
+#### IDB handler
+
+```js
+function idbResponse(request) {
+  return idbKeyVal.get('restaurants')
+    .then(restaurants => {
+      return (
+        restaurants ||
+        fetch(request)
+          .then(response => response.json())
+          .then(json => {
+            idbKeyVal.set('restaurants', json);
+            return json;
+          })
+      );
+    })
+    .then(response => new Response(JSON.stringify(response)))
+    .catch(error => {
+      return new Response(error, {
+        status: 404,
+        statusText: 'my bad request'
+      });
+    });
+}
+```
+
+This straight-forward and readable code took days to get to this concise state. It was much longer and more convoluted.
+
+Writing clean or elegant code is tough.
+
+### 7.5 Test Offline
+Once I place this code, I can look in DevTools under the Applications tab to verify that all got saved to the IndexedDB database properly.
+
+#### Verify Data
+[![udacity-restaurant-db object store](assets/images/2-13-small.jpg)](assets/images/2-13.jpg)
+**Figure 13:** `udacity-restaurant-db` object store
+
+The next step is to throttle the network and test that the data is still available.
+
+#### Network Throttling
+This can be done in DevTools by opening the Network Conditions tab and then setting Network Throttling to "Offline".
+
+[![DevTools Network Conditions tab](assets/images/2-14-small.jpg)](assets/images/2-14.jpg)
+**Figure 14:** DevTools Network Conditions tab
+
+#### Test Offline
+Now we can click through the site and see that the data is still populating the page.
+
+[![Data visible when offline](assets/images/2-15-small.jpg)](assets/images/2-15.jpg)
+**Figure 15:** Data visible when offline
+
+We even see a temporary placeholder image for images that haven't been cached yet.
+
+Once I remove throttling I now see the image and the map come into view.
+
+> **NOTE:** If the page was previously visited then the image and the map will already be in Cache and the user will effectively have the same experience as they would with a active internet.
+
+[![Images visible when online](assets/images/2-16-small.jpg)](assets/images/2-16.jpg)
+**Figure 16:** Images visible when online
+
+### 7.6 Run Audits
+The next step is to run DevTools Audits. My project needs to score above the following numbers.
+
+| Test | Score |
+| --- | --- |
+| Progressive Web Apps | > 90 |
+| Performance | > 70 |
+| Accessibility | > 90 |
+
+#### Audits panel
+You can select the audits you'd like to execute and then click the Run audits button.
+
+[![Audits panel](assets/images/2-17-small.jpg)](assets/images/2-17.jpg)
+**Figure 17:** Audits panel
+
+#### Audits Results
+The results are then shown after all the tests are run. These consist of clearing the cache, testing performance, accessibility & PWA status.
+
+[![Audits results](assets/images/2-18-small.jpg)](assets/images/2-18.jpg)
+**Figure 18:** Audits results
+
+I am now in compliance with two of the three tests. Here's the a close up of the results
+
+[![Audits results close-up](assets/images/2-19-small.jpg)](assets/images/2-19.jpg)
+**Figure 19:** Audits results close-up
+
+Only one more to go!

@@ -486,7 +486,7 @@ Here's the details page
 [![New restaurant page treatment](assets/images/21-small.jpg)](assets/images/21.jpg)
 **Figure 21:** New restaurant page treatment
 
-## 6. Service Worker
+## 6. SW with Cache API
 ### 6.1 Register SW code
 The first step was to register the Service Worker. I did this by creating 'register_sw.js' with the following code.
 
