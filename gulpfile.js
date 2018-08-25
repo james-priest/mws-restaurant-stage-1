@@ -1,5 +1,5 @@
 var gulp = require('gulp');
-var gulpLoadPlugins = require('gulp-load-plugins')
+var gulpLoadPlugins = require('gulp-load-plugins');
 var fs = require('fs');
 var del = require('del');
 var browserify = require('browserify');

@@ -17,7 +17,8 @@ module.exports = {
     "rules": {
         "indent": [
             "error",
-            2
+            2,
+            { "SwitchCase": 1 }
         ],
         // "quotes": 0
         "quotes": [
@@ -31,6 +32,8 @@ module.exports = {
         "no-console": "off",
         "no-unused-vars": "warn",
         "no-undef": "warn",
-        "no-useless-escape": "warn"
+        "no-useless-escape": "warn",
+        "no-fallthrough": "off",
+        "no-case-declarations": "off"
     }
 };
