@@ -1399,3 +1399,118 @@ I am now in compliance with two of the three tests. Here's the a close up of the
 **Figure 19:** Audits results close-up
 
 Only one more to go!
+
+## 8. Progressive Web App
+### 8.1 Review PWA Audit
+The first thing I did was run Google DevTools Lighthouse audits.  This can be found in the Audits tab.
+
+You can make sure to just check the "Progressive Web App" audit option.
+
+[![Audits panel](assets/images/2-17-small.jpg)](assets/images/2-17.jpg)
+**Figure 17:** Audits panel
+
+Once the audit completed it showed a score and a checklist of items that can be improved.
+
+[![PWA Audits Result](assets/images/2-20-small.jpg)](assets/images/2-20.jpg)
+**Figure 20:** PWA Audits Result
+
+I then went through the check list and googled each to see how to improve.
+
+### 8.2 Web App Manifest
+The first item required me to learn about the Web App Manifest.  I did this at Google's Developer Fundamentals site.
+
+- [Google Web Fundamentals - Web App Manifest](https://developers.google.com/web/fundamentals/web-app-manifest/)
+
+The next thing was to generate a Web App Manifest. This was done easily through a generator provided by firebase.
+
+- [Web App Manifest Generator](https://app-manifest.firebaseapp.com/)
+
+I also provided an icon file which the generator packages up into a downloadable zip.
+
+[![Web App Manifest Generator](assets/images/2-21-small.jpg)](assets/images/2-21.jpg)
+**Figure 21:** Web App Manifest Generator
+
+I then placed the manifest in the root of the `app/` directory, and updated the links to the icon files within the manifest. All icons were copied to the `/img/fixed/` directory.
+
+Next I added the following lines to each html file.
+
+```html
+<html>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" sizes="32x32" href="img/fixed/icon.png">
+  <meta name="theme-color" content="#790a0a"/>
+  <!-- More html -->
+```
+
+### 8.3 Update Gulp
+Now that we have some new files to account for I had to update the Gulp build system so that these files get copied to both `.tmp/` and `dist/`.
+
+I added a new `manifest` task.
+
+```js
+
+// Copy manifest
+gulp.task('manifest', function () {
+  return gulp.src('app/manifest.json')
+    .pipe(gulp.dest('.tmp/'))
+    .pipe(gulp.dest('dist/'));
+});
+```
+
+I then had to add the manifest task into the list of tasks that get executed for each type of build.
+
+The updated build code is below.
+
+```js
+// Watch files for changes & reload
+gulp.task('serve', function () {
+  runSequence(['clean'], ['images', 'lint', 'html', 'sw', 'manifest'],
+  function() {
+    browserSync.init({
+      server: '.tmp',
+      port: 8001
+    });
+
+    gulp.watch(['app/*.html'], ['html', reload]);
+    gulp.watch(['app/css/*.css'], ['html', reload]);
+    gulp.watch(['app/js/*.js'], ['lint', 'html', reload]);
+    gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+    gulp.watch(['app/manifest.json'], ['manifest', reload]);
+  });
+});
+
+// Build and serve the fully optimized site
+gulp.task('serve:dist', ['default'], function () {
+  browserSync.init({
+    server: 'dist',
+    port: 8000
+  });
+
+  gulp.watch(['app/*.html'], ['html:dist', reload]);
+  gulp.watch(['app/css/*.css'], ['html:dist', reload]);
+  gulp.watch(['app/js/*.js'], ['lint', 'html:dist', reload]);
+  gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+  gulp.watch(['app/manifest.json'], ['manifest', reload]);
+});
+
+// Build production files, the default task
+gulp.task('default', ['clean:dist'], function (done) {
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'manifest'], done);
+});
+```
+
+### 8.4 Rerun Audit
+Now that the manifest is in place and the HTML is updated, I ran the audit once more.
+
+This time the score was a 92!
+
+[![Web App Manifest Generator](assets/images/2-22-small.jpg)](assets/images/2-22.jpg)
+**Figure 22:** Web App Manifest Generator
+
+<!-- 
+### 9. Review Round 2
+### 9.1 Update README
+The next thing I did was create specific instructions for my reviewer to be able to run the project.
+
+This included steps to 
+ -->
