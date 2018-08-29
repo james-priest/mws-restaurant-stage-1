@@ -1507,10 +1507,71 @@ This time the score was a 92!
 [![Web App Manifest Generator](assets/images/2-22-small.jpg)](assets/images/2-22.jpg)
 **Figure 22:** Web App Manifest Generator
 
-<!-- 
-### 9. Review Round 2
+## 9. Stage 2 Review
 ### 9.1 Update README
 The next thing I did was create specific instructions for my reviewer to be able to run the project.
 
-This included steps to 
- -->
+This included adding steps to to the README that explained how to build and run the project.
+
+These steps include the following:
+
+> #### Mobile Web Specialist Certification Course
+>
+> ##### Restaurant App Stage 2 - client app
+> Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 includes a build system that will automatically serve the optimized site.
+>
+> Two things must happen to run this project:
+> 1. Create a file containing a valid Google Maps API key
+> 2. Run the build system which will serve the optimized site
+>
+> ##### Google API Key
+> A file named GM_API_KEY needs to be created in the root folder (\) with a valid Google Maps API key.
+>
+> ##### Serve optimized site
+> Run the following command to build & serve the optimized site.
+>
+> ```bash
+> grunt serve:dist
+> ```
+>
+> This will start the server at http://localhost:8000.
+>
+> ##### Build System
+> If you want to develop you can use the following commands.
+>
+> **Start the dev server**
+>
+> ```bash
+> grunt serve
+> ```
+>
+> This will start the server at `http://localhost:8001`.
+>
+> Changes can be made to the files in the app/ directory. The browser will reload the changes on each file save.
+>
+> **Build & Optimize**
+>
+> ```bash
+> grunt
+> ```
+>
+> This will build and optimize the project ready for deployment. It will output to the dist/ folder
+
+### 9.2 Submit Project
+I then pushed all my changes to GitHub and submitted my project for review.
+
+I sent the reviewer my Google Maps API key and then waited...
+
+### 9.3 Review Results
+The review came back later that evening.
+
+
+[![Meets Specifications](assets/images/2-24-small.jpg)](assets/images/2-24.jpg)
+**Figure 23:** Meets Specifications
+
+The review then showed the Audit scores I received.
+
+[![Audit Scores](assets/images/2-23-small.jpg)](assets/images/2-23.jpg)
+**Figure 24:** Audit Scores
+
+I took an extra week to finish the assignment but it was well worth it. I was able to pass on the first attempt and received a wonderful review!
