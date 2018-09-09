@@ -12,26 +12,24 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     return `http://localhost:${port}/restaurants`;
   }
 
+  // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
+  static markFavorite(id) {
+    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=true', {
+      method: 'PUT'
+    });
+  }
+
+  // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
+  static unMarkFavorite(id) {
+    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=false', {
+      method: 'PUT'
+    });
+  }
+
   /**
    * Fetch all restaurants.
    */
-  static fetchRestaurants(callback) {
-    /*
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const restaurants = json.restaurants;
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
-        callback(error, null);
-      }
-    };
-    xhr.send();
-    */
-    
+  static fetchRestaurants(callback) {   
     fetch(DBHelper.DATABASE_URL)
       .then(response => {
         if (!response.ok) {

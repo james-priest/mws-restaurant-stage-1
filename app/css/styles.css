@@ -223,6 +223,29 @@ nav h1 a {
   flex-direction: column;
   align-content: center;
 }
+#restaurants-list .fav-control {
+  background-color: white;
+  width: 44px;
+  height: 40px;
+  position: absolute;
+  align-self: flex-end;
+  margin-top: 6px;
+  margin-left: -6px;
+  padding: 5px;
+  border: 1px solid #999;
+  border: 4px double #999;
+  background-image: url('../img/fixed/favorite5.png');
+  background-repeat: no-repeat;
+  background-position: 6px -27px;
+  background-size: 24px;
+  cursor: pointer;
+}
+#restaurants-list .fav-control.active  {
+  background-position: 6px 5px;
+}
+#restaurants-list .fav-control:hover {
+  background-position: 6px -59px;
+}
 #restaurants-list .restaurant-img {
   /* background-color: #ccc; */
   display: block;
@@ -318,12 +341,39 @@ nav h1 a {
   text-transform: uppercase;
   line-height: 1.1;
 }
+#restaurant-img-container {
+  display: flex;
+  flex-direction: column;
+}
+#restaurant-fav {
+  background-color: white;
+  width: 44px;
+  height: 40px;
+  position: absolute;
+  align-self: flex-end;
+  margin-top: 6px;
+  margin-left: -6px;
+  padding: 5px;
+  border: 1px solid #999;
+  border: 4px double #999;
+  background-image: url('../img/fixed/favorite5.png');
+  background-repeat: no-repeat;
+  background-position: 6px -27px;
+  background-size: 24px;
+  cursor: pointer;
+}
+#restaurant-fav.active {
+  background-position: 6px 5px;
+}
+#restaurant-fav:hover {
+  background-position: 6px -59px;
+}
 #restaurant-img {
   /* width: 90%; */
   width: 100%;
   max-width: 100%;
   border: 1px solid #999;
-  padding: 6px;
+  padding: 5px;
 }
 #restaurant-address {
   /* font-size: 12pt; */

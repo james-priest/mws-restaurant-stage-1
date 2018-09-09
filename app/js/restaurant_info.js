@@ -55,6 +55,24 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
+  const favorite = document.getElementById('restaurant-fav');
+  if (restaurant.is_favorite === 'true') {
+    favorite.classList.add('active');
+    favorite.setAttribute('aria-pressed', 'true');
+  } else {
+    favorite.setAttribute('aria-pressed', 'false');
+  }
+  favorite.addEventListener('click', () => {
+    if (favorite.classList.contains('active')) {
+      favorite.setAttribute('aria-pressed', 'false');
+      DBHelper.unMarkFavorite(restaurant.id);
+    } else {
+      favorite.setAttribute('aria-pressed', 'true');
+      DBHelper.markFavorite(restaurant.id);
+    }
+    favorite.classList.toggle('active');
+  });
+
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);

@@ -165,6 +165,28 @@ const fillRestaurantsHTML = (restaurants = self.restaurants) => {
 const createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
+  const fav = document.createElement('div');
+  fav.className = 'fav-control';
+  fav.setAttribute('aria-label', 'favorite');
+  fav.setAttribute('role', 'button');
+  if (restaurant.is_favorite === 'true') {
+    fav.classList.add('active');
+    fav.setAttribute('aria-pressed', 'true');
+  } else {
+    fav.setAttribute('aria-pressed', 'false');
+  }
+  fav.addEventListener('click', () => {
+    if (fav.classList.contains('active')) {
+      fav.setAttribute('aria-pressed', 'false');
+      DBHelper.unMarkFavorite(restaurant.id);
+    } else {
+      fav.setAttribute('aria-pressed', 'true');
+      DBHelper.markFavorite(restaurant.id);
+    }
+    fav.classList.toggle('active');
+  });
+  li.append(fav);
+
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);

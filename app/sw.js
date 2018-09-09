@@ -1,7 +1,7 @@
 import idb from 'idb';
 // let idb = require('idb');
 
-const staticCacheName = 'restaurant-static-140'; 
+const staticCacheName = 'restaurant-static-143'; 
 
 const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
   switch (upgradeDB.oldVersion) {
@@ -88,6 +88,7 @@ dbPromise.then(db => {
 });
 */
 
+/*
 // list of assets to cache on install
 // cache each restaurant detail page as well
 self.addEventListener('install', event => {
@@ -262,3 +263,5 @@ self.addEventListener('activate', event => {
     })
   );
 });
+
+*/
