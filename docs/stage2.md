@@ -1,4 +1,4 @@
-****---
+---
 title: Restaurant Review App - Stage 2
 description: Code Notes by James Priest
 ---
@@ -9,6 +9,7 @@ description: Code Notes by James Priest
 
 ---
 
+### Requirements
 Here are the requirements for Stage 2:
 - Pull data through Ajax (Fetch API) from a live data source
 - Cache the JSON response data on the client with IndexedDB for offline access
