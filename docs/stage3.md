@@ -182,7 +182,7 @@ The advantage of an app like this is
 
 ## 3. Favorite Control
 ### 3.1 Create Rollover Image
-the first step was to grab a png of a heart to use as a favorite icon on the toggle button.
+The first step was to grab a png of a heart to use as a favorite icon on the toggle button.
 
 I copied the heart image two more time and varied the color. The states are as follows:
 
@@ -358,3 +358,14 @@ Next I created the Ajax code in the `dbhelper.js` file.
     });
   }
 ```
+
+### 3.5 Test Favorite Toggle
+Once this was done I tested it on both the index and details pages.
+
+[![Favorite Control](assets/images/3-2-small.jpg)](assets/images/3-2.jpg)
+**Figure 2:** Favorite Control
+
+Testing consisted of clicking the toggle button to make sure the control's class is updated appropriately and then viewing the database to make sure the record is updated properly.
+
+[![Favorite API](assets/images/3-3-small.jpg)](assets/images/3-3.jpg)
+**Figure 3:** Favorite API
