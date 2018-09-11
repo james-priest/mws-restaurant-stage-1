@@ -369,3 +369,104 @@ Testing consisted of clicking the toggle button to make sure the control's class
 
 [![Favorite API](assets/images/3-3-small.jpg)](assets/images/3-3.jpg)
 **Figure 3:** Favorite API
+
+## 4. Reviews
+### 4.1 Display Reviews
+I had to change three files in order to get the Reviews to display properly.
+
+- dbhelper.js
+- restaurant_info.js
+- styles.css
+
+#### dbhelper.js
+Added a new method to grab all reviews by restaurant id.
+
+```js
+  static fetchRestaurantReviewsById(id, callback) {
+    fetch(DBHelper.DATABASE_URL + `/reviews/?restaurant_id=${id}`)
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => callback(err, null));
+  }
+```
+
+#### restaurant_info.js
+Added this call to the `fillRestaurantHTML` method
+
+```js
+  DBHelper.fetchRestaurantReviewsById(restaurant.id, fillReviewsHTML);
+```
+
+Then modified the `fillReviewsHTML` callback method to work with the returned data from `dbhelper.js` file.
+
+```js
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log('Error retrieving reviews', error);
+  }
+
+  // more code...
+}
+```
+
+Add additional code the the `createReviewHTML` method.
+
+```js
+const createReviewHTML = (review) => {
+  const li = document.createElement('li');
+  const name = document.createElement('p');
+  name.innerHTML = review.name;
+  li.appendChild(name);
+
+  const createdAt = document.createElement('p');
+  createdAt.classList.add('createdAt');
+  const createdDate = new Date(review.createdAt).toLocaleDateString();
+  createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
+  li.appendChild(createdAt);
+
+  const updatedAt = document.createElement('p');
+  const updatedDate = new Date(review.updatedAt).toLocaleDateString();
+  updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
+  updatedAt.classList.add('updatedAt');
+  li.appendChild(updatedAt);
+
+  const rating = document.createElement('p');
+  rating.classList.add('rating');
+  rating.innerHTML = `Rating: ${review.rating}`;
+  rating.dataset.rating = review.rating;
+  li.appendChild(rating);
+
+  const comments = document.createElement('p');
+  comments.classList.add('comments');
+  comments.innerHTML = review.comments;
+  li.appendChild(comments);
+
+  return li;
+};
+```
+
+#### styles.css
+Added these review display classes.
+
+```css
+#reviews-list li p.createdAt {
+  float: right;
+}
+#reviews-list li p.updatedAt {
+  float: right;
+  color: #008800;
+}
+#reviews-list li p.rating {
+  float: left;
+}
+#reviews-list li p.comments {
+  clear: both;
+}
+```
+
+Once the code is in place the reviews should display like this.
+
+[![Reviews](assets/images/3-4-small.jpg)](assets/images/3-4.jpg)
+**Figure 4:** Reviews
