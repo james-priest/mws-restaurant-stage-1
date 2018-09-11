@@ -441,18 +441,21 @@ nav h1 a {
   font-weight: bold;
   float: left;
 }
-#reviews-list li p:nth-of-type(2) {
+#reviews-list li p.createdAt {
   float: right;
   /* color: #d85b5b; */
   /* color: green; */
-  font-weight: bold;
-}
-#reviews-list li p:nth-of-type(3) {
-  clear: both;
-  /* color: #d85b5b; */
-  /* color: #0ca50c; */
-    color: 008800;
   /* font-weight: bold; */
+}
+#reviews-list li p.updatedAt {
+  float: right;
+  color: #008800;
+}
+#reviews-list li p.rating {
+  float: left;
+}
+#reviews-list li p.comments {
+  clear: both;
 }
 #reviews-list li p:nth-of-type(3)[data-rating="3"] {
   color: #333;

@@ -5,32 +5,39 @@ class DBHelper {  // eslint-disable-line no-unused-vars
 
   /**
    * Database URL.
-   * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
     const port = 1337; // Change this to your server port
-    return `http://localhost:${port}/restaurants`;
+    return `http://localhost:${port}`;
   }
 
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
   static markFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=true', {
+    fetch(DBHelper.DATABASE_URL + '/restaurants' + id + '/?is_favorite=true', {
       method: 'PUT'
-    });
+    }).catch(err => console.log(err));
   }
 
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
   static unMarkFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=false', {
+    fetch(DBHelper.DATABASE_URL + '/restaurants' + id + '/?is_favorite=false', {
       method: 'PUT'
-    });
+    }).catch(err => console.log(err));
+  }
+
+  // http://localhost:1337/reviews/?restaurant_id=<restaurant_id>
+  static fetchRestaurantReviewsById(id, callback) {
+    fetch(DBHelper.DATABASE_URL + `/reviews/?restaurant_id=${id}`)
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => callback(err, null));
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {   
-    fetch(DBHelper.DATABASE_URL)
+    fetch(DBHelper.DATABASE_URL + '/restaurants')
       .then(response => {
         if (!response.ok) {
           throw Error(`Request failed. Returned status of ${response.statusText}`);
@@ -42,7 +49,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .catch(err => callback(err, null));
     
     /*
-    fetch(DBHelper.DATABASE_URL)
+    fetch(DBHelper.DATABASE_URL + '/restaurants')
       .then(response => response.json())
       .then(restaurants => callback(null, restaurants))
       .catch(err => callback(err, null));
