@@ -583,6 +583,8 @@ const fillReviewsHTML = (error, reviews) => {
 
 Lastly, I updated the CSS with the appropriate styles to ensure the modal dialog always aligns and centers itself properly.
 
+This was done by following a tip on CSS Tricks ([CSS Tricks Styling a Modal](https://css-tricks.com/considerations-styling-modal/ )).
+
 I also added styling for the "Add Review" button and the "Close" button on the modal form.
 
 ```css
