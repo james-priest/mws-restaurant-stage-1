@@ -13,14 +13,14 @@ class DBHelper {  // eslint-disable-line no-unused-vars
 
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
   static markFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/restaurants' + id + '/?is_favorite=true', {
+    fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=true`, {
       method: 'PUT'
     }).catch(err => console.log(err));
   }
 
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
   static unMarkFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/restaurants' + id + '/?is_favorite=false', {
+    fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=false`, {
       method: 'PUT'
     }).catch(err => console.log(err));
   }

@@ -14,6 +14,10 @@
 </head>
 
 <body class="inside">
+  <div id="modal">
+    <button class="close-btn" onclick="toggleModal(event)" aria-label="close" title="Close">x</button>
+    <div id="review-form"></div>
+  </div>
   <!-- Beginning header -->
   <header role="banner">
     <!-- Beginning nav -->
@@ -40,7 +44,7 @@
     <section id="restaurant-container" aria-labelledby="restaurant-name">
       <h1 id="restaurant-name"></h1>
       <div id="restaurant-img-container">
-        <div id="restaurant-fav" aria-label="favorite" role="button"></div>
+        <button id="restaurant-fav" aria-label="favorite"></button>
         <img id="restaurant-img">
       </div>
       <p id="restaurant-cuisine"></p>
@@ -50,6 +54,7 @@
     <!-- end restaurant -->
     <!-- Beginning reviews -->
     <section id="reviews-container" aria-label="Reviews">
+      <div id="reviews-header"></div>
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->

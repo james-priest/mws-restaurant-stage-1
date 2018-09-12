@@ -236,9 +236,10 @@ nav h1 a {
   border: 4px double #999;
   background-image: url('../img/fixed/favorite5.png');
   background-repeat: no-repeat;
-  background-position: 6px -27px;
+  background-position: 6px -26px;
   background-size: 24px;
   cursor: pointer;
+  text-indent: -10000px;
 }
 #restaurants-list .fav-control.active  {
   background-position: 6px 5px;
@@ -361,6 +362,7 @@ nav h1 a {
   background-position: 6px -27px;
   background-size: 24px;
   cursor: pointer;
+  text-indent: -10000px;
 }
 #restaurant-fav.active {
   background-position: 6px 5px;
@@ -410,6 +412,11 @@ nav h1 a {
   padding-bottom: 0;
   width: 62%;
 }
+#reviews-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
 #reviews-container h2 {
   /* color: #f58500; */
   color: #d85b5b;
@@ -417,6 +424,11 @@ nav h1 a {
   font-weight: 300;
   letter-spacing: -1px;
   padding-bottom: 1pt;
+}
+#reviews-container .review-add-btn {
+  padding: 0 8px;
+  font-size: 1.6em;
+  cursor: pointer;
 }
 #reviews-list {
   margin: 0;
@@ -450,6 +462,7 @@ nav h1 a {
 #reviews-list li p.updatedAt {
   float: right;
   color: #008800;
+  clear: both;
 }
 #reviews-list li p.rating {
   float: left;
@@ -474,6 +487,50 @@ nav h1 a {
   vertical-align: top;
 }
 
+/* ====================== Modal ====================== */
+#modal {
+  /* position: absolute;
+  left: 10vh;
+  top: 10vh; */
+  /* fix exactly center: https://css-tricks.com/considerations-styling-modal/ */
+  /* begin css tricks */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* end css tricks */
+  z-index: -10;
+  display: flex;
+  flex-direction: column;
+  width: 80vw;
+  height: 80vh;
+  border: 1px solid #666;
+  border-radius: 10px;
+  opacity: 0;
+  transition: all .3s;
+  overflow: hidden;
+  background-color: #eee;
+}
+#modal.show {
+  opacity: 1;
+  z-index: 10;
+}
+#modal .close-btn {
+  align-self: flex-end;
+  font-size: 1.6em;
+  margin: 8px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+#review-form {
+  width: 100%;
+  /* background-color: #eee; */
+  padding: 20px 26px;
+  color: #333;
+  overflow-y: auto;
+}
+
+/* ====================== Media Queries ====================== */
 @media screen and (max-width: 1100px) {
   #restaurants-list li {
     width: 270px;

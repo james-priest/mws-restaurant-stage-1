@@ -59,15 +59,24 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.is_favorite === 'true') {
     favorite.classList.add('active');
     favorite.setAttribute('aria-pressed', 'true');
+    favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    favorite.title = `Remove ${restaurant.name} as a favorite`;
   } else {
     favorite.setAttribute('aria-pressed', 'false');
+    favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+    favorite.title = `Add ${restaurant.name} as a favorite`;
   }
-  favorite.addEventListener('click', () => {
+  favorite.addEventListener('click', (evt) => {
+    evt.preventDefault();
     if (favorite.classList.contains('active')) {
       favorite.setAttribute('aria-pressed', 'false');
+      favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+      favorite.title = `Add ${restaurant.name} as a favorite`;
       DBHelper.unMarkFavorite(restaurant.id);
     } else {
       favorite.setAttribute('aria-pressed', 'true');
+      favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+      favorite.title = `Remove ${restaurant.name} as a favorite`;
       DBHelper.markFavorite(restaurant.id);
     }
     favorite.classList.toggle('active');
@@ -113,6 +122,12 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
   }
 };
 
+const toggleModal = (evt) => {
+  evt.preventDefault();
+  const modal = document.getElementById('modal');
+  modal.classList.toggle('show');
+};
+
 /**
  * Create all reviews HTML and add them to the webpage.
  */
@@ -122,11 +137,21 @@ const fillReviewsHTML = (error, reviews) => {
   if (error) {
     console.log('Error retrieving reviews', error);
   }
-  const container = document.getElementById('reviews-container');
+  const header = document.getElementById('reviews-header');
+
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
-  container.appendChild(title);
-
+  header.appendChild(title);
+  
+  const addReview = document.createElement('button');
+  addReview.classList.add('review-add-btn');
+  addReview.innerHTML = '+';
+  addReview.setAttribute('aria-label', 'add review');
+  addReview.title = 'Add Review';
+  addReview.addEventListener('click', toggleModal);
+  header.appendChild(addReview);
+  
+  const container = document.getElementById('reviews-container');
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
