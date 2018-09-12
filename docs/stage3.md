@@ -206,22 +206,30 @@ We also create the event handler.
 const createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
-  const fav = document.createElement('div');
+  const fav = document.createElement('button');
   fav.className = 'fav-control';
   fav.setAttribute('aria-label', 'favorite');
-  fav.setAttribute('role', 'button');
   if (restaurant.is_favorite === 'true') {
     fav.classList.add('active');
     fav.setAttribute('aria-pressed', 'true');
+    fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    fav.title = `Remove ${restaurant.name} as a favorite`;
   } else {
     fav.setAttribute('aria-pressed', 'false');
+    fav.innerHTML = `Add ${restaurant.name} as a favorite`;
+    fav.title = `Add ${restaurant.name} as a favorite`;
   }
-  fav.addEventListener('click', () => {
+  fav.addEventListener('click', (evt) => {
+    evt.preventDefault();
     if (fav.classList.contains('active')) {
       fav.setAttribute('aria-pressed', 'false');
+      fav.innerHTML = `Add ${restaurant.name} as a favorite`;
+      fav.title = `Add ${restaurant.name} as a favorite`;
       DBHelper.unMarkFavorite(restaurant.id);
     } else {
       fav.setAttribute('aria-pressed', 'true');
+      fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
+      fav.title = `Remove ${restaurant.name} as a favorite`;
       DBHelper.markFavorite(restaurant.id);
     }
     fav.classList.toggle('active');
@@ -239,10 +247,10 @@ This was done with both HTML and JavaScript
 #### restaurant.html
 
 ```html
-  <div id="restaurant-img-container">
-    <div id="restaurant-fav" aria-label="favorite" role="button"></div>
-    <img id="restaurant-img">
-  </div>
+<div id="restaurant-img-container">
+  <button id="restaurant-fav" aria-label="favorite"></button>
+  <img id="restaurant-img">
+</div>
 ```
 
 #### restaurant_info.js
@@ -259,15 +267,24 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.is_favorite === 'true') {
     favorite.classList.add('active');
     favorite.setAttribute('aria-pressed', 'true');
+    favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    favorite.title = `Remove ${restaurant.name} as a favorite`;
   } else {
     favorite.setAttribute('aria-pressed', 'false');
+    favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+    favorite.title = `Add ${restaurant.name} as a favorite`;
   }
-  favorite.addEventListener('click', () => {
+  favorite.addEventListener('click', (evt) => {
+    evt.preventDefault();
     if (favorite.classList.contains('active')) {
       favorite.setAttribute('aria-pressed', 'false');
+      favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+      favorite.title = `Add ${restaurant.name} as a favorite`;
       DBHelper.unMarkFavorite(restaurant.id);
     } else {
       favorite.setAttribute('aria-pressed', 'true');
+      favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+      favorite.title = `Remove ${restaurant.name} as a favorite`;
       DBHelper.markFavorite(restaurant.id);
     }
     favorite.classList.toggle('active');
@@ -298,9 +315,10 @@ This is the CSS for both the index page and the detail page.
   border: 4px double #999;
   background-image: url('../img/fixed/favorite5.png');
   background-repeat: no-repeat;
-  background-position: 6px -27px;
+  background-position: 6px -26px;
   background-size: 24px;
   cursor: pointer;
+  text-indent: -10000px;
 }
 #restaurants-list .fav-control.active  {
   background-position: 6px 5px;
@@ -329,6 +347,7 @@ This is the CSS for both the index page and the detail page.
   background-position: 6px -27px;
   background-size: 24px;
   cursor: pointer;
+  text-indent: -10000px;
 }
 #restaurant-fav.active {
   background-position: 6px 5px;
@@ -344,19 +363,19 @@ Next I created the Ajax code in the `dbhelper.js` file.
 #### dbhelper.js
 
 ```js
-  // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
-  static markFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=true', {
-      method: 'PUT'
-    });
-  }
+// http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
+static markFavorite(id) {
+  fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=true`, {
+    method: 'PUT'
+  });
+}
 
-  // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
-  static unMarkFavorite(id) {
-    fetch(DBHelper.DATABASE_URL + '/' + id + '/?is_favorite=false', {
-      method: 'PUT'
-    });
-  }
+// http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
+static unMarkFavorite(id) {
+  fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=false`, {
+    method: 'PUT'
+  });
+}
 ```
 
 ### 3.5 Test Favorite Toggle
@@ -394,7 +413,7 @@ Added a new method to grab all reviews by restaurant id.
 Added this call to the `fillRestaurantHTML` method
 
 ```js
-  DBHelper.fetchRestaurantReviewsById(restaurant.id, fillReviewsHTML);
+DBHelper.fetchRestaurantReviewsById(restaurant.id, fillReviewsHTML);
 ```
 
 Then modified the `fillReviewsHTML` callback method to work with the returned data from `dbhelper.js` file.
@@ -447,16 +466,32 @@ const createReviewHTML = (review) => {
 };
 ```
 
+#### restaurant.html
+Added a `<div id='reviews-header'></div>` to the html...
+
+```html
+<section id="reviews-container" aria-label="Reviews">
+  <div id="reviews-header"></div>
+  <ul id="reviews-list"></ul>
+</section>
+```
+
 #### styles.css
 Added these review display classes.
 
 ```css
+#reviews-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
 #reviews-list li p.createdAt {
   float: right;
 }
 #reviews-list li p.updatedAt {
   float: right;
   color: #008800;
+  clear: both;
 }
 #reviews-list li p.rating {
   float: left;
@@ -470,3 +505,143 @@ Once the code is in place the reviews should display like this.
 
 [![Reviews](assets/images/3-4-small.jpg)](assets/images/3-4.jpg)
 **Figure 4:** Reviews
+
+### 4.2 Create a Modal Popup
+The first step in creating an "Add Review" form is to create the modal popup that will contain the form.
+
+I start this by creating a `<div id="modal"></div>` right under the body tag in the `restaurant.html` file.
+
+#### restaurant.html
+
+```html
+<body class="inside">
+  <div id="modal">
+    <button class="close-btn" onclick="toggleModal(event)" aria-label="close"
+            title="Close">x</button>
+    <div id="review-form"></div>
+  </div>
+```
+
+I then add a `<div id="reviews-header"></div>` to the `reviews-container` section element. This will contain the "Add Review" button justified right of the Reviews header .
+
+```html
+<section id="reviews-container" aria-label="Reviews">
+  <div id="reviews-header"></div>
+  <ul id="reviews-list"></ul>
+</section>
+```
+
+Next, I update the `restaurant_info.js` file. The first thing to do is add the modal control.
+
+#### restaurant_info.js
+
+```js
+const toggleModal = (evt) => {
+  evt.preventDefault();
+  const modal = document.getElementById('modal');
+  modal.classList.toggle('show');
+};
+```
+
+The next thing I do is update the `fillReviewsHTML` method.
+
+```js
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log('Error retrieving reviews', error);
+  }
+  const header = document.getElementById('reviews-header');
+
+  const title = document.createElement('h2');
+  title.innerHTML = 'Reviews';
+  header.appendChild(title);
+  
+  const addReview = document.createElement('button');
+  addReview.classList.add('review-add-btn');
+  addReview.innerHTML = '+';
+  addReview.setAttribute('aria-label', 'add review');
+  addReview.title = 'Add Review';
+  addReview.addEventListener('click', toggleModal);
+  header.appendChild(addReview);
+  
+  const container = document.getElementById('reviews-container');
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
+  const ul = document.getElementById('reviews-list');
+  reviews.forEach(review => {
+    ul.appendChild(createReviewHTML(review));
+  });
+  container.appendChild(ul);
+};
+```
+
+Lastly, I updated the CSS with the appropriate styles to ensure the modal dialog always aligns and centers itself properly.
+
+I also added styling for the "Add Review" button and the "Close" button on the modal form.
+
+```css
+#reviews-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+#reviews-container .review-add-btn {
+  padding: 0 8px;
+  font-size: 1.6em;
+  cursor: pointer;
+}
+#modal {
+  /* begin css tricks */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* end css tricks */
+  z-index: -10;
+  display: flex;
+  flex-direction: column;
+  width: 80vw;
+  height: 80vh;
+  border: 1px solid #666;
+  border-radius: 10px;
+  opacity: 0;
+  transition: all .3s;
+  overflow: hidden;
+  background-color: #eee;
+}
+#modal.show {
+  opacity: 1;
+  z-index: 10;
+}
+#modal .close-btn {
+  align-self: flex-end;
+  font-size: 1.6em;
+  margin: 8px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+#review-form {
+  width: 100%;
+  padding: 20px 26px;
+  color: #333;
+  overflow-y: auto;
+}
+```
+
+The inital "Add Review" button is added to the right of the Review header.
+
+[![Add Review Button](assets/images/3-5-small.jpg)](assets/images/3-5.jpg)
+**Figure 5:** Add Review Button
+
+When we click the button, a perfectly centered modal popup animates open using the css `transition` property.
+
+[![Add Review Modal Popup](assets/images/3-6-small.jpg)](assets/images/3-6.jpg)
+**Figure 6:** Add Review Model Popup
+
+We also use this same transition to animate the modal closed when the "Close" button is clicked.
