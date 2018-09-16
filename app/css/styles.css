@@ -222,6 +222,7 @@ nav h1 a {
   display: flex;
   flex-direction: column;
   align-content: center;
+  border-radius: 4px;
 }
 #restaurants-list .fav-control {
   background-color: white;
@@ -229,23 +230,26 @@ nav h1 a {
   height: 40px;
   position: absolute;
   align-self: flex-end;
+  margin: 0;
   margin-top: 6px;
+  margin-right: 6px;
   margin-left: -6px;
   padding: 5px;
   border: 1px solid #999;
   border: 4px double #999;
-  background-image: url('../img/fixed/favorite5.png');
+  background-image: url('../img/fixed/favorite6.png');
   background-repeat: no-repeat;
-  background-position: 6px -26px;
-  background-size: 24px;
+  background-position: 8px -41px;
+  background-size: 25px;
   cursor: pointer;
   text-indent: -10000px;
+  border-radius: 0;
 }
 #restaurants-list .fav-control.active  {
-  background-position: 6px 5px;
+  background-position: 8px 9px;
 }
 #restaurants-list .fav-control:hover {
-  background-position: 6px -59px;
+  background-position: 8px -91px;
 }
 #restaurants-list .restaurant-img {
   /* background-color: #ccc; */
@@ -255,7 +259,7 @@ nav h1 a {
   /* min-height: 248px; */
   min-width: 100%;
   border-bottom: 1px solid #999;
-  padding: 6px
+  padding: 6px;
 }
 #restaurants-list .restaurant-info {
   margin: 0 22px;
@@ -352,23 +356,26 @@ nav h1 a {
   height: 40px;
   position: absolute;
   align-self: flex-end;
+  margin: 0;
   margin-top: 6px;
+  margin-right: 6px;
   margin-left: -6px;
   padding: 5px;
   border: 1px solid #999;
   border: 4px double #999;
-  background-image: url('../img/fixed/favorite5.png');
+  background-image: url('../img/fixed/favorite6.png');
   background-repeat: no-repeat;
-  background-position: 6px -27px;
-  background-size: 24px;
+  background-position: 8px -41px;
+  background-size: 25px;
   cursor: pointer;
   text-indent: -10000px;
+  border-radius: 0;
 }
 #restaurant-fav.active {
-  background-position: 6px 5px;
+  background-position: 8px 9px;
 }
 #restaurant-fav:hover {
-  background-position: 6px -59px;
+  background-position: 8px -91px;
 }
 #restaurant-img {
   /* width: 90%; */
@@ -376,6 +383,7 @@ nav h1 a {
   max-width: 100%;
   border: 1px solid #999;
   padding: 5px;
+  border-radius: 4px;
 }
 #restaurant-address {
   /* font-size: 12pt; */
@@ -425,8 +433,8 @@ nav h1 a {
   letter-spacing: -1px;
   padding-bottom: 1pt;
 }
-#reviews-container .review-add-btn {
-  padding: 0 8px;
+#review-add-btn {
+  padding: 0;
   font-size: 1.6em;
   cursor: pointer;
 }
@@ -445,6 +453,7 @@ nav h1 a {
   padding: 10px 20px 16px;
   position: relative;
   /* width: 85%; */
+  border-radius: 4px;
 }
 #reviews-list li p {
   margin: 0 0 10px;
@@ -487,7 +496,7 @@ nav h1 a {
   vertical-align: top;
 }
 
-/* ====================== Modal ====================== */
+/* ====================== Review Form ====================== */
 #modal {
   /* position: absolute;
   left: 10vh;
@@ -499,36 +508,204 @@ nav h1 a {
   left: 50%;
   transform: translate(-50%, -50%);
   /* end css tricks */
-  z-index: -10;
+  /* z-index: -10; */
+  z-index: 3;
   display: flex;
   flex-direction: column;
-  width: 80vw;
-  height: 80vh;
+  /* width: 80vw; */
+  /* height: 80vh; */
   border: 1px solid #666;
   border-radius: 10px;
   opacity: 0;
   transition: all .3s;
   overflow: hidden;
   background-color: #eee;
+  /* visibility: hidden; */
+  display: none;
 }
 #modal.show {
+  /* visibility: visible;   */
   opacity: 1;
-  z-index: 10;
+  /* z-index: 10; */
+  display: flex
+}
+.modal-overlay {
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* places the modalOverlay between the main page and the modal dialog */
+  background-color: #000;
+  opacity: 0;
+  transition: all .3s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+.modal-overlay.show {
+  display: block;
+  opacity: 0.5;  
 }
 #modal .close-btn {
   align-self: flex-end;
-  font-size: 1.6em;
-  margin: 8px;
+  font-size: 1.4em;
+  margin: 8px 8px 0;
   padding: 0 8px;
   cursor: pointer;
 }
-#review-form {
+form {
+  max-width: 900px;
+  padding: 0 20px 20px 20px;
+}
+/* 
+input,
+label {
+  display: block;
+  width: 100%;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+} */
+
+input,
+/* input:not(input[type='radio']), */
+/* input:not(type='radio'), */
+select, .rate, textarea, button {
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 1px #e1e1e1;
+  font-size: 16px;
+  padding: 8px;
+}
+input[type="radio"] {
+  box-shadow: none;
+}
+button {
+  min-width: 48px;
+  min-height: 48px;
+}
+button:hover {
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+button#review-add-btn, 
+button.close-btn, 
+button#submit-review-btn {
+  min-height: 40px;
+}
+button#submit-review-btn {
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 16px;
+}
+
+.fieldset {
+  margin-top: 20px;
+}
+.right {
+  align-self: flex-end;
+}
+#review-form-container {
   width: 100%;
   /* background-color: #eee; */
-  padding: 20px 26px;
+  padding: 0 20px 26px;
   color: #333;
   overflow-y: auto;
 }
+#review-form-container h2 {
+  margin: 0 0 0 6px;
+}
+#review-form {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+}
+#review-form label, #review-form input {
+  display: block;
+  /* width: 100%; */
+}
+#review-form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#review-form .rate label, #review-form .rate input,
+#review-form .rate1 label, #review-form .rate1 input {
+  display: inline-block;
+}
+/* Modified from: https://codepen.io/tammykimkim/pen/yegZRw */
+.rate {
+  /* float: left; */
+  /* display: inline-block; */
+  height: 36px;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+#review-form .rate > label {
+  margin-bottom: 0;
+  margin-top: -5px;
+  height: 30px;
+}
+.rate:not(:checked) > input {
+  /* position: absolute; */
+  top: -9999px;
+  margin-left: -24px;
+  width: 20px;
+  padding-right: 14px;
+  z-index: -10;
+}
+.rate:not(:checked) > label {
+  float:right;
+  width:1em;
+  overflow:hidden;
+  white-space:nowrap;
+  cursor:pointer;
+  font-size:30px;
+  color:#ccc;
+}
+/* #star1:focus{
+
+} */
+.rate2 {
+  float: none;
+}
+.rate:not(:checked) > label::before {
+  content: '★ ';
+  position: relative;
+  top: -10px;
+  left: 2px;
+}
+.rate > input:checked ~ label {
+  color: #ffc700;
+  /* outline: -webkit-focus-ring-color auto 5px; */
+}
+.rate > input:checked:focus + label, .rate > input:focus + label {
+  outline: -webkit-focus-ring-color auto 5px;
+}
+.rate:not(:checked) > label:hover,
+.rate:not(:checked) > label:hover ~ label {
+  color: #deb217;
+  /* outline: -webkit-focus-ring-color auto 5px; */
+}
+.rate > input:checked + label:hover,
+.rate > input:checked + label:hover ~ label,
+.rate > input:checked ~ label:hover,
+.rate > input:checked ~ label:hover ~ label,
+.rate > label:hover ~ input:checked ~ label {
+  color: #c59b08;
+}
+#submit-review {
+  align-self: flex-end;
+}
+
 
 /* ====================== Media Queries ====================== */
 @media screen and (max-width: 1100px) {

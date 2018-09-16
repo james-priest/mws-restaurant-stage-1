@@ -1,5 +1,8 @@
 let restaurant; // eslint-disable-line no-unused-vars 
-var map;  // eslint-disable-line no-unused-vars 
+var map;  // eslint-disable-line no-unused-vars
+var focusedElementBeforeModal;
+const modal = document.getElementById('modal');
+const modalOverlay = document.querySelector('.modal-overlay');
 
 /**
  * Initialize Google map, called from HTML.
@@ -122,10 +125,202 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
   }
 };
 
+// Adapted from modal dialog sample code in Udacity Web Accessibility course 891
+//  https://github.com/udacity/ud891/blob/gh-pages/lesson2-focus/07-modals-and-keyboard-traps/solution/modal.js
+const openModal = () => {
+  // Save current focus
+  focusedElementBeforeModal = document.activeElement;
+
+  // Listen for and trap the keyboard
+  modal.addEventListener('keydown', trapTabKey);
+
+  // Listen for indicators to close the modal
+  modalOverlay.addEventListener('click', closeModal);
+  // Close btn
+  const closeBtn = document.querySelector('.close-btn');
+  closeBtn.addEventListener('click', closeModal);
+  
+  // Submit Review button
+  // const submitReviewBtn = modal.querySelector('#submit-review-btn');
+  // submitReviewBtn.addEventListener('click', processAddReview);
+
+  // submit form
+  const form = document.getElementById('review-form');
+  form.addEventListener('submit', submitAddReview, false);
+
+  // Find all focusable children
+  var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+  var focusableElements = modal.querySelectorAll(focusableElementsString);
+  // Convert NodeList to Array
+  focusableElements = Array.prototype.slice.call(focusableElements);
+
+  var firstTabStop = focusableElements[0];
+  var lastTabStop = focusableElements[focusableElements.length - 1];
+
+  // Show the modal and overlay
+  modal.classList.add('show');
+  modalOverlay.classList.add('show');
+
+  // Focus first child
+  // firstTabStop.focus();
+  const reviewName = document.getElementById('reviewName');
+  reviewName.focus();
+
+  function trapTabKey(e) {
+    // Check for TAB key press
+    if (e.keyCode === 9) {
+
+      // SHIFT + TAB
+      if (e.shiftKey) {
+        if (document.activeElement === firstTabStop) {
+          e.preventDefault();
+          lastTabStop.focus();
+        }
+
+      // TAB
+      } else {
+        if (document.activeElement === lastTabStop) {
+          e.preventDefault();
+          firstTabStop.focus();
+        }
+      }
+    }
+
+    // ESCAPE
+    if (e.keyCode === 27) {
+      closeModal();
+    }
+
+    // RETURN
+    // if (e.keyCode === 13) {
+    //   e.preventDefault();
+    //   return false;
+    // }
+  }
+};
+
+const submitAddReview = (e) => {
+  console.log(e);
+  e.preventDefault();
+  closeModal();
+};
+
+const closeModal = () => {
+  // Hide the modal and overlay
+  // modal.style.display = 'none';
+  // modalOverlay.style.display = 'none';
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  const form = document.getElementById('review-form');
+  // form.reset();
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+
+// not used anymore
 const toggleModal = (evt) => {
   evt.preventDefault();
   const modal = document.getElementById('modal');
-  modal.classList.toggle('show');
+  // modal.
+  if (!modal.classList.contains('show')) {
+    // show form
+    buildReviewForm();
+    const reviewName = document.getElementById('reviewName');
+    modal.classList.toggle('show');
+    reviewName.focus();
+  } else {
+    const addReviewBtn = document.getElementById('review-add-btn');
+    modal.classList.toggle('show');
+    addReviewBtn.focus();
+  }
+};
+
+const buildReviewForm = () => {
+
+};
+
+const addReviewForm = () => {
+
+};
+
+const editReviewForm = () => {
+  
+};
+
+const setFocus = (evt) => {
+  const rateRadios = document.getElementsByName('rate');
+  const rateRadiosArr = Array.from(rateRadios);
+  const anyChecked = rateRadiosArr.some(radio => { return radio.checked === true; });
+  // console.log('anyChecked', anyChecked);
+  if (!anyChecked) {
+    const star1 = document.getElementById('star1');
+    star1.focus();
+    // star1.checked = true;
+  }
+};
+
+const navRadioGroup = (evt) => {
+  // console.log('key', evt.key, 'code', evt.code, 'which', evt.which);
+  // console.log(evt);
+  
+  const star1 = document.getElementById('star1');  
+  const star2 = document.getElementById('star2');  
+  const star3 = document.getElementById('star3');  
+  const star4 = document.getElementById('star4');  
+  const star5 = document.getElementById('star5');  
+
+  if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(evt.key)) {
+    evt.preventDefault();
+    // console.log('attempting return');
+    if (evt.key === 'ArrowRight' || evt.key === 'ArrowDown') {
+      switch(evt.target.id) {
+        case 'star1':
+          star2.focus();
+          star2.checked = true;
+          break;
+        case 'star2':
+          star3.focus();
+          star3.checked = true;
+          break;
+        case 'star3':
+          star4.focus();
+          star4.checked = true;
+          break;
+        case 'star4':
+          star5.focus();
+          star5.checked = true;
+          break;
+        case 'star5':
+          star1.focus();
+          star1.checked = true;
+          break;
+      }
+    } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowUp') {
+      switch(evt.target.id) {
+        case 'star1':
+          star5.focus();
+          star5.checked = true;
+          break;
+        case 'star2':
+          star1.focus();
+          star1.checked = true;
+          break;
+        case 'star3':
+          star2.focus();
+          star2.checked = true;
+          break;
+        case 'star4':
+          star3.focus();
+          star3.checked = true;
+          break;
+        case 'star5':
+          star4.focus();
+          star4.checked = true;
+          break;
+      }
+    }
+  }
 };
 
 /**
@@ -144,11 +339,13 @@ const fillReviewsHTML = (error, reviews) => {
   header.appendChild(title);
   
   const addReview = document.createElement('button');
-  addReview.classList.add('review-add-btn');
+  // addReview.classList.add('review-add-btn');
+  addReview.id = 'review-add-btn';
   addReview.innerHTML = '+';
   addReview.setAttribute('aria-label', 'add review');
   addReview.title = 'Add Review';
-  addReview.addEventListener('click', toggleModal);
+  // addReview.addEventListener('click', toggleModal);
+  addReview.addEventListener('click', openModal);
   header.appendChild(addReview);
   
   const container = document.getElementById('reviews-container');

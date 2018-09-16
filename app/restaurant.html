@@ -14,10 +14,6 @@
 </head>
 
 <body class="inside">
-  <div id="modal">
-    <button class="close-btn" onclick="toggleModal(event)" aria-label="close" title="Close">x</button>
-    <div id="review-form"></div>
-  </div>
   <!-- Beginning header -->
   <header role="banner">
     <!-- Beginning nav -->
@@ -66,6 +62,59 @@
     Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
   </footer>
   <!-- End footer -->
+
+  <!-- Beginning modal -->
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="add-review-header">
+    <button class="close-btn" aria-label="close" title="Close">x</button>
+    <div id="review-form-container">
+      <h2 id="add-review-header">Add Review</h2>
+      <form id="review-form">
+        <div class="fieldset">
+          <label for="reviewName">Name</label>
+          <input type="text" name="reviewName" id="reviewName" required>
+        </div>
+        <div class="fieldset">
+          <label>Rating</label>
+          <div class="rate">
+            <input type="radio" id="star5" name="rate" value="5" onkeydown="navRadioGroup(event)" onfocus="setFocus(event)" required />
+            <label for="star5" title="5 stars">5 stars</label>
+            <input type="radio" id="star4" name="rate" value="4" onkeydown="navRadioGroup(event)" />
+            <label for="star4" title="4 stars">4 stars</label>
+            <input type="radio" id="star3" name="rate" value="3" onkeydown="navRadioGroup(event)" />
+            <label for="star3" title="3 stars">3 stars</label>
+            <input type="radio" id="star2" name="rate" value="2" onkeydown="navRadioGroup(event)" />
+            <label for="star2" title="2 stars">2 stars</label>
+            <input type="radio" id="star1" name="rate" value="1" onkeydown="navRadioGroup(event)" onfocus="setFocus(event)" />
+            <label for="star1" title="1 star">1 star</label>
+          </div>
+        </div>
+        <!-- <div class="fieldset">
+          <label>Rating</label>
+          <div class="rate1">
+            <input type="radio" id="star1a" name="rate2" value="1" />
+            <label for="star1a" title="1 star">1 star</label>
+            <input type="radio" id="star2a" name="rate2" value="2" />
+            <label for="star2a" title="2 stars">2 stars</label>
+            <input type="radio" id="star3a" name="rate2" value="3" />
+            <label for="star3a" title="3 stars">3 stars</label>
+            <input type="radio" id="star4a" name="rate2" value="4" />
+            <label for="star4a" title="4 stars">4 stars</label>
+            <input type="radio" id="star5a" name="rate2" value="5" />
+            <label for="star5a" title="5 stars">5 stars</label>
+          </div>
+        </div> -->
+        <div class="fieldset">
+          <label for="reviewComments">Comments</label>
+          <textarea name="reviewComments" id="reviewComments" cols="20" rows="5" required></textarea>
+        </div>
+        <div class="fieldset right">
+          <button id="submit-review-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-overlay"></div>
+  <!-- End modal -->
 
   <!-- build:js js/restaurant.min.js defer -->
   <script src="js/dbhelper.js"></script>
