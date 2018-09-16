@@ -389,7 +389,7 @@ Testing consisted of clicking the toggle button to make sure the control's class
 [![Favorite API](assets/images/3-3-small.jpg)](assets/images/3-3.jpg)
 **Figure 3:** Favorite API
 
-## 4. Reviews
+## 4. Restaurant Reviews
 ### 4.1 Display Reviews
 I had to change three files in order to get the Reviews to display properly.
 
@@ -636,7 +636,7 @@ I also added styling for the "Add Review" button and the "Close" button on the m
 }
 ```
 
-The inital "Add Review" button is added to the right of the Review header.
+The initial "Add Review" button is added to the right of the Review header.
 
 [![Add Review Button](assets/images/3-5-small.jpg)](assets/images/3-5.jpg)
 **Figure 5:** Add Review Button
@@ -647,3 +647,430 @@ When we click the button, a perfectly centered modal popup animates open using t
 **Figure 6:** Add Review Model Popup
 
 We also use this same transition to animate the modal closed when the "Close" button is clicked.
+
+## 5. Add Review Form
+### 5.1 List of Changes
+I performed quite a few modifications to the app so far.  I did these in stages but will list all out here as a group. This includes the following:
+
+#### Improved the modal pop-up
+- Popup now centers itself properly
+- Employs a modal-overlay that grays out all non-modal page elements
+- Improved CSS treatment for cleaner look and better accessibility. Now has
+  - rounded corners
+  - 16px font-size
+  - large 48px wide tap targets
+
+#### Add Review Form
+- Traps keyboard navigation so that ESC exits and TAB or SHIFT+TAB navigates
+- Includes a star rating control based on standard HTML radio input
+- Includes proper ARIA and accessibility labels and roles
+- Includes form validation
+
+### 5.2 HTML Updates
+
+```html
+<!-- Beginning modal -->
+<div id="modal" role="dialog" aria-modal="true"
+  aria-labelledby="add-review-header">
+  <button class="close-btn" aria-label="close" title="Close">x</button>
+  <div id="review-form-container">
+    <h2 id="add-review-header">Add Review</h2>
+    <form id="review-form">
+      <div class="fieldset">
+        <label for="reviewName">Name</label>
+        <input type="text" name="reviewName" id="reviewName" required>
+      </div>
+      <div class="fieldset">
+        <label>Rating</label>
+        <div class="rate">
+          <input type="radio" id="star5" name="rate" value="5"
+            onkeydown="navRadioGroup(event)"
+            onfocus="setFocus(event)" required />
+          <label for="star5" title="5 stars">5 stars</label>
+          <input type="radio" id="star4" name="rate" value="4"
+            onkeydown="navRadioGroup(event)" />
+          <label for="star4" title="4 stars">4 stars</label>
+          <input type="radio" id="star3" name="rate" value="3"
+            onkeydown="navRadioGroup(event)" />
+          <label for="star3" title="3 stars">3 stars</label>
+          <input type="radio" id="star2" name="rate" value="2"
+            onkeydown="navRadioGroup(event)" />
+          <label for="star2" title="2 stars">2 stars</label>
+          <input type="radio" id="star1" name="rate" value="1"
+            onkeydown="navRadioGroup(event)" onfocus="setFocus(event)" />
+          <label for="star1" title="1 star">1 star</label>
+        </div>
+      </div>
+      <div class="fieldset">
+        <label for="reviewComments">Comments</label>
+        <textarea name="reviewComments" id="reviewComments"
+          cols="20" rows="5" required></textarea>
+      </div>
+      <div class="fieldset right">
+        <button id="submit-review-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-overlay"></div>
+<!-- End modal -->
+```
+
+### 5.3 CSS Updates
+
+```css
+/* ====================== Review Form ====================== */
+#modal {
+  /* fix exactly center: https://css-tricks.com/considerations-styling-modal/ */
+  /* begin css tricks */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* end css tricks */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #666;
+  border-radius: 10px;
+  opacity: 0;
+  transition: all .3s;
+  overflow: hidden;
+  background-color: #eee;
+  display: none;
+}
+#modal.show {
+  opacity: 1;
+  display: flex
+}
+.modal-overlay {
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* places the modalOverlay between main page and modal dialog */
+  background-color: #000;
+  opacity: 0;
+  transition: all .3s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+.modal-overlay.show {
+  display: block;
+  opacity: 0.5;  
+}
+#modal .close-btn {
+  align-self: flex-end;
+  font-size: 1.4em;
+  margin: 8px 8px 0;
+  padding: 0 8px;
+  cursor: pointer;
+}
+form {
+  max-width: 900px;
+  padding: 0 20px 20px 20px;
+}
+input, select, .rate, textarea, button {
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 1px #e1e1e1;
+  font-size: 16px;
+  padding: 8px;
+}
+input[type="radio"] {
+  box-shadow: none;
+}
+button {
+  min-width: 48px;
+  min-height: 48px;
+}
+button:hover {
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+button#review-add-btn, 
+button.close-btn, 
+button#submit-review-btn {
+  min-height: 40px;
+}
+button#submit-review-btn {
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 16px;
+}
+
+.fieldset {
+  margin-top: 20px;
+}
+.right {
+  align-self: flex-end;
+}
+#review-form-container {
+  width: 100%;
+  padding: 0 20px 26px;
+  color: #333;
+  overflow-y: auto;
+}
+#review-form-container h2 {
+  margin: 0 0 0 6px;
+}
+#review-form {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+}
+#review-form label, #review-form input {
+  display: block;
+}
+#review-form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#review-form .rate label, #review-form .rate input,
+#review-form .rate1 label, #review-form .rate1 input {
+  display: inline-block;
+}
+/* Modified from: https://codepen.io/tammykimkim/pen/yegZRw */
+.rate {
+  height: 36px;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+#review-form .rate > label {
+  margin-bottom: 0;
+  margin-top: -5px;
+  height: 30px;
+}
+.rate:not(:checked) > input {
+  top: -9999px;
+  margin-left: -24px;
+  width: 20px;
+  padding-right: 14px;
+  z-index: -10;
+}
+.rate:not(:checked) > label {
+  float:right;
+  width:1em;
+  overflow:hidden;
+  white-space:nowrap;
+  cursor:pointer;
+  font-size:30px;
+  color:#ccc;
+}
+.rate:not(:checked) > label::before {
+  content: '★ ';
+  position: relative;
+  top: -10px;
+  left: 2px;
+}
+.rate > input:checked ~ label {
+  color: #ffc700;
+}
+.rate > input:checked:focus + label, .rate > input:focus + label {
+  outline: -webkit-focus-ring-color auto 5px;
+}
+.rate:not(:checked) > label:hover,
+.rate:not(:checked) > label:hover ~ label {
+  color: #deb217;
+}
+.rate > input:checked + label:hover,
+.rate > input:checked + label:hover ~ label,
+.rate > input:checked ~ label:hover,
+.rate > input:checked ~ label:hover ~ label,
+.rate > label:hover ~ input:checked ~ label {
+  color: #c59b08;
+}
+#submit-review {
+  align-self: flex-end;
+}
+```
+
+### 5.4 JS Updates
+
+```js
+var focusedElementBeforeModal;
+const modal = document.getElementById('modal');
+const modalOverlay = document.querySelector('.modal-overlay');
+
+// Adapted from modal dialog sample code in Udacity Web Accessibility course 891
+const openModal = () => {
+  // Save current focus
+  focusedElementBeforeModal = document.activeElement;
+
+  // Listen for and trap the keyboard
+  modal.addEventListener('keydown', trapTabKey);
+
+  // Listen for indicators to close the modal
+  modalOverlay.addEventListener('click', closeModal);
+  // Close btn
+  const closeBtn = document.querySelector('.close-btn');
+  closeBtn.addEventListener('click', closeModal);
+
+  // submit form
+  const form = document.getElementById('review-form');
+  form.addEventListener('submit', submitAddReview, false);
+
+  // Find all focusable children
+  var focusableElementsString = 'a[href], area[href], input:not([disabled]),' +
+    'select:not([disabled]), textarea:not([disabled]), button:not([disabled]),' + 
+    'iframe, object, embed, [tabindex="0"], [contenteditable]';
+  var focusableElements = modal.querySelectorAll(focusableElementsString);
+  // Convert NodeList to Array
+  focusableElements = Array.prototype.slice.call(focusableElements);
+
+  var firstTabStop = focusableElements[0];
+  var lastTabStop = focusableElements[focusableElements.length - 1];
+
+  // Show the modal and overlay
+  modal.classList.add('show');
+  modalOverlay.classList.add('show');
+
+  // Focus first child
+  // firstTabStop.focus();
+  const reviewName = document.getElementById('reviewName');
+  reviewName.focus();
+
+  function trapTabKey(e) {
+    // Check for TAB key press
+    if (e.keyCode === 9) {
+
+      // SHIFT + TAB
+      if (e.shiftKey) {
+        if (document.activeElement === firstTabStop) {
+          e.preventDefault();
+          lastTabStop.focus();
+        }
+
+      // TAB
+      } else {
+        if (document.activeElement === lastTabStop) {
+          e.preventDefault();
+          firstTabStop.focus();
+        }
+      }
+    }
+
+    // ESCAPE
+    if (e.keyCode === 27) {
+      closeModal();
+    }
+  }
+};
+
+const submitAddReview = (e) => {
+  console.log(e);
+  e.preventDefault();
+  closeModal();
+};
+
+const closeModal = () => {
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  const form = document.getElementById('review-form');
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+
+const setFocus = (evt) => {
+  const rateRadios = document.getElementsByName('rate');
+  const rateRadiosArr = Array.from(rateRadios);
+  const anyChecked = rateRadiosArr.some(radio => { 
+    return radio.checked === true; 
+  });
+  if (!anyChecked) {
+    const star1 = document.getElementById('star1');
+    star1.focus();
+  }
+};
+
+// this code is done for proper a11y & keyboard nav
+const navRadioGroup = (evt) => {
+  const star1 = document.getElementById('star1');  
+  const star2 = document.getElementById('star2');  
+  const star3 = document.getElementById('star3');  
+  const star4 = document.getElementById('star4');  
+  const star5 = document.getElementById('star5');  
+
+  if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(evt.key)) {
+    evt.preventDefault();
+    // console.log('attempting return');
+    if (evt.key === 'ArrowRight' || evt.key === 'ArrowDown') {
+      switch(evt.target.id) {
+        case 'star1':
+          star2.focus();
+          star2.checked = true;
+          break;
+        case 'star2':
+          star3.focus();
+          star3.checked = true;
+          break;
+        case 'star3':
+          star4.focus();
+          star4.checked = true;
+          break;
+        case 'star4':
+          star5.focus();
+          star5.checked = true;
+          break;
+        case 'star5':
+          star1.focus();
+          star1.checked = true;
+          break;
+      }
+    } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowUp') {
+      switch(evt.target.id) {
+        case 'star1':
+          star5.focus();
+          star5.checked = true;
+          break;
+        case 'star2':
+          star1.focus();
+          star1.checked = true;
+          break;
+        case 'star3':
+          star2.focus();
+          star2.checked = true;
+          break;
+        case 'star4':
+          star3.focus();
+          star3.checked = true;
+          break;
+        case 'star5':
+          star4.focus();
+          star4.checked = true;
+          break;
+      }
+    }
+  }
+};
+```
+
+### 5.5 Screenshots
+
+#### Completed Form
+This is the completed form.
+
+[![Add Review Form](assets/images/3-7-small.jpg)](assets/images/3-7.jpg)
+**Figure 7:** Add Review Form
+
+#### Screen Reader
+This is the form with ChromeVox turned on.
+
+[![Form with Screen Reader](assets/images/3-8-small.jpg)](assets/images/3-8.jpg)
+**Figure 8:** Form with Screen Reader
+
+#### Form Validation
+This is the form with intrinsic HTML5 validation.
+
+[![Form Validation](assets/images/3-9-small.jpg)](assets/images/3-9.jpg)
+**Figure 9:** Form Validation
