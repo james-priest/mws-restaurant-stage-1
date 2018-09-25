@@ -668,6 +668,8 @@ I performed quite a few modifications to the app so far.  I did these in stages 
 
 ### 5.2 HTML Updates
 
+#### restaurant.html
+
 ```html
 <!-- Beginning modal -->
 <div id="modal" role="dialog" aria-modal="true"
@@ -717,6 +719,8 @@ I performed quite a few modifications to the app so far.  I did these in stages 
 ```
 
 ### 5.3 CSS Updates
+
+#### styles.css
 
 ```css
 /* ====================== Review Form ====================== */
@@ -895,6 +899,8 @@ button#submit-review-btn {
 
 ### 5.4 JS Updates
 
+#### restaurant_info.js
+
 ```js
 var focusedElementBeforeModal;
 const modal = document.getElementById('modal');
@@ -916,7 +922,7 @@ const openModal = () => {
 
   // submit form
   const form = document.getElementById('review-form');
-  form.addEventListener('submit', submitAddReview, false);
+  form.addEventListener('submit', saveAddReview, false);
 
   // Find all focusable children
   var focusableElementsString = 'a[href], area[href], input:not([disabled]),' +
@@ -965,10 +971,28 @@ const openModal = () => {
   }
 };
 
-const submitAddReview = (e) => {
-  console.log(e);
+const saveAddReview = (e) => {
   e.preventDefault();
-  closeModal();
+
+  const name = document.querySelector('#reviewName').value;
+  const rating = document.querySelector('input[name=rate]:checked').value;
+  const comments = document.querySelector('#reviewComments').value;
+  
+  // console.log(name);
+  // console.log(rating);
+  // console.log(comments);
+
+  DBHelper.createRestaurantReview(self.restaurant.id, name, rating, comments,
+    (error, review) => {
+    console.log('got callback');
+    if (error) {
+      console.log('Error saving review');
+    } else {
+      // do some other stuff
+      console.log(review);
+      window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+    }
+  });
 };
 
 const closeModal = () => {
@@ -977,6 +1001,7 @@ const closeModal = () => {
   modalOverlay.classList.remove('show');
 
   const form = document.getElementById('review-form');
+  form.reset();
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();
 };
@@ -1055,7 +1080,30 @@ const navRadioGroup = (evt) => {
 };
 ```
 
-### 5.5 Screenshots
+### 5.5 Database Updates
+
+#### dbhelper.js
+
+```js
+// http://localhost:1337/reviews/
+static createRestaurantReview(id, name, rating, comments, callback) {
+  const data = {
+    'restaurant_id': id,
+    'name': name,
+    'rating': rating,
+    'comments': comments
+  };
+  fetch(DBHelper.DATABASE_URL + '/reviews/', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => callback(err, null));
+}
+```
+
+### 5.6 Screenshots
 
 #### Completed Form
 This is the completed form.
@@ -1074,3 +1122,4 @@ This is the form with intrinsic HTML5 validation.
 
 [![Form Validation](assets/images/3-9-small.jpg)](assets/images/3-9.jpg)
 **Figure 9:** Form Validation
+
