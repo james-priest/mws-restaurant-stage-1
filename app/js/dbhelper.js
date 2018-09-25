@@ -33,10 +33,27 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .catch(err => callback(err, null));
   }
 
+  // http://localhost:1337/reviews/
+  static createRestaurantReview(id, name, rating, comments, callback) {
+    const data = {
+      'restaurant_id': id,
+      'name': name,
+      'rating': rating,
+      'comments': comments
+    };
+    fetch(DBHelper.DATABASE_URL + '/reviews/', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => callback(err, null));
+  }
+
   /**
    * Fetch all restaurants.
    */
-  static fetchRestaurants(callback) {   
+  static fetchRestaurants(callback) {
     fetch(DBHelper.DATABASE_URL + '/restaurants')
       .then(response => {
         if (!response.ok) {

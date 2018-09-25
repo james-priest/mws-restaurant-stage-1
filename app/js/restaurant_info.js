@@ -139,14 +139,10 @@ const openModal = () => {
   // Close btn
   const closeBtn = document.querySelector('.close-btn');
   closeBtn.addEventListener('click', closeModal);
-  
-  // Submit Review button
-  // const submitReviewBtn = modal.querySelector('#submit-review-btn');
-  // submitReviewBtn.addEventListener('click', processAddReview);
 
   // submit form
   const form = document.getElementById('review-form');
-  form.addEventListener('submit', submitAddReview, false);
+  form.addEventListener('submit', saveAddReview, false);
 
   // Find all focusable children
   var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
@@ -199,10 +195,27 @@ const openModal = () => {
   }
 };
 
-const submitAddReview = (e) => {
-  console.log(e);
+const saveAddReview = (e) => {
   e.preventDefault();
-  closeModal();
+
+  const name = document.querySelector('#reviewName').value;
+  const rating = document.querySelector('input[name=rate]:checked').value;
+  const comments = document.querySelector('#reviewComments').value;
+  
+  console.log(name);
+  console.log(rating);
+  console.log(comments);
+
+  DBHelper.createRestaurantReview(self.restaurant.id, name, rating, comments, (error, review) => {
+    console.log('got callback');
+    if (error) {
+      console.log('Error saving review');
+    } else {
+      // do some other stuff
+      console.log(review);
+      window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+    }
+  });
 };
 
 const closeModal = () => {
@@ -213,40 +226,40 @@ const closeModal = () => {
   modalOverlay.classList.remove('show');
 
   const form = document.getElementById('review-form');
-  // form.reset();
+  form.reset();
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();
 };
 
-// not used anymore
-const toggleModal = (evt) => {
-  evt.preventDefault();
-  const modal = document.getElementById('modal');
-  // modal.
-  if (!modal.classList.contains('show')) {
-    // show form
-    buildReviewForm();
-    const reviewName = document.getElementById('reviewName');
-    modal.classList.toggle('show');
-    reviewName.focus();
-  } else {
-    const addReviewBtn = document.getElementById('review-add-btn');
-    modal.classList.toggle('show');
-    addReviewBtn.focus();
-  }
-};
+// NO LONGER USED
+// const toggleModal = (evt) => {
+//   evt.preventDefault();
+//   const modal = document.getElementById('modal');
+//   // modal
+//   if (!modal.classList.contains('show')) {
+//     // show form
+//     buildReviewForm();
+//     const reviewName = document.getElementById('reviewName');
+//     modal.classList.toggle('show');
+//     reviewName.focus();
+//   } else {
+//     const addReviewBtn = document.getElementById('review-add-btn');
+//     modal.classList.toggle('show');
+//     addReviewBtn.focus();
+//   }
+// };
 
-const buildReviewForm = () => {
+// const buildReviewForm = () => {
 
-};
+// };
 
-const addReviewForm = () => {
+// const addReviewForm = () => {
 
-};
+// };
 
-const editReviewForm = () => {
+// const editReviewForm = () => {
   
-};
+// };
 
 const setFocus = (evt) => {
   const rateRadios = document.getElementsByName('rate');
