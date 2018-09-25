@@ -9,32 +9,19 @@ html {
   box-sizing: inherit;
 }
 body,td,th,p{
-	/* font-family: Arial, Helvetica, sans-serif; */
-	/* font-size: 10pt; */
-	color: #333;
-  /* line-height: 1.5; */
   font: 16px/1.6 Arial, Helvetica, sans-serif;
+	color: #333;
 }
 body {
 	background-color: #fdfdfd;
 	margin: 0;
 	position:relative;
 }
-ul, li {
-	/* font-family: Arial, Helvetica, sans-serif;
-	font-size: 10pt;
-	color: #333; */
-}
 a {
-	/* color: orange; */
-	/* color: #d85b5b; */
-  /* color: #ff9292; */
   color: #ffabab;
 	text-decoration: none;
 }
 a:hover, a:focus {
-	/* color: #3397db; */
-	/* color: #d85b5b; */
 	color: #d85b5b;  
 	text-decoration: none;
 }
@@ -444,8 +431,8 @@ nav h1 a {
 }
 #reviews-list li {
   background-color: #fff;
-    /* border: 2px solid #f3f3f3; */
-    border: 1px solid #999;
+  /* border: 2px solid #f3f3f3; */
+  border: 1px solid #999;
   display: block;
   list-style-type: none;
   margin: 0 0 30px;
@@ -527,7 +514,7 @@ nav h1 a {
   /* visibility: visible;   */
   opacity: 1;
   /* z-index: 10; */
-  display: flex
+  display: flex;
 }
 .modal-overlay {
   width: 100%;
@@ -558,22 +545,11 @@ form {
   max-width: 900px;
   padding: 0 20px 20px 20px;
 }
-/* 
 input,
-label {
-  display: block;
-  width: 100%;
-}
-
-label {
-  font-weight: bold;
-  margin-bottom: 5px;
-} */
-
-input,
-/* input:not(input[type='radio']), */
-/* input:not(type='radio'), */
-select, .rate, textarea, button {
+select,
+.rate,
+textarea,
+button {
   background: #f9f9f9;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
@@ -641,8 +617,6 @@ button#submit-review-btn {
 }
 /* Modified from: https://codepen.io/tammykimkim/pen/yegZRw */
 .rate {
-  /* float: left; */
-  /* display: inline-block; */
   height: 36px;
   display: inline-flex;
   flex-direction: row-reverse;
@@ -671,12 +645,6 @@ button#submit-review-btn {
   font-size:30px;
   color:#ccc;
 }
-/* #star1:focus{
-
-} */
-.rate2 {
-  float: none;
-}
 .rate:not(:checked) > label::before {
   content: '★ ';
   position: relative;
@@ -685,7 +653,6 @@ button#submit-review-btn {
 }
 .rate > input:checked ~ label {
   color: #ffc700;
-  /* outline: -webkit-focus-ring-color auto 5px; */
 }
 .rate > input:checked:focus + label, .rate > input:focus + label {
   outline: -webkit-focus-ring-color auto 5px;
@@ -693,7 +660,6 @@ button#submit-review-btn {
 .rate:not(:checked) > label:hover,
 .rate:not(:checked) > label:hover ~ label {
   color: #deb217;
-  /* outline: -webkit-focus-ring-color auto 5px; */
 }
 .rate > input:checked + label:hover,
 .rate > input:checked + label:hover ~ label,
@@ -705,7 +671,6 @@ button#submit-review-btn {
 #submit-review {
   align-self: flex-end;
 }
-
 
 /* ====================== Media Queries ====================== */
 @media screen and (max-width: 1100px) {
