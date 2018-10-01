@@ -1123,3 +1123,111 @@ This is the form with intrinsic HTML5 validation.
 [![Form Validation](assets/images/3-9-small.jpg)](assets/images/3-9.jpg)
 **Figure 9:** Form Validation
 
+## 6. Redesign IDB Storage
+### 6.1 Previous Schema
+Previously all restaurant records were saved as a single large json file under a single key of 'restaurants'.
+
+[![Old object store schema](assets/images/2-13-small.jpg)](assets/images/2-13.jpg)
+**Figure 10:** Old object store schema
+
+This was fine for stage 2 of our project since each of our methods worked against the entire dataset.  Now in stage 3 we need more granular access and control of our data.
+
+### 6.2 New schema
+In order better represent the data within our local IndexedDB store we've now separated each restaurant into it's own record.
+
+[![New object store schema](assets/images/3-11-small.jpg)](assets/images/3-11.jpg)
+**Figure 11:** New object store schema
+
+This has the benefit of allowing us to update each restaurant individually without having to rebuild the entire dataset.
+
+This will come in handy when we need to update a restaurant's "favorite" status.
+
+### 6.3 Updated IDB Code
+In order to break out the restaurants so that each is given it's own IDB record, we needed to loop through the `restaurants` json.
+
+This is done in the service worker code (`sw.js`).
+
+We first start by looking at the code to intercept all fetch requests. If a call includes port 1337 then it's a request for restaurant data from the database.
+
+```js
+// intercept all requests
+// return cached asset, idb data, or fetch from network
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  
+  // 1. filter Ajax Requests
+  if (requestUrl.port === '1337') {
+    event.respondWith(idbRestaurantResponse(request));
+  }
+  else {
+    event.respondWith(cacheResponse(request));
+  }
+});
+```
+
+In this case we follow that to the `idbRestaurantResponse` function.
+
+```js
+let j = 0;
+function idbRestaurantResponse(request, id) {
+  // 1. getAll records from objectStore
+  // 2. if more than 1 rec then return match
+  // 3. if no match then fetch json, write to idb, & return response
+
+  return idbKeyVal.getAll('restaurants')
+    .then(restaurants => {
+      if (restaurants.length) {
+        return restaurants;
+      }
+      return fetch(request)
+        .then(response => response.json())
+        .then(json => {
+          json.forEach(restaurant => {  // <- this line loops thru the json
+            console.log('fetch idb write', ++j, restaurant.id, restaurant.name);
+            idbKeyVal.set('restaurants', restaurant); // <- writes each record
+          });
+          return json;
+        });
+    })
+    .then(response => new Response(JSON.stringify(response)))
+    .catch(error => {
+      return new Response(error, {
+        status: 404,
+        statusText: 'my bad request'
+      });
+    });
+}
+```
+
+The only other new piece of code is the `getAll` method on our `idbKeyVal` object literal.  This returns the whole record set for an object store.
+
+```js
+// IndexedDB object with get, set, getAll, & getAllIdx methods
+// https://github.com/jakearchibald/idb
+const idbKeyVal = {
+  get(store, key) {
+    return dbPromise.then(db => {
+      return db
+        .transaction(store)
+        .objectStore(store)
+        .get(key);
+    });
+  },
+  getAll(store) {
+    return dbPromise.then(db => {
+      return db
+        .transaction(store)
+        .objectStore(store)
+        .getAll();
+    });
+  },
+  set(store, val) {
+    return dbPromise.then(db => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).put(val);
+      return tx.complete;
+    });
+  }
+};
+```
