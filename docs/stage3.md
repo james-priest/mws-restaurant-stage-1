@@ -1388,6 +1388,7 @@ This is because dbhelper uses `import` to include dependent libraries which I co
 ```
 
 #### index.html (after build)
+What this does is create two script references in the HTML for final build.
 
 ```html
 <html>
@@ -1398,11 +1399,8 @@ This is because dbhelper uses `import` to include dependent libraries which I co
 </html>
 ```
 
-What this does is create two script references in the HTML for final build.
+This does end up adding another server request when the page first loads but we can get around this this by creating a gulp task to inline the js code for final production builds.
 
-This does add another request to the server when first loading the page but get around this this by creating a gulp task to inline the js code in my final production build.
-
-<!--
 ## 8. Reviews Store
 ### 8.1 Create Review Store
 In order to be able to access reviews when offline we need to cache them to a new local IndexedDB object store.
@@ -1522,7 +1520,7 @@ The `restaurant_id` index is simply another view of the data in the object store
 [![Reviews Index](assets/images/3-13-small.jpg)](assets/images/3-13.jpg)
 **Figure 13:** Reviews Index
 
--->
+Both the `reviews` object store and the index show and are capturing data.
 
 <!-- 
 ### 9.1 Task for Inlining Code
