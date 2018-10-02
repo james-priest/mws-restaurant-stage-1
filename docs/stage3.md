@@ -1123,7 +1123,12 @@ This is the form with intrinsic HTML5 validation.
 [![Form Validation](assets/images/3-9-small.jpg)](assets/images/3-9.jpg)
 **Figure 9:** Form Validation
 
-## 6. Redesign IDB Storage
+## 6. Restaurants Store
+Right now we're using IndexedDB to store our restaurant data. Since we're now querying our restaurant data from a local copy, we have the following benefits.
+
+- saves us round-trips from the server
+- allows us to provide an offline experience
+
 ### 6.1 Previous Schema
 Previously all restaurant records were saved as a single large json file under a single key of 'restaurants'.
 
@@ -1148,6 +1153,8 @@ In order to break out the restaurants so that each is given it's own IDB record,
 This is done in the service worker code (`sw.js`).
 
 We first start by looking at the code to intercept all fetch requests. If a call includes port 1337 then it's a request for restaurant data from the database.
+
+#### sw.js
 
 ```js
 // intercept all requests
@@ -1231,3 +1238,335 @@ const idbKeyVal = {
   }
 };
 ```
+
+## 7. Refactor IDB Code
+It became clear I'll need to do IDB operations from places other than just the service worker. So, I decided to create a separate js file to contain my IDB code.
+
+The new file (`idbhelper.js`) is then be bundled along with my service worker (`sw.js`) and my restaurants js file (`restaurant_info.js`) through a set of gulp tasks.
+
+### 7.1 Create new js for IDB
+First thing is to move the following code out of `sw.js` to its own `idbhelper.js` file.
+
+#### idbhelper.js
+
+```js
+import idb from 'idb';
+// let idb = require('idb');
+
+const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore('restaurants', 
+        { keyPath: 'id', unique: true });
+  }
+});
+
+// IndexedDB object with get, set, getAll, & getAllIdx methods
+// https://github.com/jakearchibald/idb
+const idbKeyVal = {
+  get(store, key) {
+    return dbPromise.then(db => {
+      return db
+        .transaction(store)
+        .objectStore(store)
+        .get(key);
+    });
+  },
+  getAll(store) {
+    return dbPromise.then(db => {
+      return db
+        .transaction(store)
+        .objectStore(store)
+        .getAll();
+    });
+  },
+  set(store, val) {
+    return dbPromise.then(db => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).put(val);
+      return tx.complete;
+    });
+  }
+};
+
+self.idbKeyVal = idbKeyVal;   // <- This line exposes the object literal.
+```
+
+The line `self.idbKeyVal = idbKeyVal;` is key!
+
+The reason is that we are using Browserify in our Gulpfile to bundle the idb library referenced in the first line (`import idb from 'idb';`).
+
+Browserify wraps our code in an Immediately Invoked Function Expression (IIFE) in order to not pollute the global namespace.
+
+This means we lose our ability to reference the object literal from any code outside this bundle.
+
+### 7.2 Update Gulp Tasks
+Next I added to the `sw` task. It previously was just processing the `sw.js` file and bundling the `idb` library referenced within it.
+
+Now it combines `sw.js` with `idbhelper.js` as well.
+
+#### gulpfile.js
+
+```js
+// Service Worker
+gulp.task('sw', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/sw.js'
+  ], { debug: false }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('sw.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp'));
+});
+```
+
+The next thing I did was create a `dbhelper` task in order to bundle `dbhelper.js` with `idbhelper.js` and the `idb` library.
+
+```js
+// DBHelper
+gulp.task('dbhelper', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js'
+  ], { debug: false }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('dbhelper.min.js'))  // get text stream w/ dest filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp/js/'));
+});
+```
+
+### 7.3 Update DBHelper Class
+Since Browserify wraps the `DBHelper` class in an IIFE we also need to make sure to expose the class in the global namespace.
+
+This is done with the following...
+
+#### dbhelper.js
+
+```js
+class DBHelper {}
+  // existing code...
+}
+
+window.DBHelper = DBHelper;   // <- exposes DBHelper on window (global) object
+```
+
+This makes `DBHelper` available off of the `window` object which is necessary for any access by other scripts defined outside of the Browserify bundle.
+
+### 7.4 Update HTML files
+Lastly, I had to make a small change to both `index.html` & `restaurant.html`.
+
+I needed to move the `dbhelper.js` script to it's own line and out of "build" section which gulp uses to know which files to combine.
+
+This is because dbhelper uses `import` to include dependent libraries which I couldn't successfully combine with the rest of the javascript build process.
+
+#### index.html (before change)
+
+```html
+<!-- build:js js/index.min.js defer -->
+<script src="js/dbhelper.js"></script>
+<script src="js/register_sw.js"></script>
+<script src="js/main.js"></script>
+<!-- endbuild -->
+```
+
+#### index.html (after change)
+
+```html
+<script src="js/dbhelper.min.js"></script>
+<!-- build:js js/index.min.js defer -->
+<script src="js/register_sw.js"></script>
+<script src="js/main.js"></script>
+<!-- endbuild -->
+```
+
+#### index.html (after build)
+
+```html
+<html>
+  <body>
+    <script src=js/dbhelper.min.js></script>
+    <script src=js/index.min.js defer></script>
+  </body>
+</html>
+```
+
+What this does is create two script references in the HTML for final build.
+
+This does add another request to the server when first loading the page but get around this this by creating a gulp task to inline the js code in my final production build.
+
+<!--
+## 8. Reviews Store
+### 8.1 Create Review Store
+In order to be able to access reviews when offline we need to cache them to a new local IndexedDB object store.
+
+We've moved our IDB code to it's own `idbhelper.js` file. Here's where we'll upgrade the database to create a `reviews` store with an auto-incrementing id.
+
+We also create an index on `restaurant_id` so we can easily query all reviews for a given restaurant.
+
+#### idbhelper.js
+
+```js
+const dbPromise = idb.open('udacity-restaurant-db', 2, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore('restaurants',
+        { keyPath: 'id', unique: true });
+    case 1:
+      const reviewStore = upgradeDB.createObjectStore('reviews',
+        { autoIncrement: true });
+      reviewStore.createIndex('restaurant_id', 'restaurant_id');
+  }
+});
+```
+
+Once this is done we add a new method to our `idbKeyVal` object literal. This will allow us to get all reviews based on a reataurant.
+
+```js
+const idbKeyVal = {
+  get...
+  getAll...
+  getAllIdx(store, idx, key) {
+    return dbPromise.then(db => {
+      return db
+        .transaction(store)
+        .objectStore(store)
+        .index(idx)
+        .getAll(key);
+    });
+  },
+  set...
+}
+```
+
+### 8.2 Fill Review Store
+Next we'll add another condition to our fetch event listener which will trap the call for a restaurant's reviews.
+
+We'll then do an `event.respondWith()` with a call to `idbReviewResponse` function.
+
+#### sw.js
+
+```js
+// intercept all requests
+// return cached asset, idb data, or fetch from network
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  
+  // 1. filter Ajax Requests
+  if (requestUrl.port === '1337') {
+    if (request.url.includes('reviews')) {                    // <- new
+      let id = +requestUrl.searchParams.get('restaurant_id'); // <- new
+      event.respondWith(idbReviewResponse(request, id));      // <- new
+    } else {                                                  // <- new
+      event.respondWith(idbRestaurantResponse(request));
+    }
+  }
+  else {
+    event.respondWith(cacheResponse(request));
+  }
+});
+```
+
+Next we create the `idbReviewResponse` function. This works like our previous `idbRestaurantResponse` function.
+
+It queries the `reviews` object store. If it gets any records back it sends that result set to the calling function.
+
+If it doesn't it performs a fetch to get the reviews from the server. It then loops through these and fills the `reviews` object store before returning the json response back to the calling function.
+
+```js
+let k = 0;
+function idbReviewResponse(request, id) {
+  return idbKeyVal.getAllIdx('reviews', 'restaurant_id', id)
+    .then(reviews => {
+      if (reviews.length) {
+        return reviews;
+      }
+      return fetch(request)
+        .then(response => response.json())
+        .then(json => {
+          json.forEach(review => {
+            console.log('fetch idb review write', ++k, review.id, review.name);
+            idbKeyVal.set('reviews', review);
+          });
+          return json;
+        });
+    })
+    .then(response => new Response(JSON.stringify(response)))
+    .catch(error => {
+      return new Response(error, {
+        status: 404,
+        statusText: 'my bad request'
+      });
+    });
+}
+```
+
+### 8.3 Inspect Data
+Now that we have the object store in place it'll get filled with review data as we navigate through the various restaurant detail pages.
+
+#### Reviews object store
+[![Reviews object store](assets/images/3-12-small.jpg)](assets/images/3-12.jpg)
+**Figure 12:** Reviews object store
+
+#### Reviews index
+The `restaurant_id` index is simply another view of the data in the object store. It allows us to do a query using the `getAllIdx` method of the `idbKeyVal` object.
+
+[![Reviews Index](assets/images/3-13-small.jpg)](assets/images/3-13.jpg)
+**Figure 13:** Reviews Index
+
+-->
+
+<!-- 
+### 9.1 Task for Inlining Code
+As a last step I created a Gulp task that takes both external css & javascript files and inlines them in the HTML.
+
+This is done in order improve the DevTools Performance score.
+
+```js
+gulp.task('inline1', function () {
+  return gulp
+    .src('./dist/index.html')
+    .pipe(
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+        var style = fs.readFileSync("dist/css/styles.css", "utf8");
+        return "<style>" + style + "</style>";
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+        var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    // .pipe(minify())
+    .pipe(gulp.dest("dist/"));
+});
+
+gulp.task('inline2', function () {
+  return gulp
+    .src('./dist/restaurant.html')
+    .pipe(
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+        var style = fs.readFileSync("dist/css/styles.css", "utf8");
+        return "<style>" + style + "</style>";
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+        var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    // .pipe(minify())
+    .pipe(gulp.dest("dist/"));
+});
+```
+ -->
