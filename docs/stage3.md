@@ -1407,6 +1407,8 @@ In order to be able to access reviews when offline we need to cache them to a ne
 
 We've moved our IDB code to it's own `idbhelper.js` file. Here's where we'll upgrade the database to create a `reviews` store with an auto-incrementing id.
 
+The auto-incrementing id will be necessary when designing offline use capability.
+
 We also create an index on `restaurant_id` so we can easily query all reviews for a given restaurant.
 
 #### idbhelper.js
@@ -1514,16 +1516,327 @@ Now that we have the object store in place it'll get filled with review data as 
 [![Reviews object store](assets/images/3-12-small.jpg)](assets/images/3-12.jpg)
 **Figure 12:** Reviews object store
 
+The `reviews` object store shows up and is capturing data properly.
+
 #### Reviews index
 The `restaurant_id` index is simply another view of the data in the object store. It allows us to do a query using the `getAllIdx` method of the `idbKeyVal` object.
 
 [![Reviews Index](assets/images/3-13-small.jpg)](assets/images/3-13.jpg)
 **Figure 13:** Reviews Index
 
-Both the `reviews` object store and the index show and are capturing data.
+ The `restaurant_id` index also displays properly.
+
+## 9. Offline Reviews
+This next section covers how the application must work offline. The app must:
+
+<!-- - Caching JSON responses to IndexedDB
+  - doing this with `restaurants` and `reviews` object stores
+- Any data previously accessed is accessible while offline
+  - doing this by writing to object stores when we fetch restaurants or reviews -->
+- Allow user to add reviews while offline
+  - Review will be visible locally while app is disconnected
+  - `createIDBReview` method will write to the `reviews` store
+  - New `offline` object store will keep track of attempted requests
+  - `addRequestToQueue` method will write requests to `offline` store
+- Send review to the server when connectivity is re-established
+  - `window.onload` will be used to trigger `processQueue` method
+  - `processQueue` will iterate through the request records to update the server
+  - each successful POST will remove the POST request from the queue
+  - each successful POST will update the review record with new server data
+
+### 9.1 Create Offline Store
+The first step is to create the `offline` object store.
+
+#### idbhelper.js
+
+```js
+const dbPromise = idb.open('udacity-restaurant-db', 3, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      upgradeDB.createObjectStore('restaurants',
+        { keyPath: 'id', unique: true });
+    case 1:
+      const reviewStore = upgradeDB.createObjectStore('reviews',
+        { autoIncrement: true });
+      reviewStore.createIndex('restaurant_id', 'restaurant_id');
+    case 2:
+      upgradeDB.createObjectStore('offline',
+        { autoIncrement: true });
+  }
+});
+```
+
+While in this file I also need to add a new IDB method for getting the primary key back after setting a value.
+
+This is necessary for replacing records that were created while offline once the app re-connects.
+
+```js
+const idbKeyVal = {
+  get...
+  getAll...
+  getAllIdx...
+  set...
+  setReturnId(store, val) {
+    return dbPromise.then(db => {
+      return db.transaction(store, 'readwrite')
+        .objectStore(store).put(val);
+    });
+  }
+}
+```
+
+### 9.2 Save Review
+The `saveAddReview` FE handler is invoked once the "Save" button is clicked on the Add Review form.
+
+It checks for form validity and then calls `DBHelper.createRestaurantReview` which attempts to write the record to DB.
+
+#### restautant_info.js
+
+```js
+const saveAddReview = (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  if (form.checkValidity()) {
+    console.log('is valid');
+
+    const restaurant_id = self.restaurant.id;
+    const name = document.querySelector('#reviewName').value;
+    const rating = document.querySelector('input[name=rate]:checked').value;
+    const comments = document.querySelector('#reviewComments').value;
+  
+    // attempt save to database server
+    DBHelper.createRestaurantReview(restaurant_id, name, rating, comments,
+      (error, review) => {
+      console.log('got callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        window.location.href =
+          `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.createIDBReview(review); // write record to local IDB store
+        window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+      }
+    });
+  }
+};
+```
+
+### 9.3 CreateRestaurantReview
+`CreateRestaurantReview` takes a review and does a number of things...
+
+1. It formats the server request
+2. Attempts to POST the data with fetch
+3. If successful it returns the data to the calling function
+4. If offline it saves the review to local idb & gets the review_key back
+5. It saves the request to the offline store along with the review_key
+
+#### restautant_info.js
+
+```js
+static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
+  const url = DBHelper.DATABASE_URL + '/reviews/';
+  const method = 'POST';
+  const data = {
+    restaurant_id: restaurant_id,
+    name: name,
+    rating: rating,
+    comments: comments
+  };
+  const body = JSON.stringify(data);
+  // const body = data;
+
+  fetch(url, {
+    headers: { 'Content-Type': 'application/form-data' },
+    method: method,
+    body: body
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline...
+      // Save review to local IDB, set id to -1
+      data.id = -1;
+      DBHelper.createIDBReview(data)
+        .then(review_key => {
+          // Get review_key and save it with review to offline queue
+          console.log('returned review_key', review_key);
+          DBHelper.addRequestToQueue(url, method, body, review_key)
+            .then(offline_key => console.log('offline_key', offline_key));
+        });
+      callback(err, null);
+    });
+}
+```
+
+### 9.4 CreateIDBReview
+`createIDBReview` writes the review record to the local `reviews` object store.
+
+It's called after successfully writing the record to the server DB and it's called after an unsuccessful attempt.
+
+Either way, the review is saved locally.
+
+```js
+static createIDBReview(review) {
+  return idbKeyVal.setReturnId('reviews', review)
+    .then(id => {
+      console.log('Saved to IDB: reviews', review);
+      return id;
+    });
+}
+```
+
+### 9.5 AddRequestToQueue
+If the fetch request (POST) fails then it means we are offline and the request is written to the `offline` object store for processing later.
+
+```js
+static addRequestToQueue(url, method, body, review_key) {
+  const request = {
+    url: url,
+    method: method,
+    body: body,
+    review_key: review_key
+  };
+  return idbKeyVal.setReturnId('offline', request)
+    .then(id => {
+      console.log('Saved to IDB: offline', request);
+      return id;
+    });
+}
+```
+
+### 9.6 Offline Alert UI & ARIA
+The code (shown in the next section) reloads the page and displays the offline alert.
+
+The alert html looks like this.
+
+#### restaurant.html
+
+```html
+<html>
+  <body>
+  <!-- other html -->
+  
+  <div id="offline" role="alert" aria-hidden="true">
+    <h3>Offline - not connected to the internet</h3>
+    <p>Your review has been saved and will post once
+      the connection is reestablished.</p>
+  </div>
+
+  <!-- scripts -->
+  </body>
+</html>
+```
+
+The `role="alert"` tells screen readers that this is a brief, important message that attracts the users attention without interrupting the user's task.
+
+The `aria-hidden="true"` attribute hides the element from assistive technologies until we trigger it through code to display.
+
+This is styled with the following CSS.
+
+#### styles.css
+
+```css
+#offline {
+  position: fixed;
+  align-self: center;
+  justify-self: center;
+  top: -120px;
+  background-color: #f3df84;
+  border-bottom: 1px solid #999;
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+  padding: 10px 16px;
+  margin: 0 auto;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  max-width: 400px;
+  transition: top .3s ease-in-out 1s;
+}
+#offline.show {
+  top: 0;
+}
+#offline h3 {
+  margin: 0 0 6px;
+}
+#offline p {
+  margin: 0 0 10px;
+}
+```
+
+The CSS fixes and positions the alert off-screen. We also have a transition in place so it'll animate down when the `.show` class is added to `<div id="#offline">`.
+
+### 9.7 Offline Alert JS
+If we're offline, the POST to save the review will fail. `saveAddReview` catches this error which is returned on the callback.
+
+It then appends `isOffline=true` to the QueryString before reloading the page.
+
+#### restaurant_info.js
+
+```js
+const saveAddReview = (e) => {
+  // other code...
+
+  if (form.checkValidity()) {
+    // attempt save to database server
+    DBHelper.createRestaurantReview(restaurant_id, name, rating, comments,
+      (error, review) => {
+      console.log('got callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        window.location.href =
+          `/restaurant.html?id=${self.restaurant.id}&isOffline=true`; // <-here
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.createIDBReview(review); // write record to local IDB store
+        window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+      }
+    });
+  }
+}
+```
+
+I then added a `load` EventListener to display the alert if the `isOffline` parameter is present in the URL.
+
+#### restaurant_info.js
+
+```js
+window.addEventListener('load', function () {
+  const isOffline = getParameterByName('isOffline');
+
+  if (isOffline) {
+    document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').classList.add('show');
+
+    wait(8000).then(() => {
+      document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').classList.remove('show');
+    });
+  }
+
+  function wait(ms) {
+    return new Promise(function (resolve, reject) {
+      window.setTimeout(function () {
+        resolve(ms);
+        reject(ms);
+      }, ms);
+    });
+  }
+});
+```
+
+If offline we un-hide the alert from assistive technologies and add the `show` class to the alert.
+
+We then wait 8 seconds before hiding the alert once again.
+
+[![Offline Alert](assets/images/3-14-small.jpg)](assets/images/3-14.jpg)
+**Figure 14:** Offline Alert
 
 <!-- 
-### 9.1 Task for Inlining Code
+### 10.1 Task for Inlining Code
 As a last step I created a Gulp task that takes both external css & javascript files and inlines them in the HTML.
 
 This is done in order improve the DevTools Performance score.
