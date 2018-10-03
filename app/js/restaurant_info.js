@@ -23,6 +23,31 @@ window.initMap = () => {
   });
 };
 
+window.addEventListener('load', function () {
+  const isOffline = getParameterByName('isOffline');
+
+  if (isOffline) {
+    document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').classList.add('show');
+      
+    wait(8000).then(() => {
+      document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').classList.remove('show');
+    });
+  }
+
+  // processQueue()
+});
+
+const wait = function (ms) {
+  return new Promise(function (resolve, reject) {
+    window.setTimeout(function () {
+      resolve(ms);
+      reject(ms);
+    }, ms);
+  });
+};
+
 /**
  * Get current restaurant from page URL.
  */
@@ -125,6 +150,115 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
   }
 };
 
+/**
+ * Create all reviews HTML and add them to the webpage.
+ */
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log('Error retrieving reviews', error);
+  }
+  const header = document.getElementById('reviews-header');
+
+  const title = document.createElement('h2');
+  title.innerHTML = 'Reviews';
+  header.appendChild(title);
+  
+  const addReview = document.createElement('button');
+  addReview.id = 'review-add-btn';
+  addReview.innerHTML = '+';
+  addReview.setAttribute('aria-label', 'add review');
+  addReview.title = 'Add Review';
+  addReview.addEventListener('click', openModal);
+  header.appendChild(addReview);
+  
+  const container = document.getElementById('reviews-container');
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
+  const ul = document.getElementById('reviews-list');
+  reviews.forEach(review => {
+    ul.appendChild(createReviewHTML(review));
+  });
+  container.appendChild(ul);
+};
+
+/**
+ * Create review HTML and add it to the webpage.
+ */
+const createReviewHTML = (review) => {
+  const li = document.createElement('li');
+  const name = document.createElement('p');
+  name.innerHTML = review.name;
+  li.appendChild(name);
+
+  const createdAt = document.createElement('p');
+  createdAt.classList.add('createdAt');
+  // const createdDate = new Date(review.createdAt).toLocaleDateString();
+  const createdDate = review.createdAt ?
+    new Date(review.createdAt).toLocaleDateString() :
+    'Pending';
+  createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
+  li.appendChild(createdAt);
+
+  // if (review.updatedAt > review.createdAt) {
+    
+  const updatedAt = document.createElement('p');
+  // const updatedDate = new Date(review.updatedAt).toLocaleDateString();
+  const updatedDate = review.updatedAt ?
+    new Date(review.updatedAt).toLocaleDateString() :
+    'Pending';
+  updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
+  updatedAt.classList.add('updatedAt');
+  li.appendChild(updatedAt);
+  // }
+
+  const rating = document.createElement('p');
+  rating.classList.add('rating');
+  rating.innerHTML = `Rating: ${review.rating}`;
+  rating.dataset.rating = review.rating;
+  li.appendChild(rating);
+
+  const comments = document.createElement('p');
+  comments.classList.add('comments');
+  comments.innerHTML = review.comments;
+  li.appendChild(comments);
+
+  return li;
+};
+
+/**
+ * Add restaurant name to the breadcrumb navigation menu
+ */
+const fillBreadcrumb = (restaurant = self.restaurant) => {
+  const breadcrumb = document.getElementById('breadcrumb');
+  const li = document.createElement('li');
+  li.innerHTML = restaurant.name;
+  breadcrumb.appendChild(li);
+};
+
+/**
+ * Get a parameter by name from page URL.
+ */
+const getParameterByName = (name, url) => {
+  if (!url)
+    url = window.location.href;
+  // name = name.replace(/[\[\]]/g, '\\$&');
+  name = name.replace(/[[\]]/g, '\\$&');
+  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+    results = regex.exec(url);
+  if (!results)
+    return null;
+  if (!results[2])
+    return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+};
+
+
 // Adapted from modal dialog sample code in Udacity Web Accessibility course 891
 //  https://github.com/udacity/ud891/blob/gh-pages/lesson2-focus/07-modals-and-keyboard-traps/solution/modal.js
 const openModal = () => {
@@ -141,7 +275,7 @@ const openModal = () => {
   closeBtn.addEventListener('click', closeModal);
 
   // submit form
-  const form = document.getElementById('review-form');
+  const form = document.getElementById('review_form');
   form.addEventListener('submit', saveAddReview, false);
 
   // Find all focusable children
@@ -160,7 +294,9 @@ const openModal = () => {
   // Focus first child
   // firstTabStop.focus();
   const reviewName = document.getElementById('reviewName');
-  reviewName.focus();
+  setTimeout(() => {
+    reviewName.focus();
+  }, 200);
 
   function trapTabKey(e) {
     // Check for TAB key press
@@ -197,69 +333,42 @@ const openModal = () => {
 
 const saveAddReview = (e) => {
   e.preventDefault();
+  const form = e.target;
+ 
+  if (form.checkValidity()) {
+    console.log('is valid');
 
-  const name = document.querySelector('#reviewName').value;
-  const rating = document.querySelector('input[name=rate]:checked').value;
-  const comments = document.querySelector('#reviewComments').value;
+    const restaurant_id = self.restaurant.id;
+    const name = document.querySelector('#reviewName').value;
+    const rating = document.querySelector('input[name=rate]:checked').value;
+    const comments = document.querySelector('#reviewComments').value;
   
-  console.log(name);
-  console.log(rating);
-  console.log(comments);
-
-  DBHelper.createRestaurantReview(self.restaurant.id, name, rating, comments, (error, review) => {
-    console.log('got callback');
-    if (error) {
-      console.log('Error saving review');
-    } else {
-      // do some other stuff
-      console.log(review);
-      window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
-    }
-  });
+    // attempt save to database server
+    DBHelper.createRestaurantReview(restaurant_id, name, rating, comments, (error, review) => {
+      console.log('got callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.createIDBReview(review); // write record to local IDB store
+        window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+      }
+    });
+  }
 };
 
 const closeModal = () => {
   // Hide the modal and overlay
-  // modal.style.display = 'none';
-  // modalOverlay.style.display = 'none';
   modal.classList.remove('show');
   modalOverlay.classList.remove('show');
 
-  const form = document.getElementById('review-form');
+  const form = document.getElementById('review_form');
   form.reset();
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();
 };
-
-// NO LONGER USED
-// const toggleModal = (evt) => {
-//   evt.preventDefault();
-//   const modal = document.getElementById('modal');
-//   // modal
-//   if (!modal.classList.contains('show')) {
-//     // show form
-//     buildReviewForm();
-//     const reviewName = document.getElementById('reviewName');
-//     modal.classList.toggle('show');
-//     reviewName.focus();
-//   } else {
-//     const addReviewBtn = document.getElementById('review-add-btn');
-//     modal.classList.toggle('show');
-//     addReviewBtn.focus();
-//   }
-// };
-
-// const buildReviewForm = () => {
-
-// };
-
-// const addReviewForm = () => {
-
-// };
-
-// const editReviewForm = () => {
-  
-// };
 
 const setFocus = (evt) => {
   const rateRadios = document.getElementsByName('rate');
@@ -334,108 +443,4 @@ const navRadioGroup = (evt) => {
       }
     }
   }
-};
-
-/**
- * Create all reviews HTML and add them to the webpage.
- */
-const fillReviewsHTML = (error, reviews) => {
-  self.restaurant.reviews = reviews;
-
-  if (error) {
-    console.log('Error retrieving reviews', error);
-  }
-  const header = document.getElementById('reviews-header');
-
-  const title = document.createElement('h2');
-  title.innerHTML = 'Reviews';
-  header.appendChild(title);
-  
-  const addReview = document.createElement('button');
-  // addReview.classList.add('review-add-btn');
-  addReview.id = 'review-add-btn';
-  addReview.innerHTML = '+';
-  addReview.setAttribute('aria-label', 'add review');
-  addReview.title = 'Add Review';
-  // addReview.addEventListener('click', toggleModal);
-  addReview.addEventListener('click', openModal);
-  header.appendChild(addReview);
-  
-  const container = document.getElementById('reviews-container');
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
-  container.appendChild(ul);
-};
-
-/**
- * Create review HTML and add it to the webpage.
- */
-const createReviewHTML = (review) => {
-  const li = document.createElement('li');
-  const name = document.createElement('p');
-  name.innerHTML = review.name;
-  li.appendChild(name);
-
-  const createdAt = document.createElement('p');
-  createdAt.classList.add('createdAt');
-  const createdDate = new Date(review.createdAt).toLocaleDateString();
-  createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
-  li.appendChild(createdAt);
-
-  // if (review.updatedAt > review.createdAt) {
-    
-  const updatedAt = document.createElement('p');
-  const updatedDate = new Date(review.updatedAt).toLocaleDateString();
-  updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
-  updatedAt.classList.add('updatedAt');
-  li.appendChild(updatedAt);
-  // }
-
-  const rating = document.createElement('p');
-  rating.classList.add('rating');
-  rating.innerHTML = `Rating: ${review.rating}`;
-  rating.dataset.rating = review.rating;
-  li.appendChild(rating);
-
-  const comments = document.createElement('p');
-  comments.classList.add('comments');
-  comments.innerHTML = review.comments;
-  li.appendChild(comments);
-
-  return li;
-};
-
-/**
- * Add restaurant name to the breadcrumb navigation menu
- */
-const fillBreadcrumb = (restaurant = self.restaurant) => {
-  const breadcrumb = document.getElementById('breadcrumb');
-  const li = document.createElement('li');
-  li.innerHTML = restaurant.name;
-  breadcrumb.appendChild(li);
-};
-
-/**
- * Get a parameter by name from page URL.
- */
-const getParameterByName = (name, url) => {
-  if (!url)
-    url = window.location.href;
-  // name = name.replace(/[\[\]]/g, '\\$&');
-  name = name.replace(/[[\]]/g, '\\$&');
-  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-    results = regex.exec(url);
-  if (!results)
-    return null;
-  if (!results[2])
-    return '';
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };

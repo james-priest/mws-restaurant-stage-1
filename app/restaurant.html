@@ -66,9 +66,9 @@
   <!-- Beginning modal -->
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="add-review-header">
     <button class="close-btn" aria-label="close" title="Close">x</button>
-    <div id="review-form-container">
+    <div id="review_form_container">
       <h2 id="add-review-header">Add Review</h2>
-      <form id="review-form">
+      <form id="review_form">
         <div class="fieldset">
           <label for="reviewName">Name</label>
           <input type="text" name="reviewName" id="reviewName" required>
@@ -88,27 +88,12 @@
             <label for="star1" title="1 star">1 star</label>
           </div>
         </div>
-        <!-- <div class="fieldset">
-          <label>Rating</label>
-          <div class="rate1">
-            <input type="radio" id="star1a" name="rate2" value="1" />
-            <label for="star1a" title="1 star">1 star</label>
-            <input type="radio" id="star2a" name="rate2" value="2" />
-            <label for="star2a" title="2 stars">2 stars</label>
-            <input type="radio" id="star3a" name="rate2" value="3" />
-            <label for="star3a" title="3 stars">3 stars</label>
-            <input type="radio" id="star4a" name="rate2" value="4" />
-            <label for="star4a" title="4 stars">4 stars</label>
-            <input type="radio" id="star5a" name="rate2" value="5" />
-            <label for="star5a" title="5 stars">5 stars</label>
-          </div>
-        </div> -->
         <div class="fieldset">
           <label for="reviewComments">Comments</label>
           <textarea name="reviewComments" id="reviewComments" cols="20" rows="5" required></textarea>
         </div>
         <div class="fieldset right">
-          <button id="submit-review-btn">Save</button>
+          <button id="submit_review_btn">Save</button>
         </div>
       </form>
     </div>
@@ -116,8 +101,14 @@
   <div class="modal-overlay"></div>
   <!-- End modal -->
 
+  <div id="offline" role="alert" aria-hidden="true">
+    <h3>Offline - not connected to the internet</h3>
+    <p>Your review has been saved and will post once the connection is reestablished.</p>
+  </div>
+
+  <!-- <script src="js/idbhelper.js"></script> -->
+  <script src="js/dbhelper.min.js"></script>
   <!-- build:js js/restaurant.min.js defer -->
-  <script src="js/dbhelper.js"></script>
   <script src="js/register_sw.js"></script>
   <script src="js/restaurant_info.js"></script>
   <!-- endbuild -->

@@ -15,7 +15,9 @@ body,td,th,p{
 body {
 	background-color: #fdfdfd;
 	margin: 0;
-	position:relative;
+  position:relative;
+  display: flex;
+  flex-direction: column;
 }
 a {
   color: #ffabab;
@@ -507,14 +509,14 @@ nav h1 a {
   transition: all .3s;
   overflow: hidden;
   background-color: #eee;
-  /* visibility: hidden; */
-  display: none;
+  visibility: hidden;
+  display: flex;
 }
 #modal.show {
-  /* visibility: visible;   */
+  visibility: visible;  
   opacity: 1;
   /* z-index: 10; */
-  display: flex;
+  /* display: flex; */
 }
 .modal-overlay {
   width: 100%;
@@ -570,10 +572,10 @@ button:hover {
 }
 button#review-add-btn, 
 button.close-btn, 
-button#submit-review-btn {
+button#submit_review_btn {
   min-height: 40px;
 }
-button#submit-review-btn {
+button#submit_review_btn {
   font-weight: bold;
   cursor: pointer;
   padding: 0 16px;
@@ -585,34 +587,34 @@ button#submit-review-btn {
 .right {
   align-self: flex-end;
 }
-#review-form-container {
+#review_form_container {
   width: 100%;
   /* background-color: #eee; */
   padding: 0 20px 26px;
   color: #333;
   overflow-y: auto;
 }
-#review-form-container h2 {
+#review_form_container h2 {
   margin: 0 0 0 6px;
 }
-#review-form {
+#review_form {
   display: flex;
   flex-direction: column;
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 4px;
 }
-#review-form label, #review-form input {
+#review_form label, #review_form input {
   display: block;
   /* width: 100%; */
 }
-#review-form label {
+#review_form label {
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-#review-form .rate label, #review-form .rate input,
-#review-form .rate1 label, #review-form .rate1 input {
+#review_form .rate label, #review_form .rate input,
+#review_form .rate1 label, #review_form .rate1 input {
   display: inline-block;
 }
 /* Modified from: https://codepen.io/tammykimkim/pen/yegZRw */
@@ -623,7 +625,7 @@ button#submit-review-btn {
   align-items: flex-start;
   justify-content: flex-end;
 }
-#review-form .rate > label {
+#review_form .rate > label {
   margin-bottom: 0;
   margin-top: -5px;
   height: 30px;
@@ -671,6 +673,32 @@ button#submit-review-btn {
 #submit-review {
   align-self: flex-end;
 }
+#offline {
+  position: fixed;
+  align-self: center;
+  justify-self: center;
+  top: -120px;
+  background-color: #f3df84;
+  border-bottom: 1px solid #999;
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+  padding: 10px 16px;
+  margin: 0 auto;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  max-width: 400px;
+  /* transition: visibility .3s ease-in-out, top .3s ease-in-out 1s; */
+  transition: top .3s ease-in-out 1s;
+}
+#offline.show {
+  top: 0;
+}
+#offline h3 {
+  margin: 0 0 6px;
+}
+#offline p {
+  margin: 0 0 10px;
+}
 
 /* ====================== Media Queries ====================== */
 @media screen and (max-width: 1100px) {
@@ -717,7 +745,7 @@ button#submit-review-btn {
     /* padding-top: 16px; */
   }
   #restaurant-container, #reviews-container {
-    width: inherit;
+    width: 100%;
   }
   #restaurant-name {
     margin: 15px 0 10px;
@@ -734,6 +762,10 @@ button#submit-review-btn {
   #restaurants-list li {
     margin: 15px 0;
     width: 270px;
+  }
+  #offline {
+    max-width: 300px;
+    top: -170px;
   }
 }
 

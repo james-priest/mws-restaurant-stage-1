@@ -1,101 +1,14 @@
-import idb from 'idb';
-// let idb = require('idb');
+const staticCacheName = 'restaurant-static-196'; 
 
-const staticCacheName = 'restaurant-static-143'; 
-
-const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
-  switch (upgradeDB.oldVersion) {
-    case 0:
-      upgradeDB.createObjectStore('restaurants');
-  }
-});
-
-// IndexedDB object with get & set methods 
-// https://github.com/jakearchibald/idb
-const idbKeyVal = {
-  get(key) {
-    return dbPromise.then(db => {
-      return db
-        .transaction('restaurants')
-        .objectStore('restaurants')
-        .get(key);
-    });
-  },
-  set(key, val) {
-    return dbPromise.then(db => {
-      const tx = db.transaction('restaurants', 'readwrite');
-      tx.objectStore('restaurants').put(val, key);
-      return tx.complete;
-    });
-  }
-};
-
-/* 
-const dbPromise = idb.open('udacity-restaurant-db', 1, upgradeDB => {
-  switch (upgradeDB.oldVersion) {
-    case 0:
-      // var keyValStore = upgradeDB.createObjectStore('restaurants', {
-      //   keyPath: 'id'
-      // });
-      // keyValStore.createIndex('id', 'id');
-      upgradeDB.createObjectStore('restaurants');
-    case 1:
-      upgradeDB.createObjectStore('people', {
-        keyPath: 'name'
-      });
-    case 2:
-      var peopleStore = upgradeDB.transaction.objectStore('people');
-      peopleStore.createIndex('animal', 'favoriteAnimal');
-    case 3:
-      // var peopleStore = upgradeDB.transaction.objectStore('people');
-      peopleStore.createIndex('age', 'age');
-  } 
-});
-
-dbPromise.then(db => {
-  const tx = db.transaction('people', 'readwrite');
-  const peopleStore = tx.objectStore('people');
-
-  peopleStore.put({
-    name: 'James Priest',
-    age: 48,
-    favoriteAnimal: 'dog'
-  });
-  peopleStore.put({
-    name: 'Pacifist Dove',
-    age: 20,
-    favoriteAnimal: 'cat'
-  });
-  peopleStore.put({
-    name: 'Onika Maraj',
-    age: 35,
-    favoriteAnimal: 'lioness'
-  });
-
-  return tx.complete;
-});
-
-dbPromise.then(db => {
-  const tx = db.transaction('people');
-  const peopleStore = tx.objectStore('people');
-  const animalIndex = peopleStore.index('animal');
-  const ageIndex = peopleStore.index('age');
-
-  // return peopleStore.getAll();
-  return ageIndex.getAll();
-}).then(people => {
-  console.log('Ordered by Age:', people);
-});
-*/
-
-/*
 // list of assets to cache on install
 // cache each restaurant detail page as well
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(staticCacheName)
       .then(cache => {
+        CL.log('my class');
         return cache.addAll([
+          '/',
           '/index.html',
           '/css/styles.css',
           '/js/index.min.js',
@@ -110,6 +23,16 @@ self.addEventListener('install', event => {
           '/restaurant.html?id=8',
           '/restaurant.html?id=9',
           '/restaurant.html?id=10',
+          '/restaurant.html?id=1&isOffline=true',
+          '/restaurant.html?id=2&isOffline=true',
+          '/restaurant.html?id=3&isOffline=true',
+          '/restaurant.html?id=4&isOffline=true',
+          '/restaurant.html?id=5&isOffline=true',
+          '/restaurant.html?id=6&isOffline=true',
+          '/restaurant.html?id=7&isOffline=true',
+          '/restaurant.html?id=8&isOffline=true',
+          '/restaurant.html?id=9&isOffline=true',
+          '/restaurant.html?id=10&isOffline=true',
           '/img/fixed/offline_img1.png'
         ]).catch(error => {
           console.log('Caches open failed: ' + error);
@@ -118,37 +41,73 @@ self.addEventListener('install', event => {
   );
 });
 
-
+let i = 0;
 // intercept all requests
-// return cached asset, idb asset, or fetch from network
+// return cached asset, idb data, or fetch from network
 self.addEventListener('fetch', event => {
   const request = event.request;
   const requestUrl = new URL(request.url);
-
+  
   // 1. filter Ajax Requests
   if (requestUrl.port === '1337') {
-    event.respondWith(idbResponse(request));
+    // 2. Only cache GET methods
+    if (event.request.method !== 'GET') {
+      console.log('filtered out non-GET method');
+      // return fetch(event.request)
+      //   .then(response => response.json())
+      //   .then(json => json);
+      return;
+    }
+
+    console.log('fetch intercept', ++i, requestUrl.href);
+    
+    if (request.url.includes('reviews')) {
+      let id = +requestUrl.searchParams.get('restaurant_id');
+      event.respondWith(idbReviewResponse(request, id));
+    } else {
+      event.respondWith(idbRestaurantResponse(request));
+    }
   }
   else {
     event.respondWith(cacheResponse(request));
+    
+    // event.respondWith(
+    //   fetch(request)
+    //     .then(response => {
+    //       console.log(response);
+    //       return response;
+    //     })
+    //     .catch(error => console.log(error))
+    // );
+
+    // event.respondWith(function () {
+    //   return fetch(event.request);
+    // }());
+
+    // event.respondWith(fetch(event.request).then(response => response));
   }
 });
 
-function idbResponse(request) {
-  // 2. check idb & return match
-  // 3. if no match then clone, save, & return response
+let j = 0;
+function idbRestaurantResponse(request, id) {
+  // 1. getAll records from objectStore
+  // 2. if more than 1 rec then return match
+  // 3. if no match then fetch json, write to idb, & return response
 
-  return idbKeyVal.get('restaurants')
+  return idbKeyVal.getAll('restaurants')
     .then(restaurants => {
-      return (
-        restaurants ||
-        fetch(request)
-          .then(response => response.json())
-          .then(json => {
-            idbKeyVal.set('restaurants', json);
-            return json;
-          })
-      );
+      if (restaurants.length) {
+        return restaurants;
+      }
+      return fetch(request)
+        .then(response => response.json())
+        .then(json => {
+          json.forEach(restaurant => {
+            console.log('fetch idb write', ++j, restaurant.id, restaurant.name);
+            idbKeyVal.set('restaurants', restaurant);
+          });
+          return json;
+        });
     })
     .then(response => new Response(JSON.stringify(response)))
     .catch(error => {
@@ -157,54 +116,42 @@ function idbResponse(request) {
         statusText: 'my bad request'
       });
     });
-  
-  // return idbKeyVal.get('restaurants').then(restaurants => {
-  //   return restaurants || fetch(request)
-  //     .then(response => response.json())
-  //     .then(json => {
-  //       return idbKeyVal.set('restaurants', json)
-  //         .then(json => json);
-  //     })
-  //     .then(response => new Response(JSON.stringify(response)))
-  //     .catch(error => {
-  //       return new Response(error, {
-  //         status: 404,
-  //         statusText: 'my bad request'
-  //       });
-  //     });
-  // });
+}
 
-  // return dbPromise.then(db => {
-  //   var tx = db.transaction('restaurants');
-  //   var store = tx.objectStore('restaurants');
-
-  //   return store.get(id);
-  // }).then(data => {
-  //   console.log(data);
-  //   return data;
-  // }).then(data => {
-  //   return data || fetch(request).then(fetchResponse => {
-  //     if (!fetchResponse.ok) {
-  //       throw Error(`Ajax Request failed. Returned status of ${fetchResponse.statusText}`);
-  //     }
-  //     return fetchResponse.json();
-  //   }).then(json => {
-
-  //     // add into idb
-  //     return dbPromise.then(db => {
-  //       var tx = db.transaction('restaurants', 'readwrite');
-  //       var store = tx.objectStore('restaurants');
-
-  //       store.put(json);
-  //       return json;
-  //     });
-  //   });
-  // });
+let k = 0;
+function idbReviewResponse(request, id) {
+  return idbKeyVal.getAllIdx('reviews', 'restaurant_id', id)
+    .then(reviews => {
+      if (reviews.length) {
+        return reviews;
+      }
+      return fetch(request)
+        .then(response => response.json())
+        .then(json => {
+          json.forEach(review => {
+            console.log('fetch idb review write', ++k, review.id, review.name);
+            idbKeyVal.set('reviews', review);
+          });
+          return json;
+        });
+    })
+    .then(response => new Response(JSON.stringify(response)))
+    .catch(error => {
+      return new Response(error, {
+        status: 404,
+        statusText: 'my bad request'
+      });
+    });
 }
 
 function cacheResponse(request) {
   // match request...
-  return caches.match(request).then(response => {
+  // return caches.match(request).then(response => {
+  return caches.match(request, {
+    // https://developers.google.com/web/updates/2015/09/updates-to-cache-api
+    //ignoreSearch: true  // ignores url search string when serving from cache
+    // this works great for my caching but breaks GoogleMaps
+  }).then(response => {
     // return matched response OR if no match then
     // fetch, open cache, cache.put response.clone, return response
     return response || fetch(request).then(fetchResponse => {
@@ -226,26 +173,6 @@ function cacheResponse(request) {
       statusText: 'Not connected to the internet'
     });
   });
-  
-  // return caches.open(staticCacheName).then(function (cache) {
-  //   return cache.match(request).then(function (response) {
-  //     return (
-  //       response || fetch(request).then(function (networkResponse) {
-  //         cache.add(request, networkResponse.clone());
-  //         return networkResponse;
-  //       })
-  //     );
-  //   });
-  // }).catch(error => {
-  //   console.log(error);
-  //   if (request.url.includes('.jpg')) {
-  //     return caches.match('/img/fixed/offline_img1.png');
-  //   }
-  //   return new Response(error, {
-  //     status: 404,
-  //     statusText: 'Not connected to the internet'
-  //   });
-  // });
 }
 
 // delete old/unused static caches
@@ -264,4 +191,9 @@ self.addEventListener('activate', event => {
   );
 });
 
-*/
+// for testing purposes with gulp & browserify
+class CL {
+  static log(msg) {
+    console.log(msg);
+  }
+}

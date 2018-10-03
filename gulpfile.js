@@ -47,6 +47,13 @@ gulp.task('fixed-images', function () {
     .pipe(gulp.dest('dist/img/fixed'));
 });
 
+// Styles
+gulp.task('styles', function () {
+  return gulp.src('app/css/*.css')
+    .pipe($.if('*.css', $.autoprefixer()))
+    .pipe(gulp.dest('.tmp/css/'))
+});
+
 // Copy manifest
 gulp.task('manifest', function () {
   return gulp.src('app/manifest.json')
@@ -115,21 +122,76 @@ gulp.task('html:dist', function () {
     .pipe(gulp.dest('dist'));
 });
 
-// Process Service Worker
+// Service Worker
 gulp.task('sw', function () {
-  var bundler = browserify('./app/sw.js', {debug: true}); // ['1.js', '2.js']
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/sw.js'
+  ], { debug: false }); // ['1.js', '2.js']
 
   return bundler
-    .transform(babelify, {sourceMaps: true})  // required for 'import'
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
     .bundle()               // concat
     .pipe(source('sw.js'))  // get text stream w/ destination filename
     .pipe(buffer())         // required to use stream w/ other plugins
     .pipe(gulp.dest('.tmp'));
 });
 
+// DBHelper
+gulp.task('dbhelper', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js'
+  ], { debug: false }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp/js/'));
+});
+
+// Index Scripts
+gulp.task('scripts1', function () {
+  var bundler = browserify([
+    './app/js/dbhelper.js',
+    './app/js/idbhelper.js',
+    './app/js/register_sw.js',
+    './app/js/main.js'
+  ], { debug: false, insertGlobals: true }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('index.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp/js/'));
+});
+
+// Restaurant Scripts
+gulp.task('scripts2', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js',
+    './app/js/register_sw.js',
+    './app/js/restaurant_info.js'
+  ], { debug: false }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('restaurant.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe(gulp.dest('.tmp/js/'));
+});
+
 // Optimize Service Worker
 gulp.task('sw:dist', function () {
-  var bundler = browserify('./app/sw.js', {debug: true}); // ['1.js', '2.js']
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/sw.js'
+  ], {debug: true}); // ['1.js', '2.js']
 
   return bundler
     .transform(babelify, {sourceMaps: true})  // required for 'import'
@@ -144,6 +206,26 @@ gulp.task('sw:dist', function () {
     .pipe(gulp.dest('dist'));
 });
 
+// Optimize DBHelper
+gulp.task('dbhelper:dist', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js'
+  ], {debug: true}); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: true})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.size({ title: 'DBHelper (before)' }))
+    .pipe($.sourcemaps.init({loadMaps: true}))
+    .pipe($.uglifyEs.default())         // minify
+    .pipe($.size({title: 'DBHelper (after) '}))
+    .pipe($.sourcemaps.write('./'))
+    .pipe(gulp.dest('dist/js/'));
+});
+
 // Clean temp directory
 gulp.task('clean', function () {
   return del(['.tmp/**/*']); // del files rather than dirs to avoid error
@@ -156,16 +238,17 @@ gulp.task('clean:dist', function () {
 
 // Watch files for changes & reload
 gulp.task('serve', function () {
-  runSequence(['clean'], ['images', 'lint', 'html', 'sw', 'manifest'], function() {
+  runSequence(['clean'], ['images', 'lint', 'html', 'sw', 'dbhelper', 'manifest'], function() {
     browserSync.init({
       server: '.tmp',
       port: 8001
     });
 
-    gulp.watch(['app/*.html'], ['html', reload]);
+    gulp.watch(['app/*.html', 'GM_API_KEY'], ['html', reload]);
     gulp.watch(['app/css/*.css'], ['html', reload]);
-    gulp.watch(['app/js/*.js'], ['lint', 'html', reload]);
-    gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+    gulp.watch(['app/js/*.js', '!app/js/dbhelper.js', '!app/js/idbhelper.js'], ['lint', 'html', reload]);
+    gulp.watch(['app/sw.js', 'app/js/idbhelper.js'], ['lint', 'sw', reload]);
+    gulp.watch(['app/js/dbhelper.js', 'app/js/idbhelper.js'], ['lint', 'dbhelper', reload]);
     gulp.watch(['app/manifest.json'], ['manifest', reload]);
   });
 });
@@ -177,14 +260,53 @@ gulp.task('serve:dist', ['default'], function () {
     port: 8000
   });
 
-  gulp.watch(['app/*.html'], ['html:dist', reload]);
-  gulp.watch(['app/css/*.css'], ['html:dist', reload]);
-  gulp.watch(['app/js/*.js'], ['lint', 'html:dist', reload]);
-  gulp.watch(['app/sw.js'], ['lint', 'sw', reload]);
+  gulp.watch(['app/*.html', 'GM_API_KEY'], ['html:dist', reload]);
+  gulp.watch(['app/css/*.css'], ['html:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/js/*.js', '!app/js/dbhelper.js', '!app/js/idbhelper.js'], ['lint', 'html:dist', reload]);
+  gulp.watch(['app/sw.js', 'app/js/idbhelper.js'], ['lint', 'sw:dist', reload]);
+  gulp.watch(['app/js/dbhelper.js', 'app/js/idbhelper.js'], ['lint', 'dbhelper:dist', 'inline1', 'inline2', reload]);
   gulp.watch(['app/manifest.json'], ['manifest', reload]);
 });
 
 // Build production files, the default task
 gulp.task('default', ['clean:dist'], function (done) {
-  runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'manifest'], done);
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'dbhelper:dist', 'manifest'], ['inline1', 'inline2'], done);
+});
+
+gulp.task('inline1', function () {
+  return gulp
+    .src('./dist/index.html')
+    .pipe(
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+        var style = fs.readFileSync("dist/css/styles.css", "utf8");
+        return "<style>" + style + "</style>";
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+        var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    // .pipe(minify())
+    .pipe(gulp.dest("dist/"));
+});
+
+gulp.task('inline2', function () {
+  return gulp
+    .src('./dist/restaurant.html')
+    .pipe(
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+        var style = fs.readFileSync("dist/css/styles.css", "utf8");
+        return "<style>" + style + "</style>";
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+        var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    // .pipe(minify())
+    .pipe(gulp.dest("dist/"));
 });

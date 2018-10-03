@@ -11,6 +11,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     return `http://localhost:${port}`;
   }
 
+  // PUT
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true
   static markFavorite(id) {
     fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=true`, {
@@ -18,6 +19,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     }).catch(err => console.log(err));
   }
 
+  // PUT
   // http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false
   static unMarkFavorite(id) {
     fetch(`${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=false`, {
@@ -25,6 +27,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     }).catch(err => console.log(err));
   }
 
+  // GET
   // http://localhost:1337/reviews/?restaurant_id=<restaurant_id>
   static fetchRestaurantReviewsById(id, callback) {
     fetch(DBHelper.DATABASE_URL + `/reviews/?restaurant_id=${id}`)
@@ -33,23 +36,76 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .catch(err => callback(err, null));
   }
 
+  // POST
   // http://localhost:1337/reviews/
-  static createRestaurantReview(id, name, rating, comments, callback) {
+  static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
+    const url = DBHelper.DATABASE_URL + '/reviews/';
+    const method = 'POST';
     const data = {
-      'restaurant_id': id,
-      'name': name,
-      'rating': rating,
-      'comments': comments
+      restaurant_id: restaurant_id,
+      name: name,
+      rating: rating,
+      comments: comments
     };
-    fetch(DBHelper.DATABASE_URL + '/reviews/', {
-      method: 'POST',
-      body: JSON.stringify(data)
+    const body = JSON.stringify(data);
+    // const body = data;
+    
+    fetch(url, {
+      headers: { 'Content-Type': 'application/form-data' },
+      method: method,
+      body: body
     })
       .then(response => response.json())
       .then(data => callback(null, data))
-      .catch(err => callback(err, null));
+      .catch(err => {
+        // We are offline...
+        // Save review to local IDB, set id to -1
+        data.id = -1;
+        DBHelper.createIDBReview(data)
+          .then(review_key => {
+            // Get review_key and save it with review to offline queue
+            console.log('returned review_key', review_key);
+            DBHelper.addRequestToQueue(url, method, body, review_key)
+              .then(offline_key => console.log('returned offline_key', offline_key));
+          });
+        callback(err, null);
+      });
   }
 
+  static createIDBReview(review) {
+  // static createIDBRestaurantReview(restaurant_id, name, rating, comments) {
+  // const review = {
+  //     id: -1,
+  //     restaurant_id: restaurant_id,
+  //     name: name,
+  //     rating: +rating,
+  //     comments: comments,
+  //     createdAt: Date.now(),
+  //     updatedAt: Date.now()
+  //   };
+    return idbKeyVal.setReturnId('reviews', review)
+      .then(id => {
+        console.log('Saved to IDB: reviews', review);
+        return id;
+      });
+  }
+
+  static addRequestToQueue(url, method, body, review_key) {
+    const request = {
+      url: url,
+      method: method,
+      body: body,
+      review_key: review_key
+    };
+    return idbKeyVal.setReturnId('offline', request)
+      .then(id => {
+        console.log('Saved to IDB: offline', request);
+        return id;
+      });
+  }
+
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch all restaurants.
    */
@@ -73,6 +129,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     */
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch a restaurant by its ID.
    */
@@ -92,6 +150,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     });
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch restaurants by a cuisine type with proper error handling.
    */
@@ -108,6 +168,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     });
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch restaurants by a neighborhood with proper error handling.
    */
@@ -124,6 +186,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     });
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch restaurants by a cuisine and a neighborhood with proper error handling.
    */
@@ -145,6 +209,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     });
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch all neighborhoods with proper error handling.
    */
@@ -163,6 +229,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     });
   }
 
+  // GET
+  // http://localhost:1337/restaurants/
   /**
    * Fetch all cuisines with proper error handling.
    */
@@ -226,3 +294,6 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     return marker;
   }
 }
+
+// export default DBHelper;
+window.DBHelper = DBHelper;
