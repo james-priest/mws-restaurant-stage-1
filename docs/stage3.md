@@ -1094,6 +1094,7 @@ static createRestaurantReview(id, name, rating, comments, callback) {
     'comments': comments
   };
   fetch(DBHelper.DATABASE_URL + '/reviews/', {
+    headers: { 'Content-Type': 'application/form-data' }
     method: 'POST',
     body: JSON.stringify(data)
   })
@@ -1529,20 +1530,11 @@ The `restaurant_id` index is simply another view of the data in the object store
 ## 9. Offline Reviews
 This next section covers how the application must work offline. The app must:
 
-<!-- - Caching JSON responses to IndexedDB
-  - doing this with `restaurants` and `reviews` object stores
-- Any data previously accessed is accessible while offline
-  - doing this by writing to object stores when we fetch restaurants or reviews -->
 - Allow user to add reviews while offline
   - Review will be visible locally while app is disconnected
   - `createIDBReview` method will write to the `reviews` store
   - New `offline` object store will keep track of attempted requests
   - `addRequestToQueue` method will write requests to `offline` store
-- Send review to the server when connectivity is re-established
-  - `window.onload` will be used to trigger `processQueue` method
-  - `processQueue` will iterate through the request records to update the server
-  - each successful POST will remove the POST request from the queue
-  - each successful POST will update the review record with new server data
 
 ### 9.1 Create Offline Store
 The first step is to create the `offline` object store.
@@ -1570,6 +1562,8 @@ While in this file I also need to add a new IDB method for getting the primary k
 
 This is necessary for replacing records that were created while offline once the app re-connects.
 
+#### idbhelper.js
+
 ```js
 const idbKeyVal = {
   get...
@@ -1578,8 +1572,12 @@ const idbKeyVal = {
   set...
   setReturnId(store, val) {
     return dbPromise.then(db => {
-      return db.transaction(store, 'readwrite')
-        .objectStore(store).put(val);
+      const tx = db.transaction(store, 'readwrite');
+      const pk = tx
+        .objectStore(store)
+        .put(val);
+      tx.complete;
+      return pk;
     });
   }
 }
@@ -1590,7 +1588,7 @@ The `saveAddReview` FE handler is invoked once the "Save" button is clicked on t
 
 It checks for form validity and then calls `DBHelper.createRestaurantReview` which attempts to write the record to DB.
 
-#### restautant_info.js
+#### restaurant_info.js
 
 ```js
 const saveAddReview = (e) => {
@@ -1633,23 +1631,24 @@ const saveAddReview = (e) => {
 4. If offline it saves the review to local idb & gets the review_key back
 5. It saves the request to the offline store along with the review_key
 
-#### restautant_info.js
+#### dbhelper.js
 
 ```js
 static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
   const url = DBHelper.DATABASE_URL + '/reviews/';
+  const headers = { 'Content-Type': 'application/form-data' };
   const method = 'POST';
   const data = {
     restaurant_id: restaurant_id,
     name: name,
-    rating: rating,
+    rating: +rating,
     comments: comments
   };
   const body = JSON.stringify(data);
   // const body = data;
 
   fetch(url, {
-    headers: { 'Content-Type': 'application/form-data' },
+    headers: headers,
     method: method,
     body: body
   })
@@ -1657,13 +1656,12 @@ static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
     .then(data => callback(null, data))
     .catch(err => {
       // We are offline...
-      // Save review to local IDB, set id to -1
-      data.id = -1;
+      // Save review to local IDB
       DBHelper.createIDBReview(data)
         .then(review_key => {
           // Get review_key and save it with review to offline queue
           console.log('returned review_key', review_key);
-          DBHelper.addRequestToQueue(url, method, body, review_key)
+          DBHelper.addRequestToQueue(url, headers, method, data, review_key)
             .then(offline_key => console.log('offline_key', offline_key));
         });
       callback(err, null);
@@ -1678,6 +1676,8 @@ It's called after successfully writing the record to the server DB and it's call
 
 Either way, the review is saved locally.
 
+#### dbhelper.js
+
 ```js
 static createIDBReview(review) {
   return idbKeyVal.setReturnId('reviews', review)
@@ -1691,12 +1691,15 @@ static createIDBReview(review) {
 ### 9.5 AddRequestToQueue
 If the fetch request (POST) fails then it means we are offline and the request is written to the `offline` object store for processing later.
 
+#### dbhelper.js
+
 ```js
-static addRequestToQueue(url, method, body, review_key) {
+static addRequestToQueue(url, headers, method, data, review_key) {
   const request = {
     url: url,
+    headers: headers,
     method: method,
-    body: body,
+    data: data,
     review_key: review_key
   };
   return idbKeyVal.setReturnId('offline', request)
@@ -1712,7 +1715,7 @@ The code (shown in the next section) reloads the page and displays the offline a
 
 The alert html looks like this.
 
-#### restaurant.html
+#### index.html & restaurant.html
 
 ```html
 <html>
@@ -1801,7 +1804,7 @@ const saveAddReview = (e) => {
 
 I then added a `load` EventListener to display the alert if the `isOffline` parameter is present in the URL.
 
-#### restaurant_info.js
+#### index.html & restaurant_info.js
 
 ```js
 window.addEventListener('load', function () {
@@ -1834,6 +1837,195 @@ We then wait 8 seconds before hiding the alert once again.
 
 [![Offline Alert](assets/images/3-14-small.jpg)](assets/images/3-14.jpg)
 **Figure 14:** Offline Alert
+
+## 10. POST Offline Data
+This section breaks down the code that updates the server with data generated while offline. This includes:
+
+- Send review to the server when connectivity is re-established
+  - `window` object's `load` event will be used to trigger `processQueue` method
+  - `processQueue` will iterate through the request records to update the server
+  - each successful POST will remove the POST request from the queue
+  - each successful POST will update the review record with new server data
+
+### 10.1 Process Queue
+In order to process the data we need a `processQueue` method.
+
+It does the following:
+
+1. On page load it gets the all offline requests as a cursor
+2. It opens the first request and attempts to POST it with fetch
+3. If we are offline then it skips to the next and tries again
+4. Once we do successfully POST we get the resulting record back
+5. We then delete the offline request from the offline store
+6. We add the new review record and delete the old record from reviews store
+7. The add & delete is done in the same transaction so if it fails it rolls back
+
+#### dbhelper.js
+
+```js
+static processQueue() {
+  // Open offline queue & return cursor
+  dbPromise.then(db => {
+    if (!db) return;
+    const tx = db.transaction(['offline'], 'readwrite');
+    const store = tx.objectStore('offline');
+    return store.openCursor();
+  })
+    .then(function nextRequest (cursor) {
+      if (!cursor) {
+        console.log('cursor done.');
+        return;
+      }
+      console.log('cursor', cursor.value.data.name, cursor.value.data);
+
+      const offline_key = cursor.key;
+      const url = cursor.value.url;
+      const headers = cursor.value.headers;
+      const method = cursor.value.method;
+      const data = cursor.value.data;
+      const review_key = cursor.value.review_key;
+      const body = JSON.stringify(data);
+
+      // update server with HTTP POST request & get updated record back        
+      fetch(url, {
+        headers: headers,
+        method: method,
+        body: body
+      })
+        .then(response => response.json())
+        .then(data => {
+          // data is returned record
+          console.log('Received updated record from DB Server', data);
+          // test if this is a review or favorite update
+
+          // 1. Delete http request record from offline store
+          dbPromise.then(db => {
+            const tx = db.transaction(['offline'], 'readwrite');
+            tx.objectStore('offline').delete(offline_key);
+            return tx.complete;
+          })
+            .then(() => {
+              // 2. Add new review record to reviews store
+              // 3. Delete old review record from reviews store 
+              dbPromise.then(db => {
+                const tx = db.transaction(['reviews'], 'readwrite');
+                return tx.objectStore('reviews').put(data)
+                  .then(() => tx.objectStore('reviews').delete(review_key))
+                  .then(() => {
+                    console.log('tx complete reached.');
+                    return tx.complete;
+                  })
+                  .catch(err => {
+                    tx.abort();
+                    console.log('transaction error: tx aborted', err);
+                  });
+              })
+                .then(() => console.log('review transaction success!'))
+                .catch(err => console.log('reviews store error', err));
+            })
+            .then(() => console.log('offline rec delete success!'))
+            .catch(err => console.log('offline store error', err));
+        }).catch(err => {
+          console.log('fetch error. we are offline.');
+          console.log(err);
+          return;
+        });
+      return cursor.continue().then(nextRequest);
+    })
+    .then(() => console.log('Done cursoring'))
+    .catch(err => console.log('Error opening cursor', err));
+}
+```
+
+### 10.2 Window load Event
+We need to trigger the `processQueue` method from both the index page and the restaurant details page.
+
+#### restaurant_info.js
+
+```js
+window.addEventListener('load', function () {
+  const isOffline = getParameterByName('isOffline');
+
+  if (isOffline) {
+    document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').classList.add('show');
+
+    wait(8000).then(() => {
+      document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').classList.remove('show');
+    });
+  }
+
+  DBHelper.processQueue();
+});
+```
+
+main.js doesn't have the `getParameterByName` method that `restaurant_info.js` has so I just copied it over.
+
+Ideally, we'd move it to a js file that would be bundled and included on both pages while just existing in one file.
+
+#### main.js
+
+```js
+window.addEventListener('load', function () {
+  const isOffline = getParameterByName('isOffline');
+
+  if (isOffline) {
+    document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').classList.add('show');
+
+    wait(8000).then(() => {
+      document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').classList.remove('show');
+    });
+  }
+
+  DBHelper.processQueue();
+});
+
+/**
+ * Get a parameter by name from page URL.
+ */
+const getParameterByName = (name, url) => {
+  if (!url)
+    url = window.location.href;
+  // name = name.replace(/[\[\]]/g, '\\$&');
+  name = name.replace(/[[\]]/g, '\\$&');
+  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+    results = regex.exec(url);
+  if (!results)
+    return null;
+  if (!results[2])
+    return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+};
+```
+
+### 10.3 Test Results
+Now that the code is in place we can test. We start by going to the network panel and selecting the 'offline' checkbox
+
+Now that we're disconnected we can add a review.
+
+[![Add review while offline](assets/images/3-17-small.jpg)](assets/images/3-17.jpg)
+**Figure 15:** Add review while offline
+
+The record is added to the offline object store.
+
+The record is a formatted HTTP request that is easily passed to fetch once we have a working connection.
+
+[![Review added](assets/images/3-15-small.jpg)](assets/images/3-15.jpg)
+**Figure 16:** Review Added
+
+Here we see the connection is now working, the debug code displays success, and the record is in the IndexedDB store.
+
+[![Database Updated](assets/images/3-16-small.jpg)](assets/images/3-16.jpg)
+**Figure 17:** Review Added
+
+When we navigate back to the restaurant reviews page we can see our new reviews displayed.
+
+[![Reviews displayed](assets/images/3-18-small.jpg)](assets/images/3-18.jpg)
+**Figure 18:** Reviews displayed
+
 
 <!-- 
 ### 10.1 Task for Inlining Code
