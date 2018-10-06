@@ -260,11 +260,11 @@ gulp.task('serve:dist', ['default'], function () {
     port: 8000
   });
 
-  gulp.watch(['app/*.html', 'GM_API_KEY'], ['html:dist', reload]);
+  gulp.watch(['app/*.html', 'GM_API_KEY'], ['html:dist', 'inline1', 'inline2', reload]);
   gulp.watch(['app/css/*.css'], ['html:dist', 'inline1', 'inline2', reload]);
-  gulp.watch(['app/js/*.js', '!app/js/dbhelper.js', '!app/js/idbhelper.js'], ['lint', 'html:dist', reload]);
+  gulp.watch(['app/js/*.js', '!app/js/dbhelper.js', '!app/js/idbhelper.js'], ['lint', 'html:dist', 'inline1', 'inline2', reload]);
   gulp.watch(['app/sw.js', 'app/js/idbhelper.js'], ['lint', 'sw:dist', reload]);
-  gulp.watch(['app/js/dbhelper.js', 'app/js/idbhelper.js'], ['lint', 'dbhelper:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/js/dbhelper.js', 'app/js/idbhelper.js'], ['lint', 'dbhelper:dist', 'html:dist', 'inline1', 'inline2', reload]);
   gulp.watch(['app/manifest.json'], ['manifest', reload]);
 });
 
