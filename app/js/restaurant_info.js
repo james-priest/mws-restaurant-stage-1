@@ -36,17 +36,9 @@ window.addEventListener('load', function () {
     });
   }
 
-  // processQueue()
+  DBHelper.processQueue();
+  // DBHelper.procQueue();
 });
-
-const wait = function (ms) {
-  return new Promise(function (resolve, reject) {
-    window.setTimeout(function () {
-      resolve(ms);
-      reject(ms);
-    }, ms);
-  });
-};
 
 /**
  * Get current restaurant from page URL.

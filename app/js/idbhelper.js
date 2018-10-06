@@ -13,6 +13,20 @@ const dbPromise = idb.open('udacity-restaurant-db', 3, upgradeDB => {
   }
 });
 
+self.dbPromise = dbPromise;
+
+
+const wait = function (ms) {
+  return new Promise(function (resolve, reject) {
+    window.setTimeout(function () {
+      resolve(ms);
+      reject(ms);
+    }, ms);
+  });
+};
+
+self.wait = wait;
+
 // IndexedDB object with get, set, getAll, & getAllIdx methods
 // https://github.com/jakearchibald/idb
 const idbKeyVal = {
@@ -50,12 +64,14 @@ const idbKeyVal = {
   },
   setReturnId(store, val) {
     return dbPromise.then(db => {
-      return db.transaction(store, 'readwrite')
-        .objectStore(store).put(val);
-      // return tx.complete;
+      const tx = db.transaction(store, 'readwrite');
+      const pk = tx
+        .objectStore(store)
+        .put(val);
+      tx.complete;
+      return pk;
     });
-  }
-  /*
+  },
   delete(store, key) {
     return dbPromise.then(db => {
       const tx = db.transaction(store, 'readwrite');
@@ -63,6 +79,17 @@ const idbKeyVal = {
       return tx.complete;
     });
   },
+  openCursor(store) {
+    return dbPromise.then(db => {
+      return db.transaction(store, 'readwrite')
+        .objectStore(store)
+        .openCursor();
+    });
+  }
+
+
+
+  /*
   setWithKey(store, key, val) {
     return dbPromise.then(db => {
       const tx = db.transaction(store, 'readwrite');

@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-196'; 
+const staticCacheName = 'restaurant-static-257'; 
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -33,7 +33,8 @@ self.addEventListener('install', event => {
           '/restaurant.html?id=8&isOffline=true',
           '/restaurant.html?id=9&isOffline=true',
           '/restaurant.html?id=10&isOffline=true',
-          '/img/fixed/offline_img1.png'
+          '/img/fixed/offline_img1.png',
+          '/img/fixed/icon.png'
         ]).catch(error => {
           console.log('Caches open failed: ' + error);
         });
@@ -52,7 +53,7 @@ self.addEventListener('fetch', event => {
   if (requestUrl.port === '1337') {
     // 2. Only cache GET methods
     if (event.request.method !== 'GET') {
-      console.log('filtered out non-GET method');
+      console.log('filtering out non-GET method');
       // return fetch(event.request)
       //   .then(response => response.json())
       //   .then(json => json);

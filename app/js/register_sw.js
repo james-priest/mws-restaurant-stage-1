@@ -24,7 +24,7 @@ if (navigator.serviceWorker) {
     });
 }
 
-/*
+
 (function () {
   var isRobotoStyle = function (element) {
 
@@ -75,4 +75,3 @@ if (navigator.serviceWorker) {
     }
   };
 })();
-*/
