@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-257'; 
+const staticCacheName = 'restaurant-static-279'; 
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -23,16 +23,6 @@ self.addEventListener('install', event => {
           '/restaurant.html?id=8',
           '/restaurant.html?id=9',
           '/restaurant.html?id=10',
-          '/restaurant.html?id=1&isOffline=true',
-          '/restaurant.html?id=2&isOffline=true',
-          '/restaurant.html?id=3&isOffline=true',
-          '/restaurant.html?id=4&isOffline=true',
-          '/restaurant.html?id=5&isOffline=true',
-          '/restaurant.html?id=6&isOffline=true',
-          '/restaurant.html?id=7&isOffline=true',
-          '/restaurant.html?id=8&isOffline=true',
-          '/restaurant.html?id=9&isOffline=true',
-          '/restaurant.html?id=10&isOffline=true',
           '/img/fixed/offline_img1.png',
           '/img/fixed/icon.png'
         ]).catch(error => {

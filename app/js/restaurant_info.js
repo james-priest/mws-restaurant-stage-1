@@ -24,20 +24,7 @@ window.initMap = () => {
 };
 
 window.addEventListener('load', function () {
-  const isOffline = getParameterByName('isOffline');
-
-  if (isOffline) {
-    document.querySelector('#offline').setAttribute('aria-hidden', false);
-    document.querySelector('#offline').classList.add('show');
-      
-    wait(8000).then(() => {
-      document.querySelector('#offline').setAttribute('aria-hidden', true);
-      document.querySelector('#offline').classList.remove('show');
-    });
-  }
-
   DBHelper.processQueue();
-  // DBHelper.procQueue();
 });
 
 /**
@@ -152,6 +139,7 @@ const fillReviewsHTML = (error, reviews) => {
     console.log('Error retrieving reviews', error);
   }
   const header = document.getElementById('reviews-header');
+  header.innerHTML = '';
 
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
@@ -173,6 +161,8 @@ const fillReviewsHTML = (error, reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
+  ul.innerHTML = '';
+  reviews.reverse();
   reviews.forEach(review => {
     ul.appendChild(createReviewHTML(review));
   });
@@ -341,12 +331,20 @@ const saveAddReview = (e) => {
       form.reset();
       if (error) {
         console.log('We are offline. Review has been saved to the queue.');
-        window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
+        // window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
+        showOffline();
       } else {
         console.log('Received updated record from DB Server', review);
         DBHelper.createIDBReview(review); // write record to local IDB store
-        window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+        // window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
       }
+      idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+        .then(reviews => {
+          // console.log(reviews);
+          fillReviewsHTML(null, reviews);
+          closeModal();
+          document.getElementById('review-add-btn').focus();
+        });
     });
   }
 };

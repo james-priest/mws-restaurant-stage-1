@@ -15,18 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 window.addEventListener('load', function () {
-  const isOffline = getParameterByName('isOffline');
-
-  if (isOffline) {
-    document.querySelector('#offline').setAttribute('aria-hidden', false);
-    document.querySelector('#offline').classList.add('show');
-      
-    wait(8000).then(() => {
-      document.querySelector('#offline').setAttribute('aria-hidden', true);
-      document.querySelector('#offline').classList.remove('show');
-    });
-  }
-
   DBHelper.processQueue();
 });
 

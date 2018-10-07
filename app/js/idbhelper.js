@@ -27,6 +27,19 @@ const wait = function (ms) {
 
 self.wait = wait;
 
+
+const showOffline = () => {
+  document.querySelector('#offline').setAttribute('aria-hidden', false);
+  document.querySelector('#offline').classList.add('show');
+    
+  wait(8000).then(() => {
+    document.querySelector('#offline').setAttribute('aria-hidden', true);
+    document.querySelector('#offline').classList.remove('show');
+  });
+};
+
+self.showOffline = showOffline;
+
 // IndexedDB object with get, set, getAll, & getAllIdx methods
 // https://github.com/jakearchibald/idb
 const idbKeyVal = {
