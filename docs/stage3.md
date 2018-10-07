@@ -2026,6 +2026,147 @@ When we navigate back to the restaurant reviews page we can see our new reviews 
 [![Reviews displayed](assets/images/3-18-small.jpg)](assets/images/3-18.jpg)
 **Figure 18:** Reviews displayed
 
+## 11. Kill Page Refresh
+The next thing I did was eliminate the page refresh that was triggered after each new review submission.
+
+This behavior is clunky especially since we're using Ajax to eliminate round-trips to the server.
+
+There is no reason we should request a page that we already have all the data for locally.
+
+### 11.1 Create showOffline
+The `showOffline` function expression will be used by both `index.html` and `restaurants.html` so we can put it in a file that is included in each page's javascript.
+
+#### idbhelper.js
+
+```js
+const showOffline = () => {
+  document.querySelector('#offline').setAttribute('aria-hidden', false);
+  document.querySelector('#offline').classList.add('show');
+
+  wait(8000).then(() => {
+    document.querySelector('#offline').setAttribute('aria-hidden', true);
+    document.querySelector('#offline').classList.remove('show');
+  });
+};
+
+self.showOffline = showOffline;
+```
+
+### 11.2 Update saveAddReview
+The next thing we need to do is change the code that reloads the page with calls to existing functions that will simply update the data on the page.
+
+We comment out the `window.location.href` lines and add what's indicated.
+
+#### restaurant_info.js
+
+```js
+const saveAddReview = (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  if (form.checkValidity()) {
+    console.log('is valid');
+
+    const restaurant_id = self.restaurant.id;
+    const name = document.querySelector('#reviewName').value;
+    const rating = document.querySelector('input[name=rate]:checked').value;
+    const comments = document.querySelector('#reviewComments').value;
+  
+    // attempt save to database server
+    DBHelper.createRestaurantReview(restaurant_id, name, rating, comments,
+      (error, review) => {
+      console.log('got callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        // window.location.href =                                     // <- new
+        //  `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;  <- new
+        showOffline();                                                // <- new
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.createIDBReview(review); // write record to local IDB store
+        // window.location.href =                                     // <- new
+        //  `/restaurant.html?id=${self.restaurant.id}`;              // <- new
+      }
+      idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)  // <- new
+        .then(reviews => {                                            // <- new
+          // console.log(reviews);                                    // <- new
+          fillReviewsHTML(null, reviews);                             // <- new
+          closeModal();                                               // <- new
+          document.getElementById('review-add-btn').focus();          // <- new
+        });                                                           // <- new
+    });
+  }
+};
+```
+
+There are three lines that need to be added to the `fillReviewsHTML` method. These clear out the old html before rebuilding the node.
+
+```js
+const fillReviewsHTML = (error, reviews) => {
+  self.restaurant.reviews = reviews;
+
+  if (error) {
+    console.log('Error retrieving reviews', error);
+  }
+  const header = document.getElementById('reviews-header');
+  header.innerHTML = '';                                      // <- new
+
+  const title = document.createElement('h2');
+  title.innerHTML = 'Reviews';
+  header.appendChild(title);
+  
+  const addReview = document.createElement('button');
+  addReview.id = 'review-add-btn';
+  addReview.innerHTML = '+';
+  addReview.setAttribute('aria-label', 'add review');
+  addReview.title = 'Add Review';
+  addReview.addEventListener('click', openModal);
+  header.appendChild(addReview);
+  
+  const container = document.getElementById('reviews-container');
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
+  const ul = document.getElementById('reviews-list');
+  ul.innerHTML = '';                                          // <- new
+  reviews.reverse();                                          // <- new
+  reviews.forEach(review => {
+    ul.appendChild(createReviewHTML(review));
+  });
+  container.appendChild(ul);
+};
+```
+
+The `reviews.reverse()` line list reviews by data in reverse ascending order.
+
+### 11.3 Window load Event
+The `load` event can now be trimmed in both `main.js` and `restaurant_info.js` to just call the `DBHelper.processQueue` method.
+
+#### main.js & restaurant_info.js
+
+```js
+window.addEventListener('load', function () {
+  DBHelper.processQueue();
+});
+```
+
+### 11.4 Updated Screenshots
+Here we add a test review.
+
+[![Add Review](assets/images/3-19-small.jpg)](assets/images/3-19.jpg)
+**Figure 19:** Add Review
+
+Once we add the review, the page displays the data without a page refresh.
+
+It works both when the site is online and offline.
+
+[![Review Update](assets/images/3-20-small.jpg)](assets/images/3-20.jpg)
+**Figure 20:** Review Update
+
 
 <!-- 
 ### 10.1 Task for Inlining Code
