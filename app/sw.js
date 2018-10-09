@@ -1,4 +1,4 @@
-const staticCacheName = 'restaurant-static-279'; 
+const staticCacheName = 'restaurant-static-287'; 
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
@@ -62,20 +62,8 @@ self.addEventListener('fetch', event => {
   else {
     event.respondWith(cacheResponse(request));
     
-    // event.respondWith(
-    //   fetch(request)
-    //     .then(response => {
-    //       console.log(response);
-    //       return response;
-    //     })
-    //     .catch(error => console.log(error))
-    // );
-
-    // event.respondWith(function () {
-    //   return fetch(event.request);
-    // }());
-
-    // event.respondWith(fetch(event.request).then(response => response));
+    // event.respondWith(fetch(event.request)
+    //   .then(response => response));
   }
 });
 

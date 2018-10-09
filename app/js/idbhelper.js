@@ -99,9 +99,6 @@ const idbKeyVal = {
         .openCursor();
     });
   }
-
-
-
   /*
   setWithKey(store, key, val) {
     return dbPromise.then(db => {

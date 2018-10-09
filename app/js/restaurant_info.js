@@ -304,12 +304,6 @@ const openModal = () => {
     if (e.keyCode === 27) {
       closeModal();
     }
-
-    // RETURN
-    // if (e.keyCode === 13) {
-    //   e.preventDefault();
-    //   return false;
-    // }
   }
 };
 
