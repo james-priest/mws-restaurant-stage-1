@@ -2167,6 +2167,261 @@ It works both when the site is online and offline.
 [![Review Update](assets/images/3-20-small.jpg)](assets/images/3-20.jpg)
 **Figure 20:** Review Update
 
+## 12. Offline Favorites
+The next issue to tackle was to allow the app to keep track of restaurants marked as favorite even when offline.
+
+At this point the app reaches out to the database through fetch whenever favorite status is updated.
+
+It will err when offline and will not properly track the change locally.
+
+### 12.1 Set Click Handlers
+The first thing to do is update the click handler events in both `main.js` and `restaurant_info.js`.
+
+Previously we were handling the click event with an anonymous inline function. Since this handler will be used by both pages, we will just reference the new function here and define it elsewhere.
+
+#### main.js
+
+```js
+const createRestaurantHTML = (restaurant) => {
+  const li = document.createElement('li');
+
+  const fav = document.createElement('button');
+  fav.className = 'fav-control';
+  fav.setAttribute('aria-label', 'favorite');
+  
+  // RegEx method tests if is_favorite is true or "true" and returns true
+  // https://codippa.com/how-to-convert-string-to-boolean-javascript/
+  if ((/true/i).test(restaurant.is_favorite)) {     // <- new
+    fav.classList.add('active');
+    fav.setAttribute('aria-pressed', 'true');
+    fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    fav.title = `Remove ${restaurant.name} as a favorite`;
+  } else {
+    fav.setAttribute('aria-pressed', 'false');
+    fav.innerHTML = `Add ${restaurant.name} as a favorite`;
+    fav.title = `Add ${restaurant.name} as a favorite`;
+  }
+
+  fav.addEventListener('click', (evt) => {          // <- new
+    favoriteClickHandler(evt, fav, restaurant);     // <- new
+  }, false);                                        // <- new
+
+  li.append(fav);
+
+  // more code...
+}
+```
+
+The 'if true' method has been updated to catch both `true` and `"true"`.
+
+#### restaurant_info.js
+
+```js
+const fillRestaurantHTML = (restaurant = self.restaurant) => {
+  // code...
+
+  const favorite = document.getElementById('restaurant-fav');
+  // RegEx method tests if is_favorite is true or "true" and returns true
+  // https://codippa.com/how-to-convert-string-to-boolean-javascript/
+  if ((/true/i).test(restaurant.is_favorite)) {         // <- new
+    favorite.classList.add('active');
+    favorite.setAttribute('aria-pressed', 'true');
+    favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    favorite.title = `Remove ${restaurant.name} as a favorite`;
+  } else {
+    favorite.setAttribute('aria-pressed', 'false');
+    favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+    favorite.title = `Add ${restaurant.name} as a favorite`;
+  }
+  
+  favorite.addEventListener('click', (evt) => {         // <- new
+    favoriteClickHandler(evt, favorite, restaurant);    // <- new
+  }, false);                                            // <- new
+
+  // more code...
+}
+```
+
+### 12.2 Click Handler Function
+Since both the main page and the details page have a favorites control we need the handler to be accessible in both.
+
+Rather than repeat this code in `main.js` and `restaurant_info.js`, I include it in the following file which is included in both of these.
+
+#### idbhelper.js
+
+```js
+const favoriteClickHandler = (evt, fav, restaurant) => {
+  evt.preventDefault();
+  const is_favorite = JSON.parse(restaurant.is_favorite); // set to boolean
+
+  DBHelper.toggleFavorite(restaurant, (error, restaurant) => {
+    console.log('got callback');
+    if (error) {
+      console.log('We are offline. Review has been saved to the queue.');
+      showOffline();
+    } else {
+      console.log('Received updated record from DB Server', restaurant);
+      DBHelper.updateIDBRestaurant(restaurant); // write record to IDB store
+    }
+  });
+
+  // set ARIA, text, & labels
+  if (is_favorite) {
+    fav.setAttribute('aria-pressed', 'false');
+    fav.innerHTML = `Add ${restaurant.name} as a favorite`;
+    fav.title = `Add ${restaurant.name} as a favorite`;
+  } else {
+    fav.setAttribute('aria-pressed', 'true');
+    fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    fav.title = `Remove ${restaurant.name} as a favorite`;
+  }
+  fav.classList.toggle('active');
+};
+self.favoriteClickHandler = favoriteClickHandler;
+```
+
+### 12.3 ToggleFav DB Method
+The `toggleFavorite` method does a few things.  
+
+First it attempts a fetch to update favorite status in the DB. If successful, it calls the callback method.
+
+If unsuccessful it updates the restaurant in the local IDB store before adding the HTTP Request to the offline queue. Lastly it triggers the callback function.
+
+#### dbhelper.js
+
+```js
+static toggleFavorite(restaurant, callback) {
+  const is_favorite = JSON.parse(restaurant.is_favorite);
+  const id = +restaurant.id;
+  restaurant.is_favorite = !is_favorite;
+
+  const url =
+    `${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=${!is_favorite}`;
+  const method = 'PUT';
+
+  fetch(url, {
+    method: method
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline
+      // Update restaurant record in local IDB
+      DBHelper.updateIDBRestaurant(restaurant)
+        .then(() => {
+          // add to queue...
+          console.log('Add favorite request to queue');
+          console.log(`DBHelper.addRequestToQueue(${url}, {}, ${method}, '')`);
+          DBHelper.addRequestToQueue(url, {}, method, '')
+            .then(offline_key => console.log('offline_key', offline_key));
+        });
+      callback(err, null);
+    });
+}
+```
+
+### 12.4 Process Queue
+The last step is to update the `processQueue` method to handle favorite HTTP requests to the DB.
+
+Fortunately this only involves adding a 4 line conditional block. This is marked by the the comment `// <- new` in the code.
+
+#### dbhelper.js
+
+```js
+static processQueue() {
+  // Open offline queue & return cursor
+    dbPromise.then(db => {
+      if (!db) return;
+      const tx = db.transaction(['offline'], 'readwrite');
+      const store = tx.objectStore('offline');
+      return store.openCursor();
+    })
+      .then(function nextRequest (cursor) {
+        if (!cursor) {
+          console.log('cursor done.');
+          return;
+        }
+        console.log('cursor', cursor.value.data.name, cursor.value.data);
+
+        const offline_key = cursor.key;
+        const url = cursor.value.url;
+        const headers = cursor.value.headers;
+        const method = cursor.value.method;
+        const data = cursor.value.data;
+        const review_key = cursor.value.review_key;
+        const body = JSON.stringify(data);
+
+        // update server with HTTP POST request & get updated record back
+        fetch(url, {
+          headers: headers,
+          method: method,
+          body: body
+        })
+          .then(response => response.json())
+          .then(data => {
+            // data is the returned record
+            console.log('Received updated record from DB Server', data);
+
+            // 1. Delete http request record from offline store
+            dbPromise.then(db => {
+              const tx = db.transaction(['offline'], 'readwrite');
+              tx.objectStore('offline').delete(offline_key);
+              return tx.complete;
+            })
+              .then(() => {
+                // test if this is a review or favorite update
+                if (review_key === undefined) {                   // <- new
+                  console.log('Favorite posted to server.');      // <- new
+                } else {                                          // <- new
+                  // 2. Add new review record to reviews store
+                  // 3. Delete old review record from reviews store 
+                  dbPromise.then(db => {
+                    const tx = db.transaction(['reviews'], 'readwrite');
+                    return tx.objectStore('reviews').put(data)
+                      .then(() => tx.objectStore('reviews').delete(review_key))
+                      .then(() => {
+                        console.log('tx complete reached.');
+                        return tx.complete;
+                      })
+                      .catch(err => {
+                        tx.abort();
+                        console.log('transaction error: tx aborted', err);
+                      });
+                  })
+                    .then(() => console.log('review transaction success!'))
+                    .catch(err => console.log('reviews store error', err));
+                }                                                 // <- new
+              })
+              .then(() => console.log('offline rec delete success!'))
+              .catch(err => console.log('offline store error', err));
+
+          }).catch(err => {
+            console.log('fetch error. we are offline.');
+            console.log(err);
+            return;
+          });
+        return cursor.continue().then(nextRequest);
+      })
+      .then(() => console.log('Done cursoring'))
+      .catch(err => console.log('Error opening cursor', err));
+  }
+```
+
+### 12.5 Offline Test
+Here are a couple screenshots of my testing the system.
+
+The first shows the offline queue with a list of close to a dozen requests.
+
+[![Testing Favorite while offline](assets/images/3-21-small.jpg)](assets/images/3-21.jpg)
+**Figure 21:** Testing Favorite while offline
+
+This next screenshot shows the results in DevTools now that I'm back online and have processed the queue.
+
+[![Offline results](assets/images/3-22-small.jpg)](assets/images/3-22.jpg)
+**Figure 22:** Offline Results
+
+
+
 
 <!-- 
 ### 10.1 Task for Inlining Code

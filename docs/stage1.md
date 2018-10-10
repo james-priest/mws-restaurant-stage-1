@@ -126,7 +126,7 @@ http-server . -p 8000
 ```
 
 ### 2.2 View original site
-Here are some screen grabs of the site without as it looked "out-of-the-box".
+Here are some screen grabs of the site was it looked "out-of-the-box".
 
 #### BEFORE
 [![Homepage map](assets/images/1-small.jpg)](assets/images/1.jpg)
@@ -204,7 +204,7 @@ I was also able to see my media queries and adjust various style settings from D
 **Figure 10:** Homepage: DevTools with device toolbar
 
 ### 3.2 Determine Breakpoints
-I started small and worked my was up, making sure each breakpoint transitioned smoothly to the next.
+I started small and worked my way up, making sure each breakpoint transitioned smoothly to the next.
 
 Each successful change in DevTools was reflected in the stylesheet I had open in my code editor.
 
