@@ -12,33 +12,7 @@ const dbPromise = idb.open('udacity-restaurant-db', 3, upgradeDB => {
       upgradeDB.createObjectStore('offline', { autoIncrement: true });
   }
 });
-
 self.dbPromise = dbPromise;
-
-
-const wait = function (ms) {
-  return new Promise(function (resolve, reject) {
-    window.setTimeout(function () {
-      resolve(ms);
-      reject(ms);
-    }, ms);
-  });
-};
-
-self.wait = wait;
-
-
-const showOffline = () => {
-  document.querySelector('#offline').setAttribute('aria-hidden', false);
-  document.querySelector('#offline').classList.add('show');
-    
-  wait(8000).then(() => {
-    document.querySelector('#offline').setAttribute('aria-hidden', true);
-    document.querySelector('#offline').classList.remove('show');
-  });
-};
-
-self.showOffline = showOffline;
 
 // IndexedDB object with get, set, getAll, & getAllIdx methods
 // https://github.com/jakearchibald/idb
@@ -99,43 +73,63 @@ const idbKeyVal = {
         .openCursor();
     });
   }
-  /*
-  setWithKey(store, key, val) {
-    return dbPromise.then(db => {
-      const tx = db.transaction(store, 'readwrite');
-      tx.objectStore(store).put(val, key);
-      return tx.complete;
-    });
-  },
-  clear(store) {
-    return dbPromise.then(db => {
-      const tx = db.transaction(store, 'readwrite');
-      tx.objectStore(store).clear();
-      return tx.complete;
-    });
-  },
-  keys(store) {
-    return dbPromise.then(db => {
-      const tx = db.transaction(store);
-      const keys = [];
-      const objStore = tx.objectStore(store);
-
-      // This would be objStore.getAllKeys(), but it isn't supported by Edge or Safari.
-      // openKeyCursor isn't supported by Safari, so we fall back
-      (objStore.iterateKeyCursor || objStore.iterateCursor).call(objStore, cursor => {
-        if (!cursor) return;
-        keys.push(cursor.key);
-        cursor.continue();
-      });
-
-      return tx.complete.then(() => keys);
-    });
-  }
-  */
 };
-
-// CL.log('my class from outside');
 self.idbKeyVal = idbKeyVal;
+
+// test...
+// CL.log('my class from outside');
+
+// Shared code goes here since this file get included on all pages...
+// Shared methods below...
+const wait = function (ms) {
+  return new Promise(function (resolve, reject) {
+    window.setTimeout(function () {
+      resolve(ms);
+      reject(ms);
+    }, ms);
+  });
+};
+self.wait = wait;
+
+const showOffline = () => {
+  document.querySelector('#offline').setAttribute('aria-hidden', false);
+  document.querySelector('#offline').classList.add('show');
+    
+  wait(8000).then(() => {
+    document.querySelector('#offline').setAttribute('aria-hidden', true);
+    document.querySelector('#offline').classList.remove('show');
+  });
+};
+self.showOffline = showOffline;
+
+const favoriteClickHandler = (evt, fav, restaurant) => {
+  evt.preventDefault();
+  const is_favorite = JSON.parse(restaurant.is_favorite); // set to boolean
+
+  DBHelper.toggleFavorite(restaurant, (error, restaurant) => {
+    console.log('got callback');
+    if (error) {
+      console.log('We are offline. Review has been saved to the queue.');
+      showOffline();
+    } else {
+      console.log('Received updated record from DB Server', restaurant);
+      DBHelper.updateIDBRestaurant(restaurant); // write record to local IDB store
+    }
+  });
+
+  // set ARIA, text, & labels
+  if (is_favorite) {
+    fav.setAttribute('aria-pressed', 'false');
+    fav.innerHTML = `Add ${restaurant.name} as a favorite`;
+    fav.title = `Add ${restaurant.name} as a favorite`;
+  } else {
+    fav.setAttribute('aria-pressed', 'true');
+    fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    fav.title = `Remove ${restaurant.name} as a favorite`;
+  }
+  fav.classList.toggle('active');
+};
+self.favoriteClickHandler = favoriteClickHandler;
 
 
 /*

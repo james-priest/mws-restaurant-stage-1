@@ -63,7 +63,9 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
   address.innerHTML = restaurant.address;
 
   const favorite = document.getElementById('restaurant-fav');
-  if (restaurant.is_favorite === 'true') {
+  // RegEx method tests if is_favorite is true or "true" and returns true
+  // https://codippa.com/how-to-convert-string-to-boolean-javascript/
+  if ((/true/i).test(restaurant.is_favorite)) {
     favorite.classList.add('active');
     favorite.setAttribute('aria-pressed', 'true');
     favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
@@ -73,21 +75,10 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
     favorite.title = `Add ${restaurant.name} as a favorite`;
   }
+  
   favorite.addEventListener('click', (evt) => {
-    evt.preventDefault();
-    if (favorite.classList.contains('active')) {
-      favorite.setAttribute('aria-pressed', 'false');
-      favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
-      favorite.title = `Add ${restaurant.name} as a favorite`;
-      DBHelper.unMarkFavorite(restaurant.id);
-    } else {
-      favorite.setAttribute('aria-pressed', 'true');
-      favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
-      favorite.title = `Remove ${restaurant.name} as a favorite`;
-      DBHelper.markFavorite(restaurant.id);
-    }
-    favorite.classList.toggle('active');
-  });
+    favoriteClickHandler(evt, favorite, restaurant);
+  }, false);
 
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img';
@@ -239,7 +230,6 @@ const getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
-
 
 // Adapted from modal dialog sample code in Udacity Web Accessibility course 891
 //  https://github.com/udacity/ud891/blob/gh-pages/lesson2-focus/07-modals-and-keyboard-traps/solution/modal.js

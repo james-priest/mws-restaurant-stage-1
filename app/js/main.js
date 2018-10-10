@@ -19,24 +19,6 @@ window.addEventListener('load', function () {
 });
 
 /**
- * Get a parameter by name from page URL.
- */
-const getParameterByName = (name, url) => {
-  if (!url)
-    url = window.location.href;
-  // name = name.replace(/[\[\]]/g, '\\$&');
-  name = name.replace(/[[\]]/g, '\\$&');
-  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-    results = regex.exec(url);
-  if (!results)
-    return null;
-  if (!results[2])
-    return '';
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
-};
-
-
-/**
  * Fetch all neighborhoods and set their HTML.
  */
 const fetchNeighborhoods = () => {
@@ -190,8 +172,10 @@ const createRestaurantHTML = (restaurant) => {
   const fav = document.createElement('button');
   fav.className = 'fav-control';
   fav.setAttribute('aria-label', 'favorite');
-  // fav.setAttribute('role', 'button');
-  if (restaurant.is_favorite === 'true') {
+  
+  // RegEx method tests if is_favorite is true or "true" and returns true
+  // https://codippa.com/how-to-convert-string-to-boolean-javascript/
+  if ((/true/i).test(restaurant.is_favorite)) {
     fav.classList.add('active');
     fav.setAttribute('aria-pressed', 'true');
     fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
@@ -201,21 +185,11 @@ const createRestaurantHTML = (restaurant) => {
     fav.innerHTML = `Add ${restaurant.name} as a favorite`;
     fav.title = `Add ${restaurant.name} as a favorite`;
   }
+
   fav.addEventListener('click', (evt) => {
-    evt.preventDefault();
-    if (fav.classList.contains('active')) {
-      fav.setAttribute('aria-pressed', 'false');
-      fav.innerHTML = `Add ${restaurant.name} as a favorite`;
-      fav.title = `Add ${restaurant.name} as a favorite`;
-      DBHelper.unMarkFavorite(restaurant.id);
-    } else {
-      fav.setAttribute('aria-pressed', 'true');
-      fav.innerHTML = `Remove ${restaurant.name} as a favorite`;
-      fav.title = `Remove ${restaurant.name} as a favorite`;
-      DBHelper.markFavorite(restaurant.id);
-    }
-    fav.classList.toggle('active');
-  });
+    favoriteClickHandler(evt, fav, restaurant);
+  }, false);
+
   li.append(fav);
 
   const image = document.createElement('img');

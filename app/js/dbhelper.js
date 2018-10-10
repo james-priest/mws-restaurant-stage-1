@@ -72,6 +72,38 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       });
   }
 
+  static toggleFavorite(restaurant, callback) {
+    const is_favorite = JSON.parse(restaurant.is_favorite);
+    const id = +restaurant.id;
+    restaurant.is_favorite = !is_favorite;
+
+    const url = `${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=${!is_favorite}`;
+    const method = 'PUT';
+
+    fetch(url, {
+      method: method
+    })
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => {
+        // We are offline
+        // Update restaurant record in local IDB
+        DBHelper.updateIDBRestaurant(restaurant)
+          .then(() => {
+            // add to queue...
+            console.log('Add favorite request to queue');
+            console.log(`DBHelper.addRequestToQueue(${url}, {}, ${method}, '')`);
+            DBHelper.addRequestToQueue(url, {}, method, '')
+              .then(offline_key => console.log('returned offline_key', offline_key));
+          });
+        callback(err, null);
+      });
+  }
+
+  static updateIDBRestaurant(restaurant) {
+    return idbKeyVal.set('restaurants', restaurant);
+  }
+
   static createIDBReview(review) {
     return idbKeyVal.setReturnId('reviews', review)
       .then(id => {
@@ -126,9 +158,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
         })
           .then(response => response.json())
           .then(data => {
-            // data is returned record
+            // data is the returned record
             console.log('Received updated record from DB Server', data);
-            // test if this is a review or favorite update
 
             // 1. Delete http request record from offline store
             dbPromise.then(db => {
@@ -137,26 +168,32 @@ class DBHelper {  // eslint-disable-line no-unused-vars
               return tx.complete;
             })
               .then(() => {
-                // 2. Add new review record to reviews store
-                // 3. Delete old review record from reviews store 
-                dbPromise.then(db => {
-                  const tx = db.transaction(['reviews'], 'readwrite');
-                  return tx.objectStore('reviews').put(data)
-                    .then(() => tx.objectStore('reviews').delete(review_key))
-                    .then(() => {
-                      console.log('tx complete reached.');
-                      return tx.complete;
-                    })
-                    .catch(err => {
-                      tx.abort();
-                      console.log('transaction error: tx aborted', err);
-                    });
-                })
-                  .then(() => console.log('review transaction success!'))
-                  .catch(err => console.log('reviews store error', err));
+                // test if this is a review or favorite update
+                if (review_key === undefined) {
+                  console.log('Favorite posted to server.');
+                } else {
+                  // 2. Add new review record to reviews store
+                  // 3. Delete old review record from reviews store 
+                  dbPromise.then(db => {
+                    const tx = db.transaction(['reviews'], 'readwrite');
+                    return tx.objectStore('reviews').put(data)
+                      .then(() => tx.objectStore('reviews').delete(review_key))
+                      .then(() => {
+                        console.log('tx complete reached.');
+                        return tx.complete;
+                      })
+                      .catch(err => {
+                        tx.abort();
+                        console.log('transaction error: tx aborted', err);
+                      });
+                  })
+                    .then(() => console.log('review transaction success!'))
+                    .catch(err => console.log('reviews store error', err));
+                }
               })
               .then(() => console.log('offline rec delete success!'))
               .catch(err => console.log('offline store error', err));
+            
           }).catch(err => {
             console.log('fetch error. we are offline.');
             console.log(err);
