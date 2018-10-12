@@ -32,7 +32,7 @@ gulp.task('images', ['fixed-images'], function () {
         { width: 800, rename: { suffix: '-800_2x' }, }
       ]
     }, {
-      quality: 40,
+      quality: 30,
       progressive: true,
       withMetadata: false,
     }))
@@ -273,6 +273,7 @@ gulp.task('default', ['clean:dist'], function (done) {
   runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'dbhelper:dist', 'manifest'], ['inline1', 'inline2'], done);
 });
 
+// index.html
 gulp.task('inline1', function () {
   return gulp
     .src('./dist/index.html')
@@ -288,10 +289,17 @@ gulp.task('inline1', function () {
         return '<script>' + script + '</script>';
       })
     )
+    .pipe(
+      $.stringReplace('<script src=js/index.min.js defer></script>', function(s) {
+        var script = fs.readFileSync('dist/js/index.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
     // .pipe(minify())
     .pipe(gulp.dest("dist/"));
 });
 
+// restaurant.html
 gulp.task('inline2', function () {
   return gulp
     .src('./dist/restaurant.html')
@@ -304,6 +312,12 @@ gulp.task('inline2', function () {
     .pipe(
       $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
         var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/restaurant.min.js defer></script>', function(s) {
+        var script = fs.readFileSync('dist/js/restaurant.min.js', 'utf8');
         return '<script>' + script + '</script>';
       })
     )
