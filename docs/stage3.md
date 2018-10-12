@@ -1722,7 +1722,7 @@ The alert html looks like this.
   <body>
   <!-- other html -->
   
-  <div id="offline" role="alert" aria-hidden="true">
+  <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
     <h3>Offline - not connected to the internet</h3>
     <p>Your review has been saved and will post once
       the connection is reestablished.</p>
@@ -1736,6 +1736,8 @@ The alert html looks like this.
 The `role="alert"` tells screen readers that this is a brief, important message that attracts the users attention without interrupting the user's task.
 
 The `aria-hidden="true"` attribute hides the element from assistive technologies until we trigger it through code to display.
+
+We also add in the `aria-live="assertive"` attribute which instructs the screen reader to immediately inform the user of this alert even if it means interrupting speech already in progress.
 
 This is styled with the following CSS.
 
@@ -1812,10 +1814,12 @@ window.addEventListener('load', function () {
 
   if (isOffline) {
     document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').setAttribute('aria-live', 'assertive');
     document.querySelector('#offline').classList.add('show');
 
     wait(8000).then(() => {
       document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').setAttribute('aria-live', 'off');
       document.querySelector('#offline').classList.remove('show');
     });
   }
@@ -1948,10 +1952,12 @@ window.addEventListener('load', function () {
 
   if (isOffline) {
     document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').setAttribute('aria-live', 'assertive');
     document.querySelector('#offline').classList.add('show');
 
     wait(8000).then(() => {
       document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').setAttribute('aria-live', 'off');
       document.querySelector('#offline').classList.remove('show');
     });
   }
@@ -1972,10 +1978,12 @@ window.addEventListener('load', function () {
 
   if (isOffline) {
     document.querySelector('#offline').setAttribute('aria-hidden', false);
+    document.querySelector('#offline').setAttribute('aria-live', 'assertive');
     document.querySelector('#offline').classList.add('show');
 
     wait(8000).then(() => {
       document.querySelector('#offline').setAttribute('aria-hidden', true);
+      document.querySelector('#offline').setAttribute('aria-live', 'off');
       document.querySelector('#offline').classList.remove('show');
     });
   }
@@ -2041,10 +2049,12 @@ The `showOffline` function expression will be used by both `index.html` and `res
 ```js
 const showOffline = () => {
   document.querySelector('#offline').setAttribute('aria-hidden', false);
+  document.querySelector('#offline').setAttribute('aria-live', 'assertive');
   document.querySelector('#offline').classList.add('show');
 
   wait(8000).then(() => {
     document.querySelector('#offline').setAttribute('aria-hidden', true);
+    document.querySelector('#offline').setAttribute('aria-live', 'off');
     document.querySelector('#offline').classList.remove('show');
   });
 };
