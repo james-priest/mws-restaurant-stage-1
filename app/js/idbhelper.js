@@ -93,6 +93,7 @@ self.wait = wait;
 
 const showOffline = () => {
   document.querySelector('#offline').setAttribute('aria-hidden', false);
+  document.querySelector('#offline').setAttribute('aria-live', 'assertive');
   document.querySelector('#offline').classList.add('show');
     
   wait(8000).then(() => {
