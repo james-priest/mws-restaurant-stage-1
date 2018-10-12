@@ -98,6 +98,7 @@ const showOffline = () => {
     
   wait(8000).then(() => {
     document.querySelector('#offline').setAttribute('aria-hidden', true);
+    document.querySelector('#offline').setAttribute('aria-live', 'off');
     document.querySelector('#offline').classList.remove('show');
   });
 };
