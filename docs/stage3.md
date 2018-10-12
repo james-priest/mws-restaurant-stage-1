@@ -2420,28 +2420,80 @@ This next screenshot shows the results in DevTools now that I'm back online and 
 [![Offline results](assets/images/3-22-small.jpg)](assets/images/3-22.jpg)
 **Figure 22:** Offline Results
 
+## 13. Performance Tuning
+The last step involved some performance tuning in order bring up the audit scores.
 
+### 13.1 Running Audits
+In order to run audits you need to open up DevTools and go to the audits panel.
 
+[![Run Audits](assets/images/3-25-small.jpg)](assets/images/3-25.jpg)
+**Figure 23:** Run Audits
 
-<!-- 
-### 10.1 Task for Inlining Code
-As a last step I created a Gulp task that takes both external css & javascript files and inlines them in the HTML.
+Audits will take a moment generating all the tests and running them. Once done your result screen will look like this.
 
-This is done in order improve the DevTools Performance score.
+[![Audits Results](assets/images/3-26-small.jpg)](assets/images/3-26.jpg)
+**Figure 24:** Audits Results
+
+### 13.2 Audit Requirements
+The rubric defines the following.
+
+#### Minimum Specification
+
+- Progressive Web App: > **90**
+- Accessibility: > **90**
+- Performance: > **90**
+
+#### My current score
+
+- Progressive Web App: **92**
+- Accessibility: **92**
+- Performance: **74** <- This is the one I need to improve
+
+[![Audit Scores](assets/images/3-23-small.jpg)](assets/images/3-23.jpg)
+**Figure 25:** Audit Scores
+
+The focus of these next few steps is to bring the performance marks up.
+
+### 13.3 Recommendations
+The Audits panel provides great insight into possible improvements that can bring your score up.
+
+In order to see these you have to scroll down further and expand any items in red.
+
+[![Audit Recommendations](assets/images/3-24-small.jpg)](assets/images/3-24.jpg)
+**Figure 26:** Audit Recommendations
+
+What this shows me is that the chains are causing issues with length (resource size) & latency.
+
+So perhaps finding a way to inline this code would solve the problem.
+
+### 13.4 Tasks for Inlining Code
+In order to inline my CSS and JavaScript, I'll need to modify the Gulp build script.
+
+To do this I created two new tasks that take both external css & javascript files and inlines them in the HTML.
 
 ```js
+// index.html
 gulp.task('inline1', function () {
   return gulp
     .src('./dist/index.html')
     .pipe(
-      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>',
+      function(s) {
         var style = fs.readFileSync("dist/css/styles.css", "utf8");
         return "<style>" + style + "</style>";
       })
     )
     .pipe(
-      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+      $.stringReplace('<script src=js/dbhelper.min.js></script>',
+      function(s) {
         var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/index.min.js defer></script>',
+      function(s) {
+        var script = fs.readFileSync('dist/js/index.min.js', 'utf8');
         return '<script>' + script + '</script>';
       })
     )
@@ -2449,18 +2501,28 @@ gulp.task('inline1', function () {
     .pipe(gulp.dest("dist/"));
 });
 
+// restaurant.html
 gulp.task('inline2', function () {
   return gulp
     .src('./dist/restaurant.html')
     .pipe(
-      $.stringReplace('<link rel=stylesheet href=css/styles.css>', function(s) {
+      $.stringReplace('<link rel=stylesheet href=css/styles.css>',
+      function(s) {
         var style = fs.readFileSync("dist/css/styles.css", "utf8");
         return "<style>" + style + "</style>";
       })
     )
     .pipe(
-      $.stringReplace('<script src=js/dbhelper.min.js></script>', function(s) {
+      $.stringReplace('<script src=js/dbhelper.min.js></script>',
+      function(s) {
         var script = fs.readFileSync('dist/js/dbhelper.min.js', 'utf8');
+        return '<script>' + script + '</script>';
+      })
+    )
+    .pipe(
+      $.stringReplace('<script src=js/restaurant.min.js defer></script>',
+      function(s) {
+        var script = fs.readFileSync('dist/js/restaurant.min.js', 'utf8');
         return '<script>' + script + '</script>';
       })
     )
@@ -2468,4 +2530,90 @@ gulp.task('inline2', function () {
     .pipe(gulp.dest("dist/"));
 });
 ```
- -->
+
+I then needed to update my `default` build task as well as the `serve:dist` task.
+
+```js
+// Build production files, the default task
+gulp.task('default', ['clean:dist'], function (done) {
+  runSequence(['images', 'lint', 'html:dist', 'sw:dist', 'dbhelper:dist',
+    'manifest'],
+    ['inline1', 'inline2'], done);
+});
+
+// Build and serve the fully optimized site
+gulp.task('serve:dist', ['default'], function () {
+  browserSync.init({
+    server: 'dist',
+    port: 8000
+  });
+
+  gulp.watch(['app/*.html', 'GM_API_KEY'],
+    ['html:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/css/*.css'],
+    ['html:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/js/*.js', '!app/js/dbhelper.js', '!app/js/idbhelper.js'],
+    ['lint', 'html:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/sw.js', 'app/js/idbhelper.js'],
+    ['lint', 'sw:dist', reload]);
+  gulp.watch(['app/js/dbhelper.js', 'app/js/idbhelper.js'],
+    ['lint', 'dbhelper:dist', 'html:dist', 'inline1', 'inline2', reload]);
+  gulp.watch(['app/manifest.json'], ['manifest', reload]);
+});
+```
+
+These changes only affect the distribution build. I still have my normal build sequence that bundles all files but doesn't uglify, minify, or otherwise condense my js & css resources.
+
+The last change I made was to bring down the quality of my image compression from 40 to 30. This did not produce any pixelation or other noticeable quality loss.
+
+```js
+// Build responsive images
+gulp.task('images', ['fixed-images'], function () {
+  return gulp.src('app/img/*.jpg')
+    .pipe($.responsive({
+      '*.jpg': [
+        { width: 300, rename: { suffix: '-300' }, },
+        { width: 400, rename: { suffix: '-400' }, },
+        { width: 600, rename: { suffix: '-600_2x' }, },
+        { width: 800, rename: { suffix: '-800_2x' }, }
+      ]
+    }, {
+      quality: 30,    // <- here
+      progressive: true,
+      withMetadata: false,
+    }))
+    .pipe(gulp.dest('.tmp/img'))
+    .pipe(gulp.dest('dist/img'));
+});
+```
+
+### 13.5 New Audit Scores
+My next set of audit scores came back great!
+
+The scores for index.html were
+
+- Progressive Web App: **92**
+- Accessibility: **92**
+- Performance: **92**
+
+#### index.html
+
+[![Index Audit Results #1](assets/images/3-27-small.jpg)](assets/images/3-27.jpg)
+**Figure 27:** Index Audit Results #1
+
+[![Index Audit Results #2](assets/images/3-28-small.jpg)](assets/images/3-28.jpg)
+**Figure 28:** Index Audit Results #2
+
+The `restaurant.html` page did even better.
+
+- Progressive Web App: **92**
+- Accessibility: **100**
+- Performance: **99**
+
+#### restaurant.html
+
+[![Restaurant Audit Results #1](assets/images/3-29-small.jpg)](assets/images/3-29.jpg)
+**Figure 29:** Restaurant Audit Results #1
+
+[![Index Audit Results #2](assets/images/3-30-small.jpg)](assets/images/3-30.jpg)
+**Figure 30:** Restaurant Audit Results #2
