@@ -4,9 +4,9 @@
 > **NOTE:** These are updated README instructions.
 ---
 
-## Restaurant App Stage 2 - client app
+## Restaurant App Stage 3 - client app
 
-Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 includes a build system that will automatically serve  the optimized site.
+Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 & 3 includes a build system that will automatically serve the optimized site.
 
 Two things must happen to run this project:
 
