@@ -22,7 +22,7 @@ A file named `GM_API_KEY` needs to be created in the root folder (`\`) with a va
 Run the following command to build & serve the optimized site.
 
 ```bash
-grunt serve:dist
+gulp serve:dist
 ```
 
 This will start the server at `http://localhost:8000`.
@@ -33,7 +33,7 @@ If you want to develop you can use the following commands.
 #### Start the dev server
 
 ```bash
-grunt serve
+gulp serve
 ```
 
 This will start the server at `http://localhost:8001`.
@@ -43,7 +43,7 @@ Changes can be made to the files in the `app/` directory. The browser will reloa
 #### Build & Optimize
 
 ```bash
-grunt
+gulp
 ```
 
 This will build and optimize the project ready for deployment. It will output to the `dist/` folder
