@@ -1532,10 +1532,10 @@ These steps include the following:
 > Run the following command to build & serve the optimized site.
 >
 > ```bash
-> grunt serve:dist
+> gulp serve:dist
 > ```
 >
-> This will start the server at http://localhost:8000.
+> This will start the server at `http://localhost:8000`.
 >
 > ##### Build System
 > If you want to develop you can use the following commands.
@@ -1543,7 +1543,7 @@ These steps include the following:
 > **Start the dev server**
 >
 > ```bash
-> grunt serve
+> gulp serve
 > ```
 >
 > This will start the server at `http://localhost:8001`.
@@ -1553,7 +1553,7 @@ These steps include the following:
 > **Build & Optimize**
 >
 > ```bash
-> grunt
+> gulp
 > ```
 >
 > This will build and optimize the project ready for deployment. It will output to the dist/ folder

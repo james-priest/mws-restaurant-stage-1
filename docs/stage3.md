@@ -2627,3 +2627,85 @@ The `restaurant.html` page did even better.
 
 [![Index Audit Results #2](assets/images/3-30-small.jpg)](assets/images/3-30.jpg)
 **Figure 30:** Restaurant Audit Results #2
+
+## 14. Stage 3 Review
+### 14.1 Update README
+The next thing I did was create specific instructions for my reviewer to be able to run the project.
+
+This included adding steps to to the README that explained how to build and run the project.
+
+These steps include the following:
+
+> #### Mobile Web Specialist Certification Course
+>
+> ##### Restaurant App Stage 3 - client app
+> Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 & 3 includes a build system that will automatically serve the optimized site.
+>
+> Two things must happen to run this project:
+> 1. Create a file containing a valid Google Maps API key
+> 2. Run the build system which will serve the optimized site
+>
+> ##### Google API Key
+> A file named GM_API_KEY needs to be created in the root folder (\) with a valid Google Maps API key.
+>
+> ##### Serve optimized site
+> Run the following command to build & serve the optimized site.
+>
+> ```bash
+> gulp serve:dist
+> ```
+>
+> This will start the server at `http://localhost:8000`.
+>
+> ##### Build System
+> If you want to develop you can use the following commands.
+>
+> **Start the dev server**
+>
+> ```bash
+> gulp serve
+> ```
+>
+> This will start the server at `http://localhost:8001`.
+>
+> Changes can be made to the files in the app/ directory. The browser will reload the changes on each file save.
+>
+> **Build & Optimize**
+>
+> ```bash
+> gulp
+> ```
+>
+> This will build and optimize the project ready for deployment. It will output to the dist/ folder
+
+### 14.2 Submit Project
+I then pushed all my changes to GitHub and submitted my project for review.
+
+I sent the reviewer my Google Maps API key and then waited...
+
+### 14.3 Review Results
+The review came back a few hours later.
+
+[![Meets Specifications](assets/images/3-31-small.jpg)](assets/images/3-31.jpg)
+**Figure 31:** Meets Specifications
+
+The review then went into detail on each of these three sections.
+
+- Functionality
+- Responsive Design & Accessibility
+- Performance
+
+#### Functionality
+
+[![Functionality Review](assets/images/3-32-small.jpg)](assets/images/3-32.jpg)
+**Figure 32:** Functionality Review
+
+#### Responsive Design and Accessibility
+
+[![Responsive Design and Accessibility Review](assets/images/3-33-small.jpg)](assets/images/3-33.jpg)
+**Figure 33:** Responsive Design and Accessibility Review
+
+#### Performance
+
+[![Performance Review](assets/images/3-34-small.jpg)](assets/images/3-34.jpg)
+**Figure 34:** Performance Review
