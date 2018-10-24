@@ -108,13 +108,14 @@ Here's what I finally decided on:
 
 - [restdb.io](https://restdb.io/) - Simple NoSQL database with data management app, schema builder, and REST API instantly available. Free DEV account with 1 MB size limit.
 
-[![restdb.io](assets/images/4-2-small.jpg)](assets/images/4-2.jpg)
-**Figure 2:** restdb.io
-
 Perfect! Looks like restdb.io fits the bill.
 
 ## 2. Build Database
 ### 2.1 RestDB.io Features
+
+[![restdb.io](assets/images/4-2-small.jpg)](assets/images/4-2.jpg)
+**Figure 2:** restdb.io
+
 Right from the homepage it became clear that this product had the features I needed and was straight-forward enough for me to get up and running quickly.
 
 > [restdb.io](https://restdb.io/) is probably the easiest online NoSQL database backend for web and serverless applications.
