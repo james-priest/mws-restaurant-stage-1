@@ -38,7 +38,9 @@ Requirements so far:
   - **Performance** - 90 or better
   - **Accessibility** - 90 or better
 
-## 1. NoSQL with RESTful API
+## 1. Back End Data Services
+What I need in a nutshell is a NoSQL DB that exposes a set of RESTful APIs for CRUD (Create, Read, Update, & Delete) operations.
+
 ### 1.1 NoSQL Databases
 The first thing I did was look into some NoSQL solutions. What I focused on was
 
@@ -66,7 +68,7 @@ Prior to cloud computing, these were the two primary ways to provide software so
 
 Now we have a broad range of services that fall somewhere on the spectrum between these two extremes.
 
-![On-Premises, Iaas, Paas, Saas](https://blogs.bmc.com/wp-content/uploads/2017/09/iaas-paas-saas-comparison-1024x759.jpg)
+[![On-Premises, Iaas, Paas, Saas](assets/images/4-1-small.jpg)](assets/images/4-1.jpg)
 **Figure 1:** On-Premises, Iaas, Paas, Saas
 
 Starting with the lowest level of service and abstraction...
@@ -79,12 +81,13 @@ Starting with the lowest level of service and abstraction...
   - Heroku, AWS Mobile Hub, Google Firebase, Parse, built.io Backend, Parse, MongoDB Stitch, Rackspace Managed Cloud
 - [DBaaS (Database-as-a-Service)](https://www.g2crowd.com/categories/database-as-a-service-dbaas) - provides prebuilt database backend infrastructure for mobile and web applications. Can include relational or NoSQL (key/value, document, graph, etc.).
   - MongoDB Atlas, Amazon RDS, Amazon DynamoDB, AWS SimpleDB, Azure Tables, Azure DocumentDB, Azure Cosmos, Azure SQL DB, Google Datastore, Google Cloud SQL
-- [SaaS (Software-as-a-Service)](https://azure.microsoft.com/en-us/overview/what-is-saas/) - Provides a straight browser-based software solution. These are paid for app services.
+- [SaaS (Software-as-a-Service)](https://azure.microsoft.com/en-us/overview/what-is-saas/) - Provides a straight browser-based software solution. These are paid and free app services.
   - Google Apps, Salesforce, DropBox, Constant Contact, etc.
 
 ### 1.3 Hosted DB Solutions
+Seeing as I only need a DB solution that exposes a REST API, this narrowed my search.
 
-There are many offered solutions including:
+Still, there are many offered solutions though, including:
 
 - AWS (Amazon) - [Amazon SimpleDB](https://aws.amazon.com/simpledb/) and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
 - Azure (Microsoft) - [Azure Tables](https://azure.microsoft.com/en-us/services/storage/tables/) and [Azure CosmosDB](https://azure.microsoft.com/en-us/services/cosmos-db/)
@@ -99,50 +102,141 @@ I looked into FaunaDB which was recommended by Netlify.
 
 - [FaunaDB](https://fauna.com/) - NoSQL DB solution requiring a client library and relies on AWS-style Lamba functions for RESTful API.
 
-Again, I wanted a simple, no-cost solution that offers both NoSQL DB storage and REST API access out-of-the-box.
+Again, I wanted a simple, no-cost solution that offers both NoSQL DB storage and REST API access out-of-the-box if possible.
 
 Here's what I finally decided on:
 
 - [restdb.io](https://restdb.io/) - Simple NoSQL database with data management app, schema builder, and REST API instantly available. Free DEV account with 1 MB size limit.
 
+[![restdb.io](assets/images/4-2-small.jpg)](assets/images/4-2.jpg)
+**Figure 2:** restdb.io
+
 Perfect! Looks like restdb.io fits the bill.
 
-<!--
-## 2. Using restdb.io
+## 2. Build Database
+### 2.1 RestDB.io Features
+Right from the homepage it became clear that this product had the features I needed and was straight-forward enough for me to get up and running quickly.
 
-### 2.1 Creating the DB
-### 2.1. Test API: Postman
-You can use an app like Postman to really test all permutations of an Ajax call.
+> [restdb.io](https://restdb.io/) is probably the easiest online NoSQL database backend for web and serverless applications.
+> - **Simple to use**<br>
+>   - model your information quickly.
+>   - add data with the data management application
+>   - schema and REST API are instantly available.
+> - **Developer friendly**<br>
+>   - online database tool is designed for the modern web
+>   - high performance REST API
+>   - NoSQL MongoDB query language
+>   - server-side codehooks
+>   - secure Ajax/CORS.
 
-This is a good option if need to really test and understand what is returned in a complex Web API.
+This Database-as-a-Service (DBaaS) offering was great in that it simply offered the DB back end along with a management panel and REST API without forcing me to worry about:
 
-Here is the output of a restaurant call
+- provisioning resources
+- server time
+- bandwidth
+- etc.
 
-[![Postman App](assets/images/2-4-small.jpg)](assets/images/2-4.jpg)
-**Figure 4:** Postman App
+It stripped away all of the unnecessary stuff that many of the big cloud companies require you to manage. It just offers some basic, simple services with straight-forward pricing.
 
-The advantage of an app like this is
+The other great thing is that I can start with a Development account for free. This allows me to do the following
 
-1. You don't need to write complex code in the console to make it work.
-2. Requests can be grouped into collections
-3. The response is color coded and easier to read than browser output.
+- 1 dev/editor user
+- 2,500 records
+- Max 1 API-call/sec
+- DB up to 1Mb file size
+- unlimited DBs
+- codehooks & jobs available
 
-### 2.1 API Endpoints
-View the MWS-Restaurant-Stage-3 [README.md]((https://github.com/james-priest/mws-restaurant-stage-3#endpoints)) in order to see each of the API Endpoints
+The last thing that made using this service a joy is that the management panel UI is intuitive and the documentation is simple and easy to follow.
+
+### 2.2 Create DB & Collection
+The first thing to do was create the DB.
+
+[![Create New Database](assets/images/4-4-small.jpg)](assets/images/4-4.jpg)
+**Figure 3:** Create New Database
+
+Once the database is created we can Add a Collection. A collection is the equivalent of a table or spreadsheet.
+
+[![Add Collection](assets/images/4-5-small.jpg)](assets/images/4-5.jpg)
+**Figure 4:** Add Collection
+
+We name the collection, give it a description, and choose an icon.
+
+[![Collection Info](assets/images/4-6-small.jpg)](assets/images/4-6.jpg)
+**Figure 5:** Collection Info
+
+### 2.3 Define Collection Fields
+Next we're taken to the collection detail page where we can define the fields of that collection.
+
+#### Restaurants
+Here I defined my restaurant fields.
+
+[![Collection Fields](assets/images/4-7-small.jpg)](assets/images/4-7.jpg)
+**Figure 6:** Collection Fields
+
+From here we can add fields
+
+[![Add Field](assets/images/4-8-small.jpg)](assets/images/4-8.jpg)
+**Figure 7:** Add Field
+
+This is were we can define the field type and apply any other constraints we'd like.
+
+[![Define Field](assets/images/4-9-small.jpg)](assets/images/4-9.jpg)
+**Figure 8:** Define Field
+
+Here are the fields I created for my `restaurants` collection
+
+[![Restaurants Schema](assets/images/4-10-small.jpg)](assets/images/4-10.jpg)
+**Figure 9:** Restaurants Schema
+
+One thing to note is the last field is a parent-child relation that I defined between restaurants and reviews. It allows a resturant to have many review child records associated.
+
+#### Reviews
+Here's the schema I created for the `reviews` collections.
+
+[![Reviews Schema](assets/images/4-11-small.jpg)](assets/images/4-11.jpg)
+**Figure 10:** Reviews Schema
+
+### 2.4 Add Data
+#### Restaurants collection
+Next I added the data for each restaurant.
+
+[![Add Restaurant Data](assets/images/4-12-small.jpg)](assets/images/4-12.jpg)
+**Figure 11:** Add Restaurant Data
+
+Once I was done the collection looked like this.
+
+[![Restaurants data](assets/images/4-13-small.jpg)](assets/images/4-13.jpg)
+**Figure 12:** Restaurants data
+
+#### Reviews collection
+The next thing I did was add reviews records
+
+[![Add Reviews Data](assets/images/4-14-small.jpg)](assets/images/4-14.jpg)
+**Figure 13:** Add Reviews Data
+
+Once the Reviews collection was complete it looked like this.
+
+[![Reviews data](assets/images/4-15-small.jpg)](assets/images/4-15.jpg)
+**Figure 14:** Reviews data
+
+#### Parent-Child Relation
+Since we defined that relationship in the Restaurant schema we can now view and add review records while browsing restaurants.
+
+[![Parent-Child Relation](assets/images/4-16-small.jpg)](assets/images/4-16.jpg)
+**Figure 15:** Parent-Child Relation
+
+## 3. Test REST API
+What we need to do is identify each API endpoint being used and figure out what the equivalent call would be to our hosted DB solution.
+
+### 3.1 Old API Endpoints
+First thing is to identify the endpoints currently being used to connect to the Stage-3 localhost server.
 
 #### GET Endpoints
 - Get all restaurants
   - `http://localhost:1337/restaurants/`
-- Get favorite restaurants
-  - `http://localhost:1337/restaurants/?is_favorite=true`
-- Get a restaurant by id
-  - `http://localhost:1337/restaurants/<restaurant_id>`
 - Get all reviews for a restaurant
   - `http://localhost:1337/reviews/?restaurant_id=<restaurant_id>`
-- Get all restaurant reviews
-  - `http://localhost:1337/reviews/`
-- Get a restaurant review by id
-  - `http://localhost:1337/reviews/<review_id>`
 
 #### POST Endpoints
 - Create a new restaurant review
@@ -162,19 +256,24 @@ View the MWS-Restaurant-Stage-3 [README.md]((https://github.com/james-priest/mws
   - `http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=true`
 - Unfavorite a restaurant
   - `http://localhost:1337/restaurants/<restaurant_id>/?is_favorite=false`
-- Update a restaurant review
-  - `http://localhost:1337/reviews/<review_id>`
-  - Parameters
-  ```bash
-  {
-      "name": <reviewer_name>,
-      "rating": <rating>,
-      "comments": <comment_text>
-  }
-  ```
 
-#### DELETE Endpoints
-- Delete a restaurant review
-  - `http://localhost:1337/reviews/<review_id>`
+### 3.2 Test with Postman
+This is where using an app like Postman really benefits and streamlines development.
 
- -->
+The advantage of an app like this is
+
+1. You don't need to write complex code in the console to make it work.
+2. Requests can be grouped into collections
+3. The response is color coded and easier to read than browser output.
+
+### 3.3 Old API Requests
+The first thing I did was create a collection to group all my old API requests made to the stage-3 localhost DB server.
+
+[![Postman Old API Collection](assets/images/4-17-small.jpg)](assets/images/4-17.jpg)
+**Figure 16:** Postman Old API Collection
+
+### 3.4 New API Requests
+The next step in the process was to create the equivalent REST API call to my new data source and ensure it worked properly.
+
+[![Postman New API Collection](assets/images/4-18-small.jpg)](assets/images/4-18.jpg)
+**Figure 17:** Postman New API Collection
