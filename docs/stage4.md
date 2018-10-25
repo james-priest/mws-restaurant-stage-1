@@ -278,3 +278,131 @@ The next step in the process was to create the equivalent REST API call to my ne
 
 [![Postman New API Collection](assets/images/4-18-small.jpg)](assets/images/4-18.jpg)
 **Figure 17:** Postman New API Collection
+
+### 3.5 New API Endpoints
+Now that I've created and tested each of the necessary HTTP requests in Postman, I can list them out here.
+
+All endpoints require the following headers. These headers specify the type of content we're sending and provide an api key for secure access.
+
+- headers:
+  - x-apikey: `<CORS API key>`
+  - Content-type : application/json
+  - Cache-Control: no-cache
+
+Here are the updated endpoints.
+
+#### GET Endpoints
+- Get all restaurants
+  - url: `https://restaurantdb-ae6c.restdb.io/rest/restaurants`
+- Get all reviews for a restaurant
+  - url: `https://restaurantdb-ae6c.restdb.io/rest/reviews?`
+  - params: `q={"restaurant_id": 1}`
+
+#### POST Endpoints
+- Create a new restaurant review
+  - url: `https://restaurantdb-ae6c.restdb.io/rest/reviews`
+  - body:
+  ```bash
+  {
+      "restaurant_id": <restaurant_id>,
+      "name": <reviewer_name>,
+      "rating": <rating>,
+      "comments": <comment_text>
+  }
+  ```
+
+#### PATCH Endpoints
+- Favorite a restaurant
+  - url: `https://restaurantdb-ae6c.restdb.io/rest/restaurants/<_id>`
+  - body:
+  ```bash
+  {
+      "is_favorite": true
+  }
+  ```
+- Unfavorite a restaurant
+  - url: `https://restaurantdb-ae6c.restdb.io/rest/restaurants/<_id>`
+  - body:
+  ```bash
+  {
+      "is_favorite": false
+  }
+  ```
+
+<!-- 
+## 4. Update Client Code Pt1
+Next we look at making any updates necessary to connect to our new data source.
+
+### 4.1 Service Worker Update
+The first change we need to make is to our Service Worker. Right now I'm intercepting all Ajax call so I can return a cache value if we have it.
+
+This needs to be updated to filter any requests to the new SB source.
+
+#### sw.js
+
+```js
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  
+  // 1. filter Ajax Requests
+  // if (requestUrl.port === '1337') {  // <- old 
+  if (requestUrl.host.includes('restaurantdb-ae6c.restdb.io')) {  // <- new
+    // ...
+  }
+});
+```
+
+### 4.2 Database URL Update
+The next change is to the database connection string.
+
+#### dbhelper.js
+
+```js
+static get DATABASE_URL() {
+  // const port = 1337; // Change this to your server port  // <- old
+  // return `http://localhost:${port}`;                     // <- old
+  return 'https://restaurantdb-ae6c.restdb.io/rest';       // <- new
+}
+```
+
+We also need to create a new static method that will append a set of required headers to each and every request.
+
+```js
+static get DB_HEADERS() {
+  return {
+    'x-apikey': '<CORS API key>',
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache'
+  };
+}
+```
+
+### 4.3 New fetchRestaurants
+Now that we have the DB host URL and headers updated it's time to update our first endpoint.
+
+This is responsible for pulling down the list of restaurants from which the index page is built.
+
+```js
+static fetchRestaurants(callback) {
+  fetch(DBHelper.DATABASE_URL + '/restaurants', { // <- new
+    headers: DBHelper.DB_HEADERS                  // <- new
+  })                                              // <- new
+    .then(response => {
+      if (!response.ok) {
+        throw Error(`Request failed. Returned status: ${response.statusText}`);
+      }
+      const restaurants = response.json();
+      return restaurants;
+    })
+    .then(restaurants => callback(null, restaurants))
+    .catch(err => callback(err, null));
+}
+```
+
+The code also kicks off the process of writing each record to our local IDB `restaurants` object store.
+
+[![New IDB Data](assets/images/4-19-small.jpg)](assets/images/4-19.jpg)
+**Figure 18:** New IDB Data
+
+-->
