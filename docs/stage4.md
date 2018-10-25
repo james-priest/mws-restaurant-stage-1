@@ -329,7 +329,6 @@ Here are the updated endpoints.
   }
   ```
 
-<!-- 
 ## 4. Update Client Code Pt1
 Next we look at making any updates necessary to connect to our new data source.
 
@@ -405,4 +404,3 @@ The code also kicks off the process of writing each record to our local IDB `res
 [![New IDB Data](assets/images/4-19-small.jpg)](assets/images/4-19.jpg)
 **Figure 18:** New IDB Data
 
--->
