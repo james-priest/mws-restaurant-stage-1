@@ -7,8 +7,17 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Database URL.
    */
   static get DATABASE_URL() {
-    const port = 1337; // Change this to your server port
-    return `http://localhost:${port}`;
+    // const port = 1337; // Change this to your server port
+    // return `http://localhost:${port}`;
+    return 'https://restaurantdb-ae6c.restdb.io/rest';
+  }
+
+  static get DB_HEADERS() {
+    return {
+      'x-apikey': '5bcb662290d83c249da4b370',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    };
   }
 
   // PUT
@@ -44,6 +53,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     const method = 'POST';
     const data = {
       restaurant_id: restaurant_id,
+      // restaurant_id: +restaurant_id,
       name: name,
       rating: +rating,
       comments: comments
@@ -53,6 +63,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     
     fetch(url, {
       headers: headers,
+      // headers: DBHelper.DB_HEADERS,
       method: method,
       body: body
     })
@@ -211,7 +222,9 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL + '/restaurants')
+    fetch(DBHelper.DATABASE_URL + '/restaurants', {
+      headers: DBHelper.DB_HEADERS
+    })
       .then(response => {
         if (!response.ok) {
           throw Error(`Request failed. Returned status of ${response.statusText}`);
