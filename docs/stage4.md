@@ -329,7 +329,7 @@ Here are the updated endpoints.
   }
   ```
 
-## 4. Update Client Code Pt1
+## 4. GET Restaurants
 Next we look at making any updates necessary to connect to our new data source.
 
 ### 4.1 Service Worker Update
@@ -345,9 +345,9 @@ self.addEventListener('fetch', event => {
   const requestUrl = new URL(request.url);
   
   // 1. filter Ajax Requests
-  // if (requestUrl.port === '1337') {  // <- old 
+  // if (requestUrl.port === '1337') {  // <- old
   if (requestUrl.host.includes('restaurantdb-ae6c.restdb.io')) {  // <- new
-    // ...
+    // more code...
   }
 });
 ```
@@ -377,10 +377,12 @@ static get DB_HEADERS() {
 }
 ```
 
-### 4.3 New fetchRestaurants
+### 4.3 Update Fetch Restaurants
 Now that we have the DB host URL and headers updated it's time to update our first endpoint.
 
 This is responsible for pulling down the list of restaurants from which the index page is built.
+
+#### dbhelper.js
 
 ```js
 static fetchRestaurants(callback) {
@@ -404,3 +406,58 @@ The code also kicks off the process of writing each record to our local IDB `res
 [![New IDB Data](assets/images/4-19-small.jpg)](assets/images/4-19.jpg)
 **Figure 18:** New IDB Data
 
+## 5. GET Reviews
+### 5.1 Update Fetch Reviews
+The next thing we want to update is the `fetchRestaurantReviewsById` method.
+
+This gets invoked on each restaurant's detail page and pulls down just that restaurant's reviews.
+
+#### dbhelper.js
+
+```js
+static fetchRestaurantReviewsById(id, callback) {
+  const url = `${DBHelper.DATABASE_URL}/reviews?q={"restaurant_id": ${id}}`;
+  fetch(url, {
+    headers: DBHelper.DB_HEADERS
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => callback(err, null));
+}
+```
+
+The `url` has been updated and fetch now includes the proper headers.
+
+### 5.2 Update Service Worker
+The next thing to do is update the Service Worker to properly grab `restaurant_id` from the QueryString fetch request to the database.
+
+The fetch URL is different now so we need to modify the code below. Once we have the `restaurant_id` we can call `idbReviewResponse` to query & return data from our local IDB so we don't make unnecessary fetch requests.
+
+#### sw.js 
+
+```js
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  
+  // 1. filter Ajax Requests
+  if (requestUrl.host.includes('restaurantdb-ae6c.restdb.io')) {
+    // 2. Only cache GET methods
+    if (event.request.method !== 'GET') {
+      console.log('filtering out non-GET method');
+      return;
+    }
+
+    console.log('fetch intercept', ++i, requestUrl.href);
+
+    if (request.url.includes('reviews')) {
+      const qObj = JSON.parse(requestUrl.searchParams.get('q'));  // <- new
+      const id = +qObj.restaurant_id;                             // <- new
+      event.respondWith(idbReviewResponse(request, id));
+    } else {
+      event.respondWith(idbRestaurantResponse(request));
+    }
+  }
+  // more code...
+});
+```
