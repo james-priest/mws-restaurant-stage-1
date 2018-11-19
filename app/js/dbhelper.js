@@ -39,7 +39,10 @@ class DBHelper {  // eslint-disable-line no-unused-vars
   // GET
   // http://localhost:1337/reviews/?restaurant_id=<restaurant_id>
   static fetchRestaurantReviewsById(id, callback) {
-    fetch(DBHelper.DATABASE_URL + `/reviews/?restaurant_id=${id}`)
+    const url = `${DBHelper.DATABASE_URL}/reviews?q={"restaurant_id": ${id}}`;
+    fetch(url, {
+      headers: DBHelper.DB_HEADERS
+    })
       .then(response => response.json())
       .then(data => callback(null, data))
       .catch(err => callback(err, null));

@@ -53,7 +53,8 @@ self.addEventListener('fetch', event => {
     console.log('fetch intercept', ++i, requestUrl.href);
     
     if (request.url.includes('reviews')) {
-      let id = +requestUrl.searchParams.get('restaurant_id');
+      const qObj = JSON.parse(requestUrl.searchParams.get('q'));
+      const id = +qObj.restaurant_id;
       event.respondWith(idbReviewResponse(request, id));
     } else {
       event.respondWith(idbRestaurantResponse(request));
