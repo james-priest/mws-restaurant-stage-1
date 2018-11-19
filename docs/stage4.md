@@ -461,3 +461,11 @@ self.addEventListener('fetch', event => {
   // more code...
 });
 ```
+
+### 5.3 Restaurant Detail Page
+Next I navigate to one of the restaurant detail pages to test that the data is coming through properly.
+
+[![New Review Data](assets/images/4-20-small.jpg)](assets/images/4-20.jpg)
+**Figure 19:** New Review Data
+
+I see the page displays restaurant reviews and I see review records in the reviews store under IndexedDB.
