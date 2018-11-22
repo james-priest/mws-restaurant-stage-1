@@ -97,7 +97,7 @@ const fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  DBHelper.fetchRestaurantReviewsById(restaurant.id, fillReviewsHTML);
+  DBHelper.fetchRestaurantReviewsById(restaurant._id, fillReviewsHTML);
 };
 
 /**
@@ -172,7 +172,7 @@ const createReviewHTML = (review) => {
   const editBtn = document.createElement('button');
   editBtn.id = 'review-edit-btn';
   editBtn.classList.add('review_btn');
-  editBtn.dataset.reviewId = review.id;
+  editBtn.dataset.reviewId = review._id;
   editBtn.innerHTML = 'Edit';
   editBtn.setAttribute('aria-label', 'edit review');
   editBtn.title = 'Edit Review';
@@ -198,8 +198,8 @@ const createReviewHTML = (review) => {
   const createdAt = document.createElement('p');
   createdAt.classList.add('createdAt');
   // const createdDate = new Date(review.createdAt).toLocaleDateString();
-  const createdDate = review.createdAt ?
-    new Date(review.createdAt).toLocaleDateString() :
+  const createdDate = review._created ?
+    new Date(review._created).toLocaleDateString() :
     'Pending';
   createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
   li.appendChild(createdAt);
@@ -208,8 +208,8 @@ const createReviewHTML = (review) => {
     
   const updatedAt = document.createElement('p');
   // const updatedDate = new Date(review.updatedAt).toLocaleDateString();
-  const updatedDate = review.updatedAt ?
-    new Date(review.updatedAt).toLocaleDateString() :
+  const updatedDate = review._changed ?
+    new Date(review._changed).toLocaleDateString() :
     'Pending';
   updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
   updatedAt.classList.add('updatedAt');

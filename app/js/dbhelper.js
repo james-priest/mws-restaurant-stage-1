@@ -38,8 +38,9 @@ class DBHelper {  // eslint-disable-line no-unused-vars
 
   // GET
   // http://localhost:1337/reviews/?restaurant_id=<restaurant_id>
-  static fetchRestaurantReviewsById(id, callback) {
-    const url = `${DBHelper.DATABASE_URL}/reviews?q={"restaurant_id": ${id}}`;
+  static fetchRestaurantReviewsById(restaurant_id, callback) {
+    const url = `${DBHelper.DATABASE_URL}/reviews?q={"_parent_id":"${restaurant_id}"}&metafields=true`;
+    // console.log(url);
     fetch(url, {
       headers: DBHelper.DB_HEADERS
     })
@@ -86,16 +87,26 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       });
   }
 
+  static deleteRestaurantReview(review_db_id) {
+
+  }
+
   static toggleFavorite(restaurant, callback) {
     const is_favorite = JSON.parse(restaurant.is_favorite);
     const id = +restaurant.id;
+    const db_id = restaurant._id;
     restaurant.is_favorite = !is_favorite;
 
-    const url = `${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=${!is_favorite}`;
-    const method = 'PUT';
+    // const url = `${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=${!is_favorite}`;
+    const url = `${DBHelper.DATABASE_URL}/restaurants/${db_id}`;
+    const method = 'PATCH';
+    const body = JSON.stringify({ "is_favorite": !is_favorite });
+    // const body = { "is_favorite": !is_favorite };
 
     fetch(url, {
-      method: method
+      headers: DBHelper.DB_HEADERS,
+      method: method,
+      body: body
     })
       .then(response => response.json())
       .then(data => callback(null, data))
@@ -225,7 +236,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL + '/restaurants', {
+    fetch(DBHelper.DATABASE_URL + '/restaurants?metafields=true', {
       headers: DBHelper.DB_HEADERS
     })
       .then(response => {
@@ -257,7 +268,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       if (error) {
         callback(error, null);
       } else {
-        const restaurant = restaurants.find(r => r.id == id);
+        const restaurant = restaurants.find(r => r._id == id);
         if (restaurant) { // Got the restaurant
           callback(null, restaurant);
         } else { // Restaurant does not exist in the database
@@ -370,7 +381,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Restaurant page URL.
    */
   static urlForRestaurant(restaurant) {
-    return (`./restaurant.html?id=${restaurant.id}`);
+    return (`./restaurant.html?id=${restaurant._id}`);
   }
 
   /**
@@ -378,7 +389,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    */
   static imageUrlForRestaurant(restaurant) {
     // return (`/img/${restaurant.photograph}`);
-    return (`/img/${restaurant.id}-300.jpg`);
+    return (`/img/${restaurant.photograph}-300.jpg`);
   }
 
   /**
@@ -386,7 +397,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    */
   static imageSrcsetForIndex(restaurant) {
     // return (`${restaurant.srcset_index}`);
-    return (`/img/${restaurant.id}-300.jpg 1x, /img/${restaurant.id}-600_2x.jpg 2x`);
+    return (`/img/${restaurant.photograph}-300.jpg 1x, /img/${restaurant.photograph}-600_2x.jpg 2x`);
   }
 
   /**
@@ -394,7 +405,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    */
   static imageSrcsetForRestaurant(restaurant) {
     // return (`${restaurant.srcset_restaurant}`);
-    return (`/img/${restaurant.id}-300.jpg 300w, /img/${restaurant.id}-400.jpg 400w, /img/${restaurant.id}-600_2x.jpg 600w, /img/${restaurant.id}-800_2x.jpg 800w`);
+    return (`/img/${restaurant.photograph}-300.jpg 300w, /img/${restaurant.photograph}-400.jpg 400w, /img/${restaurant.photograph}-600_2x.jpg 600w, /img/${restaurant.photograph}-800_2x.jpg 800w`);
   }
 
   /**

@@ -4,10 +4,12 @@ import idb from 'idb';
 const dbPromise = idb.open('udacity-restaurant-db', 3, upgradeDB => {
   switch (upgradeDB.oldVersion) {
     case 0:
-      upgradeDB.createObjectStore('restaurants', { keyPath: 'id', unique: true });
+      // upgradeDB.createObjectStore('restaurants', { keyPath: 'id', unique: true });
+      upgradeDB.createObjectStore('restaurants', { keyPath: '_id', unique: true });
     case 1:
       const reviewStore = upgradeDB.createObjectStore('reviews', { autoIncrement: true });
-      reviewStore.createIndex('restaurant_id', 'restaurant_id');
+      // reviewStore.createIndex('restaurant_id', 'restaurant_id');
+      reviewStore.createIndex('restaurant_id', '_parent_id');
     case 2:
       upgradeDB.createObjectStore('offline', { autoIncrement: true });
   }

@@ -54,7 +54,7 @@ self.addEventListener('fetch', event => {
     
     if (request.url.includes('reviews')) {
       const qObj = JSON.parse(requestUrl.searchParams.get('q'));
-      const id = +qObj.restaurant_id;
+      const id = qObj._parent_id;
       event.respondWith(idbReviewResponse(request, id));
     } else {
       event.respondWith(idbRestaurantResponse(request));
