@@ -138,6 +138,7 @@ const fillReviewsHTML = (error, reviews) => {
   
   const addReview = document.createElement('button');
   addReview.id = 'review-add-btn';
+  addReview.classList.add('review_btn');
   addReview.innerHTML = '+';
   addReview.setAttribute('aria-label', 'add review');
   addReview.title = 'Add Review';
@@ -165,6 +166,31 @@ const fillReviewsHTML = (error, reviews) => {
  */
 const createReviewHTML = (review) => {
   const li = document.createElement('li');
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.classList.add('ctrl-div');
+
+  const editBtn = document.createElement('button');
+  editBtn.id = 'review-edit-btn';
+  editBtn.classList.add('review_btn');
+  editBtn.dataset.reviewId = review.id;
+  editBtn.innerHTML = 'Edit';
+  editBtn.setAttribute('aria-label', 'edit review');
+  editBtn.title = 'Edit Review';
+  editBtn.addEventListener('click', (e) => editRecord(e, review));
+  ctrlDiv.appendChild(editBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.id = 'review-del-btn';
+  delBtn.classList.add('review_btn');
+  delBtn.dataset.reviewId = review._id;
+  delBtn.innerHTML = 'x';
+  delBtn.setAttribute('aria-label', 'delete review');
+  delBtn.title = 'Delete Review';
+  delBtn.addEventListener('click', delRecord);
+  ctrlDiv.appendChild(delBtn);
+
+  li.appendChild(ctrlDiv);
+
   const name = document.createElement('p');
   name.innerHTML = review.name;
   li.appendChild(name);
@@ -295,6 +321,17 @@ const openModal = () => {
       closeModal();
     }
   }
+};
+
+const editRecord = (e, review) => {
+  const review_id = e.target.dataset.reviewId;
+  console.log(review_id);
+  console.log(review);
+};
+
+const delRecord = (e) => {
+  const review_id = e.target.dataset.reviewId;
+  console.log(review_id);
 };
 
 const saveAddReview = (e) => {

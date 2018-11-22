@@ -422,10 +422,28 @@ nav h1 a {
   letter-spacing: -1px;
   padding-bottom: 1pt;
 }
-#review-add-btn {
+.ctrl-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+.review_btn {
   padding: 0;
-  font-size: 1.6em;
+  min-height: 40px;
   cursor: pointer;
+}
+#review-edit-btn, #review-del-btn {
+  font-weight: bold;
+
+}
+#review-add-btn {
+  font-size: 1.6em;
+}
+#review-edit-btn {
+  font-size: 0.825em;
 }
 #reviews-list {
   margin: 0;
