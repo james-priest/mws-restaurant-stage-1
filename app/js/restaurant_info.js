@@ -341,7 +341,7 @@ const saveAddReview = (e) => {
   if (form.checkValidity()) {
     console.log('is valid');
 
-    const restaurant_id = self.restaurant.id;
+    const restaurant_id = self.restaurant._id;
     const name = document.querySelector('#reviewName').value;
     const rating = document.querySelector('input[name=rate]:checked').value;
     const comments = document.querySelector('#reviewComments').value;

@@ -52,22 +52,19 @@ class DBHelper {  // eslint-disable-line no-unused-vars
   // POST
   // http://localhost:1337/reviews/
   static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
-    const url = DBHelper.DATABASE_URL + '/reviews/';
-    const headers = { 'Content-Type': 'application/form-data' };
+    const url = `${DBHelper.DATABASE_URL}/restaurants/${restaurant_id}/reviews`;
+    console.log(url);
     const method = 'POST';
+
     const data = {
-      restaurant_id: restaurant_id,
-      // restaurant_id: +restaurant_id,
       name: name,
       rating: +rating,
       comments: comments
     };
     const body = JSON.stringify(data);
-    // const body = data;
     
     fetch(url, {
-      headers: headers,
-      // headers: DBHelper.DB_HEADERS,
+      headers: DBHelper.DB_HEADERS,
       method: method,
       body: body
     })
