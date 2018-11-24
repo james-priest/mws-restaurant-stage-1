@@ -469,3 +469,99 @@ Next I navigate to one of the restaurant detail pages to test that the data is c
 **Figure 19:** New Review Data
 
 I see the page displays restaurant reviews and I see review records in the reviews store under IndexedDB.
+
+## 6. Delete & Edit Buttons
+### 6.1 Button Code
+The first thing I did was to create the button code in my detail page.
+
+#### restaurant_info.js
+
+```js
+const createReviewHTML = (review) => {
+  const li = document.createElement('li');
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.classList.add('ctrl-div');
+
+  const editBtn = document.createElement('button');
+  editBtn.id = 'review-edit-btn';
+  editBtn.classList.add('review_btn');
+  editBtn.dataset.reviewId = review._id;
+  editBtn.innerHTML = 'Edit';
+  editBtn.setAttribute('aria-label', 'edit review');
+  editBtn.title = 'Edit Review';
+  editBtn.addEventListener('click', (e) => editRecord(e, review));
+  ctrlDiv.appendChild(editBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.id = 'review-del-btn';
+  delBtn.classList.add('review_btn');
+  delBtn.dataset.reviewId = review._id;
+  delBtn.innerHTML = 'x';
+  delBtn.setAttribute('aria-label', 'delete review');
+  delBtn.title = 'Delete Review';
+  delBtn.addEventListener('click', delRecord);
+  ctrlDiv.appendChild(delBtn);
+
+  li.appendChild(ctrlDiv);
+
+  // more code...
+}
+```
+
+This creates both buttons and assigns the record's `review.id` to the button's dataset so it can be retrieved in the click handler.
+
+This is what the stub handlers look like.
+
+```js
+const editRecord = (e, review) => {
+  const review_id = e.target.dataset.reviewId;
+  console.log(review_id);
+  console.log(review);
+};
+
+const delRecord = (e) => {
+  const review_id = e.target.dataset.reviewId;
+  console.log(review_id);
+};
+```
+
+### 6.2 Style Updates
+The CSS changes involve styling the various buttons.
+
+```css
+.ctrl-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+.review_btn {
+  padding: 0;
+  min-height: 40px;
+  cursor: pointer;
+}
+#review-edit-btn, #review-del-btn {
+  font-weight: bold;
+
+}
+#review-add-btn {
+  font-size: 1.6em;
+}
+#review-edit-btn {
+  font-size: 0.825em;
+}
+```
+
+### 6.3 Page Screenshot
+Here are the screenshots of the new set of buttons.
+
+[![Button Screenshot 1](assets/images/4-21-small.jpg)](assets/images/4-21.jpg)
+**Figure 20:** Button Screenshot 1
+
+[![Button Screenshot 2](assets/images/4-22-small.jpg)](assets/images/4-22.jpg)
+**Figure 21:** Button Screenshot 2
+
+[![Button Screenshot 3](assets/images/4-23-small.jpg)](assets/images/4-23.jpg)
+**Figure 22:** Button Screenshot 3
