@@ -74,6 +74,14 @@ const idbKeyVal = {
         .objectStore(store)
         .openCursor();
     });
+  },
+  openCursorIdxByKey(store, idx, key) {
+    return dbPromise.then(db => {
+      return db.transaction(store, 'readwrite')
+        .objectStore(store)
+        .index(idx)
+        .openCursor(key);
+    });
   }
 };
 self.idbKeyVal = idbKeyVal;

@@ -1,7 +1,6 @@
 let restaurant; // eslint-disable-line no-unused-vars 
 var map;  // eslint-disable-line no-unused-vars
 var focusedElementBeforeModal;
-const modal = document.getElementById('modal');
 const modalOverlay = document.querySelector('.modal-overlay');
 
 /**
@@ -142,7 +141,7 @@ const fillReviewsHTML = (error, reviews) => {
   addReview.innerHTML = '+';
   addReview.setAttribute('aria-label', 'add review');
   addReview.title = 'Add Review';
-  addReview.addEventListener('click', openModal);
+  addReview.addEventListener('click', openAddReviewModal);
   header.appendChild(addReview);
   
   const container = document.getElementById('reviews-container');
@@ -176,17 +175,20 @@ const createReviewHTML = (review) => {
   editBtn.innerHTML = 'Edit';
   editBtn.setAttribute('aria-label', 'edit review');
   editBtn.title = 'Edit Review';
-  editBtn.addEventListener('click', (e) => editRecord(e, review));
+  editBtn.addEventListener('click', (e) => editReview(e, review));
   ctrlDiv.appendChild(editBtn);
 
   const delBtn = document.createElement('button');
   delBtn.id = 'review-del-btn';
   delBtn.classList.add('review_btn');
   delBtn.dataset.reviewId = review._id;
+  delBtn.dataset.restaurantId = review._parent_id;
+  delBtn.dataset.reviewName = review.name;
   delBtn.innerHTML = 'x';
   delBtn.setAttribute('aria-label', 'delete review');
   delBtn.title = 'Delete Review';
-  delBtn.addEventListener('click', delRecord);
+  // delBtn.addEventListener('click', delReview);
+  delBtn.addEventListener('click', openConfirmDeleteModal);
   ctrlDiv.appendChild(delBtn);
 
   li.appendChild(ctrlDiv);
@@ -259,7 +261,7 @@ const getParameterByName = (name, url) => {
 
 // Adapted from modal dialog sample code in Udacity Web Accessibility course 891
 //  https://github.com/udacity/ud891/blob/gh-pages/lesson2-focus/07-modals-and-keyboard-traps/solution/modal.js
-const openModal = () => {
+const wireUpModal = (modal, closeModal) => {
   // Save current focus
   focusedElementBeforeModal = document.activeElement;
 
@@ -269,12 +271,10 @@ const openModal = () => {
   // Listen for indicators to close the modal
   modalOverlay.addEventListener('click', closeModal);
   // Close btn
-  const closeBtn = document.querySelector('.close-btn');
-  closeBtn.addEventListener('click', closeModal);
-
-  // submit form
-  const form = document.getElementById('review_form');
-  form.addEventListener('submit', saveAddReview, false);
+  let closeBtns = document.querySelectorAll('.close-btn');
+  // closeBtn.addEventListener('click', closeModal);
+  closeBtns = Array.prototype.slice.call(closeBtns);
+  closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
 
   // Find all focusable children
   var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
@@ -289,11 +289,10 @@ const openModal = () => {
   modal.classList.add('show');
   modalOverlay.classList.add('show');
 
-  // Focus first child
-  // firstTabStop.focus();
-  const reviewName = document.getElementById('reviewName');
+  // Focus second child
   setTimeout(() => {
-    reviewName.focus();
+    firstTabStop.focus();
+    focusableElements[1].focus();
   }, 200);
 
   function trapTabKey(e) {
@@ -323,18 +322,63 @@ const openModal = () => {
   }
 };
 
-const editRecord = (e, review) => {
+const openAddReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
+  wireUpModal(modal, closeAddReviewModal);
+
+  // submit form
+  const form = document.getElementById('review_form');
+  form.addEventListener('submit', addReview, false);
+};
+
+const openConfirmDeleteModal = (e) => {
+  const modal = document.getElementById('confirm_delete_modal');
+  wireUpModal(modal, closeConfirmDeleteModal);
+
+  const nameContainer = document.getElementById('review_name'); 
+  nameContainer.textContent = e.target.dataset.reviewName;
+
+  const cancelBtn = document.getElementById('cancel_btn');
+  cancelBtn.onclick = closeConfirmDeleteModal;
+
+  const delConfirmBtn = document.getElementById('delete_confirm_btn');
+  delConfirmBtn.dataset.reviewId = e.target.dataset.reviewId;
+  delConfirmBtn.dataset.restaurantId = e.target.dataset.restaurantId;
+
+  delConfirmBtn.onclick = delReview;
+};
+
+const editReview = (e, review) => {
   const review_id = e.target.dataset.reviewId;
   console.log(review_id);
   console.log(review);
 };
 
-const delRecord = (e) => {
+const delReview = (e) => {
   const review_id = e.target.dataset.reviewId;
+  const restaurant_id = e.target.dataset.restaurantId;
   console.log(review_id);
+
+  DBHelper.deleteRestaurantReview(review_id, restaurant_id, (error, result) => {
+    console.log('got delete callback');
+    if (error) {
+      showOffline();
+    } else {
+      console.log(result);
+      DBHelper.delIDBReview(review_id, restaurant_id);
+    }
+    // update idb
+    idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+      .then(reviews => {
+        // console.log(reviews);
+        fillReviewsHTML(null, reviews);
+        closeConfirmDeleteModal();
+        document.getElementById('review-add-btn').focus();
+      });
+  });
 };
 
-const saveAddReview = (e) => {
+const addReview = (e) => {
   e.preventDefault();
   const form = e.target;
  
@@ -348,7 +392,7 @@ const saveAddReview = (e) => {
   
     // attempt save to database server
     DBHelper.createRestaurantReview(restaurant_id, name, rating, comments, (error, review) => {
-      console.log('got callback');
+      console.log('got add callback');
       form.reset();
       if (error) {
         console.log('We are offline. Review has been saved to the queue.');
@@ -363,14 +407,25 @@ const saveAddReview = (e) => {
         .then(reviews => {
           // console.log(reviews);
           fillReviewsHTML(null, reviews);
-          closeModal();
+          closeAddReviewModal();
           document.getElementById('review-add-btn').focus();
         });
     });
   }
 };
 
-const closeModal = () => {
+const closeConfirmDeleteModal = () => {
+  const modal = document.getElementById('confirm_delete_modal');
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+
+const closeAddReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
   // Hide the modal and overlay
   modal.classList.remove('show');
   modalOverlay.classList.remove('show');
@@ -381,6 +436,7 @@ const closeModal = () => {
   focusedElementBeforeModal.focus();
 };
 
+// Star Rating Control
 const setFocus = (evt) => {
   const rateRadios = document.getElementsByName('rate');
   const rateRadiosArr = Array.from(rateRadios);

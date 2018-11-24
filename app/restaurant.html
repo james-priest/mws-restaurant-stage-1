@@ -63,10 +63,10 @@
   </footer>
   <!-- End footer -->
 
-  <!-- Beginning modal -->
-  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="add-review-header">
+  <!-- Beginning modals -->
+  <div id="add_review_modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-review-header">
     <button class="close-btn" aria-label="close" title="Close">x</button>
-    <div id="review_form_container">
+    <div class="modal_form_container">
       <h2 id="add-review-header">Add Review</h2>
       <form id="review_form">
         <div class="fieldset">
@@ -98,8 +98,25 @@
       </form>
     </div>
   </div>
+  <div id="confirm_delete_modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-header">
+    <button class="close-btn" aria-label="close" title="Close">x</button>
+    <div class="modal_form_container">
+      <h2 id="confirm-delete-header">Confirm Delete</h2>
+      <div id="confirm_form">
+        <p>Are you sure you wish to delete the review by <b id="review_name"></b>?</p>
+        <div class="confirm-buttons">
+          <div class="fieldset">
+            <button id="cancel_btn">Cancel</button>
+          </div>
+          <div class="fieldset right">
+            <button id="delete_confirm_btn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="modal-overlay"></div>
-  <!-- End modal -->
+  <!-- End modals -->
 
   <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
     <h3>Offline - not connected to the internet</h3>

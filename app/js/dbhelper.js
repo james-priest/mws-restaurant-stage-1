@@ -55,6 +55,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     const url = `${DBHelper.DATABASE_URL}/restaurants/${restaurant_id}/reviews`;
     console.log(url);
     const method = 'POST';
+    const headers = DBHelper.DB_HEADERS;
 
     const data = {
       name: name,
@@ -64,7 +65,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     const body = JSON.stringify(data);
     
     fetch(url, {
-      headers: DBHelper.DB_HEADERS,
+      headers: headers,
       method: method,
       body: body
     })
@@ -84,8 +85,29 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       });
   }
 
-  static deleteRestaurantReview(review_db_id) {
+  static deleteRestaurantReview(review_id, restaurant_id, callback) {
+    const url = `https://restaurantdb-ae6c.restdb.io/rest/reviews/${review_id}`;
+    const method = 'DELETE';
+    const headers = DBHelper.DB_HEADERS;
 
+    fetch(url, {
+      headers: headers,
+      method: method
+    })
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => {
+        // We are offline...
+        // Delete from  local IDB
+        DBHelper.delIDBReview(review_id, restaurant_id)
+          .then(() => {
+            // add request to queue
+            // DBHelper.addRequestToQueue(url, headers, method)
+            //   .then(offline_key => console.log('returned offline_key', offline_key));
+            console.log('implement offline for delete review');
+          });
+        callback(err, null);
+      });
   }
 
   static toggleFavorite(restaurant, callback) {
@@ -131,6 +153,20 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .then(id => {
         console.log('Saved to IDB: reviews', review);
         return id;
+      });
+  }
+
+  static delIDBReview(review_id, restaurant_id) {
+    return idbKeyVal.openCursorIdxByKey('reviews', 'restaurant_id', restaurant_id)
+      .then(function nextCursor(cursor) {
+        if (!cursor) return;
+        console.log(cursor.value.name);
+        if (cursor.value._id === review_id) {
+          console.log('we matched');
+          cursor.delete();
+          return;
+        }
+        return cursor.continue().then(nextCursor);
       });
   }
 
