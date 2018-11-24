@@ -347,7 +347,7 @@ nav h1 a {
 #reviews-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 #reviews-container h2 {
   color: #d85b5b;
@@ -488,10 +488,9 @@ form {
 input,
 select,
 .rate,
-textarea,
-button {
+textarea {
   background: #f9f9f9;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: inset 0 1px 1px #e1e1e1;
   font-size: 16px;
@@ -501,12 +500,19 @@ input[type="radio"] {
   box-shadow: none;
 }
 button {
+  background: #f9f9f9;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 8px;
   min-width: 48px;
   min-height: 48px;
 }
-button:hover {
-  border: 1px solid #ccc;
+button:hover{
   background-color: #fff;
+  border: 1px solid #aaa;
+}
+button:active {
+  border-style: ridge;
 }
 button#review-add-btn, 
 button.close-btn, 
@@ -545,7 +551,7 @@ button#submit_review_btn {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #ccc;
   border-radius: 4px;
 }
 #review_form label, #review_form input {
@@ -690,7 +696,7 @@ button#submit_review_btn {
     margin: 15px 0 10px;
   }
   #reviews-container h2 {
-    margin: 0 0 10px;
+    margin: 0 10px 10px 0;
   }
 }
 
