@@ -773,7 +773,7 @@ static imageSrcsetForRestaurant(restaurant) {
 }
 ```
 
-<!-- 
+
 ## 8. Favorite Toggle
 ### 8.1 Update Fetch
 The DB call to update the favorite status uses a `PATCH` method.
@@ -820,4 +820,4 @@ static toggleFavorite(restaurant, callback) {
 This now allows us to toggle the favorite button from both the main page and the detail page.
 
 [![Favorite toggle](assets/images/4-30-small.jpg)](assets/images/4-30.jpg)
-**Figure 29:** Favorite toggle -->
+**Figure 29:** Favorite toggle
