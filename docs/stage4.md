@@ -565,3 +565,259 @@ Here are the screenshots of the new set of buttons.
 
 [![Button Screenshot 3](assets/images/4-23-small.jpg)](assets/images/4-23.jpg)
 **Figure 22:** Button Screenshot 3
+
+## 7. Streamline Database
+### 7.1 Eliminate extra DB fields
+Some of the fields I manually created ended up being unnecessary. These are fields like primary keys, date created/updated, and foreign key relationships that restdb.io already handles internally. They are known as system fields and are usually preceded by an underscore.
+
+Since this was the case, it was duplicate work on my part to track this information manually.
+
+So the first step was to do away with the following duplicate fields.
+
+- Restaurants
+  - restaurants.id
+  - restaurants.dateCreated
+  - restaurants.dateUpdated
+
+This left me with a streamlined restaurants table.
+
+[![Restaurants Table](assets/images/4-24-small.jpg)](assets/images/4-24.jpg)
+**Figure 23:** Restaurants Table
+
+I then got rid of the extra reviews table fields as well.
+
+- Reviews
+  - reviews.id
+  - reviews.dateCreated
+  - reviews.dateUpdated
+  - reviews.restaurant_id (foreign key)
+
+This left me with a reduced reviews table.
+
+[![Reviews Table](assets/images/4-25-small.jpg)](assets/images/4-25.jpg)
+**Figure 24:** Reviews Table
+
+### 7.2 DB system fields
+The database uses system fields in order to track primary/foreign key relationships as well as date create, date updated, and other fields.
+
+These fields start with an underscore.
+
+Here's a restaurants record.
+
+[![Restaurants record](assets/images/4-26-small.jpg)](assets/images/4-26.jpg)
+**Figure 25:** Restaurants record
+
+Next is a screenshot of a review record with the system fields exposed.
+
+[![Review Record](assets/images/4-27-small.jpg)](assets/images/4-27.jpg)
+**Figure 26:** Review Record
+
+### 7.3 Code updates
+The next set of changes are to the code in order to reflect the new field names.
+
+First we start with updates to the IDB store.
+
+#### idbhelper.js
+This is were the IDB data store is defined. It has to be updated in order to reflect the new keys. `id` becomes `_id` and `restaurant_id` becomes `_parent_id`.
+
+```js
+const dbPromise = idb.open('udacity-restaurant-db', 3, upgradeDB => {
+  switch (upgradeDB.oldVersion) {
+    case 0:
+      // upgradeDB.createObjectStore('restaurants',
+      //  { keyPath: 'id', unique: true });      <- old
+      upgradeDB.createObjectStore('restaurants',
+        { keyPath: '_id', unique: true });    // <- new
+    case 1:
+      const reviewStore = upgradeDB.createObjectStore('reviews',
+        { autoIncrement: true });
+      // reviewStore.createIndex('restaurant_id', 'restaurant_id');    <- old
+      reviewStore.createIndex('restaurant_id', '_parent_id');       // <- new
+    case 2:
+      upgradeDB.createObjectStore('offline', { autoIncrement: true });
+  }
+});
+self.dbPromise = dbPromise;
+```
+
+These changes now produce the following in the browser's IDB database.
+
+[![Restaurants store](assets/images/4-28-small.jpg)](assets/images/4-28.jpg)
+**Figure 27:** Restaurants store
+
+[![Review store](assets/images/4-29-small.jpg)](assets/images/4-29.jpg)
+**Figure 28:** Review store
+
+#### sw.js
+`restaurant_id` field now becomes `_parent_id`.
+
+```js
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  
+  // 1. filter Ajax Requests
+  if (requestUrl.host.includes('restaurantdb-ae6c.restdb.io')) {
+    // 2. Only cache GET methods
+    if (event.request.method !== 'GET') {
+      console.log('filtering out non-GET method');
+      return;
+    }
+
+    console.log('fetch intercept', ++i, requestUrl.href);
+
+    if (request.url.includes('reviews')) {
+      const qObj = JSON.parse(requestUrl.searchParams.get('q'));  //<- here
+      const id = qObj._parent_id;                                 //<- here
+      event.respondWith(idbReviewResponse(request, id));
+    } else {
+      event.respondWith(idbRestaurantResponse(request));
+    }
+    // other code
+  }
+};
+```
+
+#### restaurant_info.js
+All instances of `restaurant.id` in code become `restaurant._id`.
+
+```js
+const fillRestaurantHTML = (restaurant = self.restaurant) => {
+  // other code...
+  // fill reviews
+  DBHelper.fetchRestaurantReviewsById(restaurant._id, fillReviewsHTML); // new
+};
+```
+
+```js
+const createReviewHTML = (review) => {
+  // other code...
+  editBtn.dataset.reviewId = review._id;  // <- new
+  // other code...
+  const createdDate = review._created ?
+    new Date(review._created).toLocaleDateString() :  // <- new
+    'Pending';
+  // other code...
+  const updatedDate = review._changed ? // <- new
+    new Date(review._changed).toLocaleDateString() :
+    'Pending';
+  // other code...
+}
+```
+
+#### dbhelper.js
+This file is responsible for each of the fetch requests. Most of the changes occur in `url`.
+
+```js
+static fetchRestaurants(callback) {
+  fetch(DBHelper.DATABASE_URL + '/restaurants?metafields=true', {   // <- new
+    headers: DBHelper.DB_HEADERS
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw Error(`Request failed. Returned status: ${response.statusText}`);
+      }
+      const restaurants = response.json();
+      return restaurants;
+    })
+    .then(restaurants => callback(null, restaurants))
+    .catch(err => callback(err, null));
+}
+
+static fetchRestaurantReviewsById(restaurant_id, callback) {
+  const url = `${DBHelper.DATABASE_URL}/reviews?
+    q={"_parent_id":"${restaurant_id}"}&metafields=true`;  // <- new
+
+  fetch(url, {
+    headers: DBHelper.DB_HEADERS
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => callback(err, null));
+}
+
+static fetchRestaurantById(id, callback) {
+  // fetch all restaurants with proper error handling.
+  DBHelper.fetchRestaurants((error, restaurants) => {
+    if (error) {
+      callback(error, null);
+    } else {
+      const restaurant = restaurants.find(r => r._id == id);  // <- new
+      if (restaurant) { // Got the restaurant
+        callback(null, restaurant);
+      } else { // Restaurant does not exist in the database
+        callback('Restaurant does not exist', null);
+      }
+    }
+  });
+}
+
+static urlForRestaurant(restaurant) {
+  return (`./restaurant.html?id=${restaurant._id}`);  // <- new
+}
+
+static imageUrlForRestaurant(restaurant) {
+  return (`/img/${restaurant.photograph}-300.jpg`); // <- new
+}
+
+static imageSrcsetForIndex(restaurant) {
+  return (`/img/${restaurant.photograph}-300.jpg 1x,
+  /img/${restaurant.photograph}-600_2x.jpg 2x`);  // <- new
+}
+
+static imageSrcsetForRestaurant(restaurant) {
+  return (`/img/${restaurant.photograph}-300.jpg 300w,
+  /img/${restaurant.photograph}-400.jpg 400w,
+  /img/${restaurant.photograph}-600_2x.jpg 600w,
+  /img/${restaurant.photograph}-800_2x.jpg 800w`);  // <- new
+}
+```
+
+<!-- 
+## 8. Favorite Toggle
+### 8.1 Update Fetch
+The DB call to update the favorite status uses a `PATCH` method.
+
+The `PATCH` method is used to update a single field within a record.
+
+#### dbhelper.js
+
+```js
+static toggleFavorite(restaurant, callback) {
+  const is_favorite = JSON.parse(restaurant.is_favorite);
+  const id = +restaurant.id;
+  const db_id = restaurant._id;
+  restaurant.is_favorite = !is_favorite;
+
+  const url = `${DBHelper.DATABASE_URL}/restaurants/${db_id}`;
+  const method = 'PATCH';
+  const body = JSON.stringify({ "is_favorite": !is_favorite });
+
+  fetch(url, {
+    headers: DBHelper.DB_HEADERS,
+    method: method,
+    body: body
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline
+      // Update restaurant record in local IDB
+      DBHelper.updateIDBRestaurant(restaurant)
+        .then(() => {
+          // add to queue...
+          console.log('Add favorite request to queue');
+          console.log(`DBHelper.addRequestToQueue(${url}, {}, ${method}, '')`);
+          DBHelper.addRequestToQueue(url, {}, method, '')
+            .then(offline_key => console.log('offline_key', offline_key));
+        });
+      callback(err, null);
+    });
+}
+```
+
+### 8.2 Toggle screenshot
+This now allows us to toggle the favorite button from both the main page and the detail page.
+
+[![Favorite toggle](assets/images/4-30-small.jpg)](assets/images/4-30.jpg)
+**Figure 29:** Favorite toggle -->
