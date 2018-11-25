@@ -421,7 +421,6 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    // return (`/img/${restaurant.photograph}`);
     return (`/img/${restaurant.photograph}-300.jpg`);
   }
 
@@ -429,16 +428,18 @@ class DBHelper {  // eslint-disable-line no-unused-vars
    * Index image Srcset.
    */
   static imageSrcsetForIndex(restaurant) {
-    // return (`${restaurant.srcset_index}`);
-    return (`/img/${restaurant.photograph}-300.jpg 1x, /img/${restaurant.photograph}-600_2x.jpg 2x`);
+    return (`/img/${restaurant.photograph}-300.jpg 1x,
+      /img/${restaurant.photograph}-600_2x.jpg 2x`);
   }
 
   /**
    * Restaurant image Srcset.
    */
   static imageSrcsetForRestaurant(restaurant) {
-    // return (`${restaurant.srcset_restaurant}`);
-    return (`/img/${restaurant.photograph}-300.jpg 300w, /img/${restaurant.photograph}-400.jpg 400w, /img/${restaurant.photograph}-600_2x.jpg 600w, /img/${restaurant.photograph}-800_2x.jpg 800w`);
+    return (`/img/${restaurant.photograph}-300.jpg 300w,
+      /img/${restaurant.photograph}-400.jpg 400w,
+      /img/${restaurant.photograph}-600_2x.jpg 600w,
+      /img/${restaurant.photograph}-800_2x.jpg 800w`);
   }
 
   /**
