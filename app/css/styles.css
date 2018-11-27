@@ -722,3 +722,14 @@ button#submit_review_btn {
     padding-left: 20px;
   }
 }
+
+@media screen and (max-height: 500px) {
+  #review_form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 500px;
+  }
+  .fieldset {
+    flex-basis: 50%;
+  }
+}

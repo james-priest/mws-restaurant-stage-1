@@ -773,7 +773,6 @@ static imageSrcsetForRestaurant(restaurant) {
 }
 ```
 
-
 ## 8. Favorite Toggle
 ### 8.1 Update Fetch
 The DB call to update the favorite status uses a `PATCH` method.
@@ -821,3 +820,54 @@ This now allows us to toggle the favorite button from both the main page and the
 
 [![Favorite toggle](assets/images/4-30-small.jpg)](assets/images/4-30.jpg)
 **Figure 29:** Favorite toggle
+
+## 9. POST Review
+### 9.1 Update Save & Fetch
+This piece of functionality was working with the old data source. So, what we need to do is update the Fetch call.
+
+#### dbhelper.js
+
+```js
+static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
+  const url = `${DBHelper.DATABASE_URL}/restaurants/${restaurant_id}/reviews`;
+  const method = 'POST';  // ^ here ^
+
+  const data = {
+    name: name,
+    rating: +rating,
+    comments: comments
+  };
+  const body = JSON.stringify(data);
+  
+  fetch(url, {
+    headers: DBHelper.DB_HEADERS, // <- here
+    method: method,
+    body: body
+  })
+    // more code...
+}
+```
+
+The other thing we need to do is make a small update to the calling function.
+
+#### restaurant_info.js
+
+```js
+const saveAddReview = (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  if (form.checkValidity()) {
+    console.log('is valid');
+
+    const restaurant_id = self.restaurant._id;  // <- here
+```
+
+### 9.2 Test Save Review
+The next step was to test that everything posted properly.
+
+[![Add Review From](assets/images/4-31-small.jpg)](assets/images/4-31.jpg)
+**Figure 30:** Add Review Form
+
+[![Console Result](assets/images/4-32-small.jpg)](assets/images/4-32.jpg)
+**Figure 31:** Console Result
