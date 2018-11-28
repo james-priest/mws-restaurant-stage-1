@@ -253,6 +253,11 @@ gulp.task('serve', function () {
   });
 });
 
+// Build dev files
+gulp.task('build', function (done) {
+  runSequence(['lint', 'html', 'sw', 'dbhelper', 'manifest'], done);
+});
+
 // Build and serve the fully optimized site
 gulp.task('serve:dist', ['default'], function () {
   browserSync.init({
