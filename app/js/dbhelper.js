@@ -74,11 +74,12 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .catch(err => {
         // We are offline...
         // Save review to local IDB
+        data._parent_id = restaurant_id; // Add this to provide IDB foreign key
         DBHelper.createIDBReview(data)
           .then(review_key => {
             // Get review_key and save it with review to offline queue
             console.log('returned review_key', review_key);
-            DBHelper.addRequestToQueue(url, headers, method, data, review_key)
+            DBHelper.addRequestToQueue(url, headers, method, body, review_key)
               .then(offline_key => console.log('returned offline_key', offline_key));
           });
         callback(err, null);
@@ -99,12 +100,15 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .catch(err => {
         // We are offline...
         // Delete from  local IDB
+        console.log('what err:', err);
         DBHelper.delIDBReview(review_id, restaurant_id)
           .then(() => {
             // add request to queue
-            // DBHelper.addRequestToQueue(url, headers, method)
-            //   .then(offline_key => console.log('returned offline_key', offline_key));
-            console.log('implement offline for delete review');
+            console.log('Add delete review request to queue');
+            console.log(`DBHelper.addRequestToQueue(${url}, ${headers}, ${method}, '')`);
+            DBHelper.addRequestToQueue(url, headers, method)
+              .then(offline_key => console.log('returned offline_key', offline_key));
+            // console.log('implement offline for delete review');
           });
         callback(err, null);
       });
@@ -119,11 +123,12 @@ class DBHelper {  // eslint-disable-line no-unused-vars
     // const url = `${DBHelper.DATABASE_URL}/restaurants/${id}/?is_favorite=${!is_favorite}`;
     const url = `${DBHelper.DATABASE_URL}/restaurants/${db_id}`;
     const method = 'PATCH';
+    const headers = DBHelper.DB_HEADERS;
     const body = JSON.stringify({ "is_favorite": !is_favorite });
     // const body = { "is_favorite": !is_favorite };
 
     fetch(url, {
-      headers: DBHelper.DB_HEADERS,
+      headers: headers,
       method: method,
       body: body
     })
@@ -136,8 +141,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
           .then(() => {
             // add to queue...
             console.log('Add favorite request to queue');
-            console.log(`DBHelper.addRequestToQueue(${url}, {}, ${method}, '')`);
-            DBHelper.addRequestToQueue(url, {}, method, '')
+            console.log(`DBHelper.addRequestToQueue(${url}, ${headers}, ${method}, ${body})`);
+            DBHelper.addRequestToQueue(url, headers, method, body)
               .then(offline_key => console.log('returned offline_key', offline_key));
           });
         callback(err, null);
@@ -198,7 +203,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
           console.log('cursor done.');
           return;
         }
-        console.log('cursor', cursor.value.data.name, cursor.value.data);
+        // console.log('cursor', cursor.value.data.name, cursor.value.data);
+        console.log('cursor.value', cursor.value);
 
         const offline_key = cursor.key;
         const url = cursor.value.url;
@@ -206,7 +212,8 @@ class DBHelper {  // eslint-disable-line no-unused-vars
         const method = cursor.value.method;
         const data = cursor.value.data;
         const review_key = cursor.value.review_key;
-        const body = JSON.stringify(data);
+        // const body = data ? JSON.stringify(data) : '';
+        const body = data;
 
         // update server with HTTP POST request & get updated record back        
         fetch(url, {

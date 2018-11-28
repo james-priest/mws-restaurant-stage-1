@@ -357,7 +357,14 @@ const editReview = (e, review) => {
 const delReview = (e) => {
   const review_id = e.target.dataset.reviewId;
   const restaurant_id = e.target.dataset.restaurantId;
+  const idb_id = e.target.dataset.idbId;
   console.log(review_id);
+
+  if (review_id === "undefined") {
+    DBHelper.delIDBReview(idb_id, restaurant_id);
+    getIDBReviews(restaurant_id);
+    return;
+  }
 
   DBHelper.deleteRestaurantReview(review_id, restaurant_id, (error, result) => {
     console.log('got delete callback');
@@ -368,14 +375,25 @@ const delReview = (e) => {
       DBHelper.delIDBReview(review_id, restaurant_id);
     }
     // update idb
-    idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
-      .then(reviews => {
-        // console.log(reviews);
-        fillReviewsHTML(null, reviews);
-        closeConfirmDeleteModal();
-        document.getElementById('review-add-btn').focus();
-      });
+    // idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+    //   .then(reviews => {
+    //     // console.log(reviews);
+    //     fillReviewsHTML(null, reviews);
+    //     closeConfirmDeleteModal();
+    //     document.getElementById('review-add-btn').focus();
+    //   });
+    getIDBReviews(restaurant_id);
   });
+};
+
+const getIDBReviews = function (restaurant_id) {
+  idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+    .then(reviews => {
+      // console.log(reviews);
+      fillReviewsHTML(null, reviews);
+      closeConfirmDeleteModal();
+      document.getElementById('review-add-btn').focus();
+    });
 };
 
 const addReview = (e) => {
@@ -405,7 +423,7 @@ const addReview = (e) => {
       }
       idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
         .then(reviews => {
-          // console.log(reviews);
+          console.log('new review', reviews);
           fillReviewsHTML(null, reviews);
           closeAddReviewModal();
           document.getElementById('review-add-btn').focus();

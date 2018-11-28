@@ -41,6 +41,7 @@ self.addEventListener('fetch', event => {
   
   // 1. filter Ajax Requests
   if (requestUrl.host.includes('restaurantdb-ae6c.restdb.io')) {
+    console.log('intercept db fetch', ++i);
     // 2. Only cache GET methods
     if (event.request.method !== 'GET') {
       console.log('filtering out non-GET method');
@@ -50,7 +51,7 @@ self.addEventListener('fetch', event => {
       return;
     }
 
-    console.log('fetch intercept', ++i, requestUrl.href);
+    // console.log('fetch intercept', ++i, requestUrl.href);
     
     if (request.url.includes('reviews')) {
       const qObj = JSON.parse(requestUrl.searchParams.get('q'));
@@ -103,6 +104,9 @@ function idbReviewResponse(request, id) {
   return idbKeyVal.getAllIdx('reviews', 'restaurant_id', id)
     .then(reviews => {
       if (reviews.length) {
+        // reviews.forEach(review => {
+        //   console.log(review, review.key);
+        // });
         return reviews;
       }
       return fetch(request)
