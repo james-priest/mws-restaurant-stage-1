@@ -790,10 +790,11 @@ static toggleFavorite(restaurant, callback) {
 
   const url = `${DBHelper.DATABASE_URL}/restaurants/${db_id}`;
   const method = 'PATCH';
+  const headers = DBHelper.DB_HEADERS;
   const body = JSON.stringify({ "is_favorite": !is_favorite });
 
   fetch(url, {
-    headers: DBHelper.DB_HEADERS,
+    headers: headers,
     method: method,
     body: body
   })
@@ -806,8 +807,9 @@ static toggleFavorite(restaurant, callback) {
         .then(() => {
           // add to queue...
           console.log('Add favorite request to queue');
-          console.log(`DBHelper.addRequestToQueue(${url}, {}, ${method}, '')`);
-          DBHelper.addRequestToQueue(url, {}, method, '')
+          console.log(`DBHelper.addRequestToQueue(${url}, ${headers},
+            ${method}, ${body})`);
+          DBHelper.addRequestToQueue(url, headers, method, body)
             .then(offline_key => console.log('offline_key', offline_key));
         });
       callback(err, null);
@@ -830,7 +832,8 @@ This piece of functionality was working with the old data source. So, what we ne
 ```js
 static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
   const url = `${DBHelper.DATABASE_URL}/restaurants/${restaurant_id}/reviews`;
-  const method = 'POST';  // ^ here ^
+  const method = 'POST';  // ^ new ^
+  const headers = DBHelper.DB_HEADERS;  // <- new
 
   const data = {
     name: name,
@@ -840,11 +843,25 @@ static createRestaurantReview(restaurant_id, name, rating, comments, callback) {
   const body = JSON.stringify(data);
   
   fetch(url, {
-    headers: DBHelper.DB_HEADERS, // <- here
+    headers: headers, // <- new
     method: method,
     body: body
   })
-    // more code...
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline...
+      // Save review to local IDB
+      data._parent_id = restaurant_id; // Add this to provide IDB foreign key
+      DBHelper.createIDBReview(data)  // ^ new ^
+        .then(review_key => {
+          // Get review_key and save it with review to offline queue
+          console.log('returned review_key', review_key);
+          DBHelper.addRequestToQueue(url, headers, method, body, review_key)
+            .then(offline_key => console.log('offline_key', offline_key));
+        });
+      callback(err, null);
+    });
 }
 ```
 
@@ -871,3 +888,344 @@ The next step was to test that everything posted properly.
 
 [![Console Result](assets/images/4-32-small.jpg)](assets/images/4-32.jpg)
 **Figure 31:** Console Result
+
+### 9.3 Fix processQueue()
+There are two changes that need to happen in order for POSTS to work properly.
+
+#### dbhelper.js
+
+```js
+static processQueue() {
+// Open offline queue & return cursor
+  dbPromise.then(db => {
+    if (!db) return;
+    const tx = db.transaction(['offline'], 'readwrite');
+    const store = tx.objectStore('offline');
+    return store.openCursor();
+  })
+    .then(function nextRequest (cursor) {
+      // console.log('cursor', cursor.value.data.name, cursor.value.data);
+      console.log('cursor.value', cursor.value);
+
+      const offline_key = cursor.key;
+      const url = cursor.value.url;
+      const headers = cursor.value.headers;
+      const method = cursor.value.method;
+      const data = cursor.value.data;
+      const review_key = cursor.value.review_key;
+      // const body = data ? JSON.stringify(data) : '';
+      const body = data;
+
+      // more code...
+```
+
+## 10. Delete Review
+### 10.1 Create Confirm Modal
+The first thing I did was create the HTML & CSS.
+
+#### restaurant.html
+
+```html
+<div id="confirm_delete_modal" class="modal" role="dialog" aria-modal="true"
+  aria-labelledby="confirm-delete-header">
+  <button class="close-btn" aria-label="close" title="Close">x</button>
+  <div class="modal_form_container">
+    <h2 id="confirm-delete-header">Confirm Delete</h2>
+    <div id="confirm_form">
+      <p>Are you sure you wish to delete the review by
+        <b id="review_name"></b>?</p>
+      <div class="confirm-buttons">
+        <div class="fieldset">
+          <button id="cancel_btn">Cancel</button>
+        </div>
+        <div class="fieldset right">
+          <button id="delete_confirm_btn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+Most of the modal css was already written for the review input form but I needed re-use this css for my delete review modal.
+
+To do this I needed to turn some existing id's into classes. The style rules remained the same.
+
+- `#modal` -> `.modal`
+- `#modal.show` -> `.show`
+- `#modal .close-btn` -> `.modal > .close-btn`
+- `#review_form_container` -> `.modal_form_container`
+- `#review_form_container h2` -> `.modal_form_container h2`
+
+Next I created the minimal style for the confirm modal.
+
+#### styles.css
+
+```css
+#confirm_form {
+  width: 300px;
+}
+.confirm-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+```
+
+### 10.2 Refactor Modal Code
+Next I needed to take the code written for the "Add new review" pop-up (modal) and make it available for the "Confirm delete" modal.
+
+There were a few functions that got renamed and refactored.
+
+- `openModal()` -> `wireUpModal()`
+- `closeModal()` -> `closeAddReviewModal()`
+
+I added the following.
+
+- `openAddReviewModal()`
+- `openConfirmDeleteModal()`
+- `closeConfirmDeleteModal()`
+
+#### restaurant_info.js
+This is the open modal code for both forms.
+
+```js
+const openAddReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
+  wireUpModal(modal, closeAddReviewModal);
+
+  // submit form
+  const form = document.getElementById('review_form');
+  form.addEventListener('submit', addReview, false);
+};
+
+const openConfirmDeleteModal = (e) => {
+  const modal = document.getElementById('confirm_delete_modal');
+  wireUpModal(modal, closeConfirmDeleteModal);
+
+  const nameContainer = document.getElementById('review_name'); 
+  nameContainer.textContent = e.target.dataset.reviewName;
+
+  const cancelBtn = document.getElementById('cancel_btn');
+  cancelBtn.onclick = closeConfirmDeleteModal;
+
+  const delConfirmBtn = document.getElementById('delete_confirm_btn');
+  delConfirmBtn.dataset.reviewId = e.target.dataset.reviewId;
+  delConfirmBtn.dataset.restaurantId = e.target.dataset.restaurantId;
+
+  delConfirmBtn.onclick = delReview;
+};
+```
+
+Here's the close modal code for both forms.
+
+```js
+const closeConfirmDeleteModal = () => {
+  const modal = document.getElementById('confirm_delete_modal');
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+
+const closeAddReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  const form = document.getElementById('review_form');
+  form.reset();
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+```
+
+This is the new `wireUpModal` method to create an ARIA compliant and keyboard navigatable modal dialog.
+
+```js
+const wireUpModal = (modal, closeModal) => {
+  // Save current focus
+  focusedElementBeforeModal = document.activeElement;
+
+  // Listen for and trap the keyboard
+  modal.addEventListener('keydown', trapTabKey);
+
+  // Listen for indicators to close the modal
+  modalOverlay.addEventListener('click', closeModal);
+  // Close btn
+  let closeBtns = document.querySelectorAll('.close-btn');
+  // closeBtn.addEventListener('click', closeModal);
+  closeBtns = Array.prototype.slice.call(closeBtns);
+  closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
+
+  // Find all focusable children
+  var focusableElementsString = 'a[href], area[href], input:not([disabled]),' +
+    'select:not([disabled]), textarea:not([disabled]), button:not([disabled]),' +
+    'iframe, object, embed, [tabindex="0"], [contenteditable]';
+  var focusableElements = modal.querySelectorAll(focusableElementsString);
+  // Convert NodeList to Array
+  focusableElements = Array.prototype.slice.call(focusableElements);
+
+  var firstTabStop = focusableElements[0];
+  var lastTabStop = focusableElements[focusableElements.length - 1];
+
+  // Show the modal and overlay
+  modal.classList.add('show');
+  modalOverlay.classList.add('show');
+
+  // Focus second child
+  setTimeout(() => {
+    firstTabStop.focus();
+    focusableElements[1].focus();
+  }, 200);
+
+  function trapTabKey(e) {
+    // Check for TAB key press
+    if (e.keyCode === 9) {
+
+      // SHIFT + TAB
+      if (e.shiftKey) {
+        if (document.activeElement === firstTabStop) {
+          e.preventDefault();
+          lastTabStop.focus();
+        }
+
+      // TAB
+      } else {
+        if (document.activeElement === lastTabStop) {
+          e.preventDefault();
+          firstTabStop.focus();
+        }
+      }
+    }
+
+    // ESCAPE
+    if (e.keyCode === 27) {
+      closeModal();
+    }
+  }
+};
+```
+
+### 10.3 Delete & DB Code
+Next is the code that actually deletes the review.
+
+#### restaurant_info.js
+
+```js
+const delReview = (e) => {
+  const review_id = e.target.dataset.reviewId;
+  const restaurant_id = e.target.dataset.restaurantId;
+  console.log(review_id);
+
+  DBHelper.deleteRestaurantReview(review_id, restaurant_id, (error, result) => {
+    console.log('got delete callback');
+    if (error) {
+      showOffline();
+    } else {
+      console.log(result);
+      DBHelper.delIDBReview(review_id, restaurant_id);
+    }
+    // update idb
+    idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+      .then(reviews => {
+        // console.log(reviews);
+        fillReviewsHTML(null, reviews);
+        closeConfirmDeleteModal();
+        document.getElementById('review-add-btn').focus();
+      });
+  });
+};
+```
+
+#### dbhelper.js
+
+```js
+static deleteRestaurantReview(review_id, restaurant_id, callback) {
+  const url = `https://restaurantdb-ae6c.restdb.io/rest/reviews/${review_id}`;
+  const method = 'DELETE';
+  const headers = DBHelper.DB_HEADERS;
+
+  fetch(url, {
+    headers: headers,
+    method: method
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline...
+      // Delete from  local IDB
+      console.log('what err:', err);
+      DBHelper.delIDBReview(review_id, restaurant_id)
+        .then(() => {
+          // add request to queue
+          console.log('Add delete review request to queue');
+          console.log(`DBHelper.addRequestToQueue(${url}, ${headers},
+            ${method}, '')`);
+          DBHelper.addRequestToQueue(url, headers, method)
+            .then(offline_key => console.log('offline_key', offline_key));
+          // console.log('implement offline for delete review');
+        });
+      callback(err, null);
+    });
+}
+```
+
+```js
+static delIDBReview(review_id, restaurant_id) {
+  return idbKeyVal.openCursorIdxByKey('reviews', 'restaurant_id', restaurant_id)
+    .then(function nextCursor(cursor) {
+      if (!cursor) return;
+      console.log(cursor.value.name);
+      if (cursor.value._id === review_id) {
+        console.log('we matched');
+        cursor.delete();
+        return;
+      }
+      return cursor.continue().then(nextCursor);
+    });
+}
+```
+
+#### idbhelper.js
+
+```js
+  openCursorIdxByKey(store, idx, key) {
+    return dbPromise.then(db => {
+      return db.transaction(store, 'readwrite')
+        .objectStore(store)
+        .index(idx)
+        .openCursor(key);
+    });
+  }
+```
+
+### 10.4 Confirm Dialog
+Here's a screenshot of the confirm dialog.
+
+[![Delete Dialog](assets/images/4-33-small.jpg)](assets/images/4-33.jpg)
+**Figure 32:** Delete Dialog
+
+It works online and offline.
+
+If the app is offline the request is saved locally and sent once the connection is re-established. Any changes are also reflected locally immediately.
+
+[![Offline Notice](assets/images/4-34-small.jpg)](assets/images/4-34.jpg)
+**Figure 33:** Offline Notice
+
+The record appears in the local IDB data store.
+
+[![Offline request](assets/images/4-35-small.jpg)](assets/images/4-35.jpg)
+**Figure 34:** Offline request
+
+Here's the Console output confirming the operation.
+
+[![Offline Confirmation](assets/images/4-36-small.jpg)](assets/images/4-36.jpg)
+**Figure 35:** Offline Confirmation
+
+Once we go online again we have the Console output confirm the delete operation.
+
+[![Delete Confirmation](assets/images/4-37-small.jpg)](assets/images/4-37.jpg)
+**Figure 36:** Offline Confirmation
