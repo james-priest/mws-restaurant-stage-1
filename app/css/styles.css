@@ -496,6 +496,12 @@ textarea {
   font-size: 16px;
   padding: 8px;
 }
+.static-rate {
+  /* border: 1px solid #ccc; */
+  border-radius: 8px;
+  /* padding: 8px; */
+  padding: 10px;
+}
 input[type="radio"] {
   box-shadow: none;
 }
@@ -574,7 +580,15 @@ button#submit_review_btn {
   align-items: flex-start;
   justify-content: flex-end;
 }
-#review_form .rate > label {
+.static-rate {
+  height: 36px;
+  display: inline-flex;
+  /* flex-direction: row-reverse; */
+  /* align-items: flex-start; */
+  /* justify-content: flex-end; */
+}
+/* #review_form .rate > label { */
+.rate > label, .static-rate > label {
   margin-bottom: 0;
   margin-top: -5px;
   height: 30px;
@@ -595,13 +609,21 @@ button#submit_review_btn {
   font-size:30px;
   color:#ccc;
 }
-.rate:not(:checked) > label::before {
+.static-rate > label {
+  float:right;
+  width:1em;
+  overflow:hidden;
+  white-space:nowrap;
+  font-size:30px;
+  color:#ccc;
+}
+.rate:not(:checked) > label::before, .static-rate > label::before {
   content: '★ ';
   position: relative;
   top: -10px;
   left: 2px;
 }
-.rate > input:checked ~ label {
+.rate > input:checked ~ label, .static-rate > label.gold {
   color: #ffc700;
 }
 .rate > input:checked:focus + label, .rate > input:focus + label {
@@ -670,8 +692,15 @@ button#submit_review_btn {
 }
 
 @media screen and (max-width: 768px) {
-  #restaurant-container, #reviews-container {
+  /* #restaurant-container, #reviews-container {
     width: 50%;
+  } */
+  #restaurant-container {
+    flex-basis: 40%;
+    flex-grow: 1;
+  }
+  #reviews-container {
+    min-width: 380px;
   }
 }
 

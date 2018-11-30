@@ -175,8 +175,44 @@ const createReviewHTML = (review) => {
   editBtn.innerHTML = 'Edit';
   editBtn.setAttribute('aria-label', 'edit review');
   editBtn.title = 'Edit Review';
-  editBtn.addEventListener('click', (e) => editReview(e, review));
+  // editBtn.addEventListener('click', (e) => editReview(e, review));
+  editBtn.addEventListener('click', (e) => openEditReviewModal(e, review));
   ctrlDiv.appendChild(editBtn);
+
+  const rating = document.createElement('div');
+  rating.classList.add('static-rate');
+  const star1 = document.createElement('label');
+  const star2 = document.createElement('label');
+  const star3 = document.createElement('label');
+  const star4 = document.createElement('label');
+  const star5 = document.createElement('label');
+  star1.textContent = 'star1';
+  star2.textContent = 'star2';
+  star3.textContent = 'star3';
+  star4.textContent = 'star4';
+  star5.textContent = 'star5';
+  switch (true) {
+    case (review.rating > 4):
+      star5.classList.add('gold');
+    case (review.rating > 3):
+      star4.classList.add('gold');
+    case (review.rating > 2):
+      star3.classList.add('gold');
+    case (review.rating > 1):
+      star2.classList.add('gold');
+    case (review.rating > 0):
+      star1.classList.add('gold');
+  }
+  star1.classList.add('gold');
+  star2.classList.add('gold');
+  star3.classList.add('gold');
+  rating.appendChild(star1);
+  rating.appendChild(star2);
+  rating.appendChild(star3);
+  rating.appendChild(star4);
+  rating.appendChild(star5);
+  rating.dataset.rating = review.rating;
+  ctrlDiv.appendChild(rating);
 
   const delBtn = document.createElement('button');
   delBtn.id = 'review-del-btn';
@@ -203,26 +239,26 @@ const createReviewHTML = (review) => {
   const createdDate = review._created ?
     new Date(review._created).toLocaleDateString() :
     'Pending';
-  createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
+  createdAt.innerHTML = `<strong>${createdDate}</strong>`;
   li.appendChild(createdAt);
 
-  // if (review.updatedAt > review.createdAt) {
+  if (review._changed > review._created) {
     
-  const updatedAt = document.createElement('p');
-  // const updatedDate = new Date(review.updatedAt).toLocaleDateString();
-  const updatedDate = review._changed ?
-    new Date(review._changed).toLocaleDateString() :
-    'Pending';
-  updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
-  updatedAt.classList.add('updatedAt');
-  li.appendChild(updatedAt);
-  // }
+    const updatedAt = document.createElement('p');
+    // const updatedDate = new Date(review.updatedAt).toLocaleDateString();
+    const updatedDate = review._changed ?
+      new Date(review._changed).toLocaleDateString() :
+      'Pending';
+    updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
+    updatedAt.classList.add('updatedAt');
+    li.appendChild(updatedAt);
+  }
 
-  const rating = document.createElement('p');
-  rating.classList.add('rating');
-  rating.innerHTML = `Rating: ${review.rating}`;
-  rating.dataset.rating = review.rating;
-  li.appendChild(rating);
+  // const rating = document.createElement('p');
+  // rating.classList.add('rating');
+  // rating.innerHTML = `Rating: ${review.rating}`;
+  // rating.dataset.rating = review.rating;
+  // li.appendChild(rating);
 
   const comments = document.createElement('p');
   comments.classList.add('comments');
@@ -326,6 +362,8 @@ const openAddReviewModal = () => {
   const modal = document.getElementById('add_review_modal');
   wireUpModal(modal, closeAddReviewModal);
 
+  document.getElementById('add-review-header').innerText = 'Add Review';
+
   // submit form
   const form = document.getElementById('review_form');
   form.addEventListener('submit', addReview, false);
@@ -348,10 +386,51 @@ const openConfirmDeleteModal = (e) => {
   delConfirmBtn.onclick = delReview;
 };
 
-const editReview = (e, review) => {
+const openEditReviewModal = (e, review) => {
+  const modal = document.getElementById('add_review_modal');
+  wireUpModal(modal, closeAddReviewModal);
+  
+  document.getElementById('add-review-header').innerText = 'Edit Review';
+  
+  document.querySelector('#reviewName').value = review.name;
+  switch (review.rating) {
+    case 1:
+      document.getElementById('star1').checked = true;
+      break;
+    case 2:
+      document.getElementById('star2').checked = true;
+      break;
+    case 3:
+      document.getElementById('star3').checked = true;
+      break;
+    case 4:
+      document.getElementById('star4').checked = true;
+      break;
+    case 5:
+      document.getElementById('star5').checked = true;
+      break;
+  }
+  document.querySelector('#reviewComments').value = review.comments;
+
+  
   const review_id = e.target.dataset.reviewId;
   console.log(review_id);
   console.log(review);
+
+  // submit form
+  const form = document.getElementById('review_form');
+  form.addEventListener('submit', editReview, false);
+};
+
+const editReview = (e, review) => {
+  e.preventDefault();
+  const form = e.target;
+
+  if (form.checkValidity()) {
+    const review_id = e.target.dataset.reviewId;
+    console.log(review_id);
+    console.log(review);
+  }
 };
 
 const delReview = (e) => {
