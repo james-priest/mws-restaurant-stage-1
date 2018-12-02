@@ -85,6 +85,43 @@ class DBHelper {  // eslint-disable-line no-unused-vars
         callback(err, null);
       });
   }
+  // PUT
+  // http://localhost:1337/reviews/
+  static updateRestaurantReview(review_id, restaurant_id, name, rating, comments, callback) {
+    const url = `${DBHelper.DATABASE_URL}/reviews/${review_id}`;
+    console.log(url);
+    const method = 'PUT';
+    const headers = DBHelper.DB_HEADERS;
+
+    const data = {
+      name: name,
+      rating: +rating,
+      comments: comments
+    };
+    const body = JSON.stringify(data);
+    
+    fetch(url, {
+      headers: headers,
+      method: method,
+      body: body
+    })
+      .then(response => response.json())
+      .then(data => callback(null, data))
+      .catch(err => {
+        // We are offline...
+        // Save review to local IDB
+        data._id = review_id;
+        data._parent_id = restaurant_id; // Add this to provide IDB foreign key
+        DBHelper.updateIDBReview(review_id, restaurant_id, review)
+          .then(() => {
+            // Get review_key and save it with review to offline queue
+            console.log('Add update review to queue');
+            DBHelper.addRequestToQueue(url, headers, method, body)
+              .then(offline_key => console.log('returned offline_key', offline_key));
+          });
+        callback(err, null);
+      });
+  }
 
   static deleteRestaurantReview(review_id, restaurant_id, callback) {
     const url = `https://restaurantdb-ae6c.restdb.io/rest/reviews/${review_id}`;
@@ -158,6 +195,26 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .then(id => {
         console.log('Saved to IDB: reviews', review);
         return id;
+      });
+  }
+
+  static updateIDBReview(review_id, restaurant_id, review) {
+    return idbKeyVal.openCursorIdxByKey('reviews', 'restaurant_id', restaurant_id)
+      .then(function nextCursor(cursor) {
+        if (!cursor) return;
+        var updateData = cursor.value;
+        console.log(cursor.value.name);
+        if (cursor.value._id === review_id) {
+          console.log('we matched');
+
+          updateData.name = review.name;
+          updateData.rating = review.rating;
+          updateData.comments = review.comments;
+          updateData._changed = review._changed;
+          cursor.update(updateData);
+          return;
+        }
+        return cursor.continue().then(nextCursor);
       });
   }
 

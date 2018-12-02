@@ -404,10 +404,16 @@ nav h1 a {
   float: right;
 }
 #reviews-list li p.updatedAt {
-  float: right;
-  color: #008800;
+  /* float: right; */
   clear: both;
+  font-weight: bold
 }
+#reviews-list li p.updatedAt span {
+  color: #008800;
+  font-weight: normal;
+  float: right;
+}
+  
 #reviews-list li p.rating {
   float: left;
 }
@@ -700,7 +706,7 @@ button#submit_review_btn {
     flex-grow: 1;
   }
   #reviews-container {
-    min-width: 380px;
+    min-width: 365px;
   }
 }
 
@@ -710,7 +716,7 @@ button#submit_review_btn {
   }
 }  
 
-@media screen and (max-width: 635px) {
+@media screen and (max-width: 650px) {
   #restaurant-container, #reviews-container, #breadcrumb {
     padding: 12px;
     width: 100%;
@@ -733,6 +739,9 @@ button#submit_review_btn {
   #restaurant-container, #reviews-container, #breadcrumb {
     padding: 10px;
   }
+  #reviews-container {
+    min-width: unset;
+  }
   #restaurants-list li {
     margin: 15px 0;
     width: 270px;
@@ -740,6 +749,18 @@ button#submit_review_btn {
   #offline {
     max-width: 300px;
     top: -170px;
+  }
+  /* .static-rate > label {
+    font-size: 28px;
+  } */
+}
+
+@media screen and (max-width: 340px) {
+  .static-rate > label {
+    font-size: 28px;
+  }
+  #reviews-list li p.updatedAt {
+    font-size: .95em;
   }
 }
 

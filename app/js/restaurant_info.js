@@ -203,9 +203,6 @@ const createReviewHTML = (review) => {
     case (review.rating > 0):
       star1.classList.add('gold');
   }
-  star1.classList.add('gold');
-  star2.classList.add('gold');
-  star3.classList.add('gold');
   rating.appendChild(star1);
   rating.appendChild(star2);
   rating.appendChild(star3);
@@ -245,11 +242,12 @@ const createReviewHTML = (review) => {
   if (review._changed > review._created) {
     
     const updatedAt = document.createElement('p');
-    // const updatedDate = new Date(review.updatedAt).toLocaleDateString();
+    // const updatedDate = new Date(review.updatedAt).toLocaleString();
     const updatedDate = review._changed ?
-      new Date(review._changed).toLocaleDateString() :
+      new Date(review._changed).toLocaleTimeString('en-US', { hour:'numeric', minute:'numeric' }) + ', ' +
+      new Date(review._changed).toLocaleDateString({ month: '2-digit', day: '2-digit', year: 'numeric' }) :
       'Pending';
-    updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
+    updatedAt.innerHTML = `Last updated: <span>${updatedDate}</span>`;
     updatedAt.classList.add('updatedAt');
     li.appendChild(updatedAt);
   }
@@ -388,7 +386,7 @@ const openConfirmDeleteModal = (e) => {
 
 const openEditReviewModal = (e, review) => {
   const modal = document.getElementById('add_review_modal');
-  wireUpModal(modal, closeAddReviewModal);
+  wireUpModal(modal, closeEditReviewModal);
   
   document.getElementById('add-review-header').innerText = 'Edit Review';
   
@@ -419,7 +417,8 @@ const openEditReviewModal = (e, review) => {
 
   // submit form
   const form = document.getElementById('review_form');
-  form.addEventListener('submit', editReview, false);
+  // form.addEventListener('submit', editReview, false);
+  form.addEventListener('submit', (e) => editReview(e, review), false);
 };
 
 const editReview = (e, review) => {
@@ -427,23 +426,57 @@ const editReview = (e, review) => {
   const form = e.target;
 
   if (form.checkValidity()) {
-    const review_id = e.target.dataset.reviewId;
-    console.log(review_id);
+    const review_id = review._id;
     console.log(review);
+    
+    const restaurant_id = self.restaurant._id;
+    const name = document.querySelector('#reviewName').value;
+    const rating = document.querySelector('input[name=rate]:checked').value;
+    const comments = document.querySelector('#reviewComments').value;
+    
+    console.log('review_id', review_id);
+    console.log('restaurant_id', restaurant_id);
+    console.log('name', name);
+    console.log('rating', rating);
+    console.log('comments', comments);
+
+    // attempt save to database server
+    DBHelper.updateRestaurantReview(review_id, restaurant_id, name, rating, comments, (error, review) => {
+      console.log('got update callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        // window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
+        showOffline();
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.updateIDBReview(review_id, restaurant_id, review); // write record to local IDB store
+        // window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+      }
+      idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+        .then(reviews => {
+          console.log('new review', reviews);
+          fillReviewsHTML(null, reviews);
+          closeEditReviewModal();
+          // document.getElementById('review-add-btn').focus();
+          // focusedElementBeforeModal.focus();
+          // document.getElementById(focusedElementBeforeModal.id).focus();
+        });
+    });
   }
 };
 
 const delReview = (e) => {
   const review_id = e.target.dataset.reviewId;
   const restaurant_id = e.target.dataset.restaurantId;
-  const idb_id = e.target.dataset.idbId;
+  // const idb_id = e.target.dataset.idbId;
   console.log(review_id);
 
-  if (review_id === "undefined") {
-    DBHelper.delIDBReview(idb_id, restaurant_id);
-    getIDBReviews(restaurant_id);
-    return;
-  }
+  // if (review_id === "undefined") {
+  //   DBHelper.delIDBReview(idb_id, restaurant_id);
+  //   getIDBReviews(restaurant_id);
+  //   return;
+  // }
 
   DBHelper.deleteRestaurantReview(review_id, restaurant_id, (error, result) => {
     console.log('got delete callback');
@@ -454,26 +487,27 @@ const delReview = (e) => {
       DBHelper.delIDBReview(review_id, restaurant_id);
     }
     // update idb
-    // idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
-    //   .then(reviews => {
-    //     // console.log(reviews);
-    //     fillReviewsHTML(null, reviews);
-    //     closeConfirmDeleteModal();
-    //     document.getElementById('review-add-btn').focus();
-    //   });
-    getIDBReviews(restaurant_id);
+    idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+      .then(reviews => {
+        // console.log(reviews);
+        fillReviewsHTML(null, reviews);
+        closeConfirmDeleteModal();
+        // document.getElementById('review-add-btn').focus();
+        // document.getElementById(focusedElementBeforeModal.id).focus();
+      });
+    // getIDBReviews(restaurant_id);
   });
 };
 
-const getIDBReviews = function (restaurant_id) {
-  idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
-    .then(reviews => {
-      // console.log(reviews);
-      fillReviewsHTML(null, reviews);
-      closeConfirmDeleteModal();
-      document.getElementById('review-add-btn').focus();
-    });
-};
+// const getIDBReviews = function (restaurant_id) {
+//   idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+//     .then(reviews => {
+//       // console.log(reviews);
+//       fillReviewsHTML(null, reviews);
+//       closeConfirmDeleteModal();
+//       document.getElementById('review-add-btn').focus();
+//     });
+// };
 
 const addReview = (e) => {
   e.preventDefault();
@@ -505,7 +539,7 @@ const addReview = (e) => {
           console.log('new review', reviews);
           fillReviewsHTML(null, reviews);
           closeAddReviewModal();
-          document.getElementById('review-add-btn').focus();
+          // document.getElementById(focusedElementBeforeModal.id).focus();
         });
     });
   }
@@ -518,7 +552,8 @@ const closeConfirmDeleteModal = () => {
   modalOverlay.classList.remove('show');
 
   // Set focus back to element that had it before the modal was opened
-  focusedElementBeforeModal.focus();
+  // focusedElementBeforeModal.focus();
+  document.getElementById('review-add-btn').focus();
 };
 
 const closeAddReviewModal = () => {
@@ -529,9 +564,27 @@ const closeAddReviewModal = () => {
 
   const form = document.getElementById('review_form');
   form.reset();
+  form.removeEventListener('submit', addReview);
   // Set focus back to element that had it before the modal was opened
-  focusedElementBeforeModal.focus();
+  // focusedElementBeforeModal.focus(); 
+  document.getElementById(focusedElementBeforeModal.id).focus();
+  
 };
+const closeEditReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  const form = document.getElementById('review_form');
+  form.reset();
+  form.removeEventListener('submit', editReview);
+  // Set focus back to element that had it before the modal was opened
+  // focusedElementBeforeModal.focus();
+  document.getElementById(focusedElementBeforeModal.id).focus();
+};
+
+
 
 // Star Rating Control
 const setFocus = (evt) => {
