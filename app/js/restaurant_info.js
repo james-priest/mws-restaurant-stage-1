@@ -154,8 +154,9 @@ const fillReviewsHTML = (error, reviews) => {
   const ul = document.getElementById('reviews-list');
   ul.innerHTML = '';
   reviews.reverse();
+  let i = 0;
   reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+    ul.appendChild(createReviewHTML(review, ++i));
   });
   container.appendChild(ul);
 };
@@ -163,14 +164,15 @@ const fillReviewsHTML = (error, reviews) => {
 /**
  * Create review HTML and add it to the webpage.
  */
-const createReviewHTML = (review) => {
+const createReviewHTML = (review, i) => {
   const li = document.createElement('li');
   const ctrlDiv = document.createElement('div');
   ctrlDiv.classList.add('ctrl-div');
 
   const editBtn = document.createElement('button');
-  editBtn.id = 'review-edit-btn';
+  editBtn.id = 'review-edit-btn' + i;
   editBtn.classList.add('review_btn');
+  editBtn.classList.add('review-edit-btn');
   editBtn.dataset.reviewId = review._id;
   editBtn.innerHTML = 'Edit';
   editBtn.setAttribute('aria-label', 'edit review');
@@ -212,8 +214,9 @@ const createReviewHTML = (review) => {
   ctrlDiv.appendChild(rating);
 
   const delBtn = document.createElement('button');
-  delBtn.id = 'review-del-btn';
+  delBtn.id = 'review-del-btn' + i;
   delBtn.classList.add('review_btn');
+  delBtn.classList.add('review-del-btn');
   delBtn.dataset.reviewId = review._id;
   delBtn.dataset.restaurantId = review._parent_id;
   delBtn.dataset.reviewName = review.name;
@@ -409,11 +412,10 @@ const openEditReviewModal = (e, review) => {
       break;
   }
   document.querySelector('#reviewComments').value = review.comments;
-
   
   const review_id = e.target.dataset.reviewId;
-  console.log(review_id);
-  console.log(review);
+  // console.log(review_id);
+  // console.log(review);
 
   // submit form
   const form = document.getElementById('review_form');
@@ -446,21 +448,16 @@ const editReview = (e, review) => {
       form.reset();
       if (error) {
         console.log('We are offline. Review has been saved to the queue.');
-        // window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
         showOffline();
       } else {
         console.log('Received updated record from DB Server', review);
-        DBHelper.updateIDBReview(review_id, restaurant_id, review); // write record to local IDB store
-        // window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
+        DBHelper.updateIDBReview(review_id, restaurant_id, review);
       }
       idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
         .then(reviews => {
           console.log('new review', reviews);
           fillReviewsHTML(null, reviews);
           closeEditReviewModal();
-          // document.getElementById('review-add-btn').focus();
-          // focusedElementBeforeModal.focus();
-          // document.getElementById(focusedElementBeforeModal.id).focus();
         });
     });
   }
@@ -552,8 +549,7 @@ const closeConfirmDeleteModal = () => {
   modalOverlay.classList.remove('show');
 
   // Set focus back to element that had it before the modal was opened
-  // focusedElementBeforeModal.focus();
-  document.getElementById('review-add-btn').focus();
+  focusedElementBeforeModal.focus();
 };
 
 const closeAddReviewModal = () => {
@@ -565,11 +561,11 @@ const closeAddReviewModal = () => {
   const form = document.getElementById('review_form');
   form.reset();
   form.removeEventListener('submit', addReview);
+
   // Set focus back to element that had it before the modal was opened
-  // focusedElementBeforeModal.focus(); 
-  document.getElementById(focusedElementBeforeModal.id).focus();
-  
+  focusedElementBeforeModal.focus();
 };
+
 const closeEditReviewModal = () => {
   const modal = document.getElementById('add_review_modal');
   // Hide the modal and overlay
@@ -579,12 +575,10 @@ const closeEditReviewModal = () => {
   const form = document.getElementById('review_form');
   form.reset();
   form.removeEventListener('submit', editReview);
+
   // Set focus back to element that had it before the modal was opened
-  // focusedElementBeforeModal.focus();
-  document.getElementById(focusedElementBeforeModal.id).focus();
+  focusedElementBeforeModal.focus();
 };
-
-
 
 // Star Rating Control
 const setFocus = (evt) => {
