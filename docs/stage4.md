@@ -477,14 +477,15 @@ The first thing I did was to create the button code in my detail page.
 #### restaurant_info.js
 
 ```js
-const createReviewHTML = (review) => {
+const createReviewHTML = (review, i) => {
   const li = document.createElement('li');
   const ctrlDiv = document.createElement('div');
   ctrlDiv.classList.add('ctrl-div');
 
   const editBtn = document.createElement('button');
-  editBtn.id = 'review-edit-btn';
+  editBtn.id = 'review-edit-btn' + i;
   editBtn.classList.add('review_btn');
+  editBtn.classList.add('review-edit-btn');
   editBtn.dataset.reviewId = review._id;
   editBtn.innerHTML = 'Edit';
   editBtn.setAttribute('aria-label', 'edit review');
@@ -493,9 +494,12 @@ const createReviewHTML = (review) => {
   ctrlDiv.appendChild(editBtn);
 
   const delBtn = document.createElement('button');
-  delBtn.id = 'review-del-btn';
+  delBtn.id = 'review-del-btn' + i;
   delBtn.classList.add('review_btn');
+  delBtn.classList.add('review-del-btn');
   delBtn.dataset.reviewId = review._id;
+  delBtn.dataset.restaurantId = review._parent_id;
+  delBtn.dataset.reviewName = review.name;
   delBtn.innerHTML = 'x';
   delBtn.setAttribute('aria-label', 'delete review');
   delBtn.title = 'Delete Review';
@@ -1229,3 +1233,208 @@ Once we go online again we have the Console output confirm the delete operation.
 
 [![Delete Confirmation](assets/images/4-37-small.jpg)](assets/images/4-37.jpg)
 **Figure 36:** Offline Confirmation
+
+## 11. Edit Review
+### 11.1 Wire up Edit Button
+The first thing is to attach a new event handler to the edit button.
+
+#### restaurant_info.js
+
+```js
+const createReviewHTML = (review, i) => {
+  const li = document.createElement('li');
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.classList.add('ctrl-div');
+
+  const editBtn = document.createElement('button');
+  editBtn.id = 'review-edit-btn' + i;
+  editBtn.classList.add('review_btn');
+  editBtn.classList.add('review-edit-btn');
+  editBtn.dataset.reviewId = review._id;
+  editBtn.innerHTML = 'Edit';
+  editBtn.setAttribute('aria-label', 'edit review');
+  editBtn.title = 'Edit Review';
+  editBtn.addEventListener('click',         // <- here
+    (e) => openEditReviewModal(e, review)); // <- here
+  ctrlDiv.appendChild(editBtn);
+  // ...
+```
+
+### 11.2 Edit Review Modal
+Event handler we just wired up will open the input form with the fields pre-populated.
+
+#### restaurant_info.js
+
+```js
+const openEditReviewModal = (e, review) => {
+  const modal = document.getElementById('add_review_modal');
+  wireUpModal(modal, closeAddReviewModal);
+  
+  document.getElementById('add-review-header').innerText = 'Edit Review';
+  
+  document.querySelector('#reviewName').value = review.name;
+  switch (review.rating) {
+    case 1:
+      document.getElementById('star1').checked = true;
+      break;
+    case 2:
+      document.getElementById('star2').checked = true;
+      break;
+    case 3:
+      document.getElementById('star3').checked = true;
+      break;
+    case 4:
+      document.getElementById('star4').checked = true;
+      break;
+    case 5:
+      document.getElementById('star5').checked = true;
+      break;
+  }
+  document.querySelector('#reviewComments').value = review.comments;
+  
+  const review_id = e.target.dataset.reviewId;
+
+  // submit form
+  const form = document.getElementById('review_form');
+  form.addEventListener('submit', (e) => editReview(e, review), false);  
+};
+```
+
+This also wires up the submit button to the `editReview` handler.
+
+### 11.3 Update Review
+The handler makes sure the form is valid and then attempts to save to the database.
+
+#### restaurant_info.js
+
+```js
+const editReview = (e, review) => {
+  e.preventDefault();
+  const form = e.target;
+
+  if (form.checkValidity()) {
+    const review_id = review._id;
+    const restaurant_id = self.restaurant._id;
+    const name = document.querySelector('#reviewName').value;
+    const rating = document.querySelector('input[name=rate]:checked').value;
+    const comments = document.querySelector('#reviewComments').value;
+
+    // attempt save to database server
+    DBHelper.updateRestaurantReview(review_id, restaurant_id, name, rating,
+      comments, (error, review) => {
+      console.log('got update callback');
+      form.reset();
+      if (error) {
+        console.log('We are offline. Review has been saved to the queue.');
+        showOffline();
+      } else {
+        console.log('Received updated record from DB Server', review);
+        DBHelper.updateIDBReview(review_id, restaurant_id, review);
+      }
+      idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
+        .then(reviews => {
+          console.log('new review', reviews);
+          fillReviewsHTML(null, reviews);
+          closeEditReviewModal();
+        });
+    });
+  }
+};
+```
+
+### 11.4 Database Code
+This method formats the data and makes the fetch request to update the record. If the request fails it save the request to the queue.
+
+#### dbhelper.js
+
+```js
+static updateRestaurantReview(review_id, restaurant_id, name, rating,
+  comments, callback) {
+  const url = `${DBHelper.DATABASE_URL}/reviews/${review_id}`;
+  const method = 'PUT';
+  const headers = DBHelper.DB_HEADERS;
+
+  const data = {
+    name: name,
+    rating: +rating,
+    comments: comments
+  };
+  const body = JSON.stringify(data);
+  
+  fetch(url, {
+    headers: headers,
+    method: method,
+    body: body
+  })
+    .then(response => response.json())
+    .then(data => callback(null, data))
+    .catch(err => {
+      // We are offline...
+      // Save review to local IDB
+      data._id = review_id;
+      data._parent_id = restaurant_id; // Add this to provide IDB foreign key
+      DBHelper.updateIDBReview(review_id, restaurant_id, review)
+        .then(() => {
+          // Get review_key and save it with review to offline queue
+          console.log('Add update review to queue');
+          DBHelper.addRequestToQueue(url, headers, method, body)
+            .then(offline_key => console.log('offline_key', offline_key));
+        });
+      callback(err, null);
+    });
+}
+```
+
+The `updateIDBReview` method loops through the local IDB reviews until it finds the record we're updating. It then updates the fields and calls `cursor.update`.
+
+```js
+static updateIDBReview(review_id, restaurant_id, review) {
+  return idbKeyVal.openCursorIdxByKey('reviews', 'restaurant_id', restaurant_id)
+    .then(function nextCursor(cursor) {
+      if (!cursor) return;
+      var updateData = cursor.value;
+      console.log(cursor.value.name);
+      if (cursor.value._id === review_id) {
+        console.log('we matched');
+
+        updateData.name = review.name;
+        updateData.rating = review.rating;
+        updateData.comments = review.comments;
+        updateData._changed = review._changed;
+        cursor.update(updateData);
+        return;
+      }
+      return cursor.continue().then(nextCursor);
+    });
+}
+```
+
+### 11.5 Close Edit Modal
+The last step is to close the modal and give focus back to the last element that had focus.
+
+#### restaurant_info.js
+
+```js
+const closeEditReviewModal = () => {
+  const modal = document.getElementById('add_review_modal');
+  // Hide the modal and overlay
+  modal.classList.remove('show');
+  modalOverlay.classList.remove('show');
+
+  const form = document.getElementById('review_form');
+  form.reset();
+  form.removeEventListener('submit', editReview);
+
+  // Set focus back to element that had it before the modal was opened
+  focusedElementBeforeModal.focus();
+};
+```
+
+### 11.6 Edit Dialog
+Here's what the dialog looks like now that it's hooked up.
+
+[![Edit Record Buttons](assets/images/4-38-small.jpg)](assets/images/4-38.jpg)
+**Figure 37:** Edit Record Buttons
+
+[![Edit Review](assets/images/4-39-small.jpg)](assets/images/4-39.jpg)
+**Figure 38:** Edit Review
