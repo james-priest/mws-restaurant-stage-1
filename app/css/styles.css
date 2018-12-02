@@ -369,14 +369,14 @@ nav h1 a {
   min-height: 40px;
   cursor: pointer;
 }
-#review-edit-btn, #review-del-btn {
+.review-edit-btn, .review-del-btn {
   font-weight: bold;
 
 }
 #review-add-btn {
   font-size: 1.6em;
 }
-#review-edit-btn {
+.review-edit-btn {
   font-size: 0.825em;
 }
 #reviews-list {
@@ -456,7 +456,6 @@ nav h1 a {
   overflow: hidden;
   background-color: #eee;
   visibility: hidden;
-  display: flex;
 }
 .show {
   visibility: visible;  
@@ -552,8 +551,11 @@ button#submit_review_btn {
 .modal_form_container h2 {
   margin: 0 0 0 6px;
 }
+#confirm_delete_modal {
+  top: 30%;
+}
 #confirm_form {
-  width: 300px;
+  min-width: 300px;
 }
 .confirm-buttons {
   display: flex;
@@ -760,7 +762,10 @@ button#submit_review_btn {
     font-size: 28px;
   }
   #reviews-list li p.updatedAt {
-    font-size: .95em;
+    font-size: .90em;
+  }
+  #confirm_form {
+    min-width: 250px;
   }
 }
 
@@ -773,7 +778,7 @@ button#submit_review_btn {
   }
 }
 
-@media screen and (max-height: 500px) {
+/* @media screen and (max-height: 500px) {
   #review_form {
     flex-direction: row;
     flex-wrap: wrap;
@@ -781,5 +786,18 @@ button#submit_review_btn {
   }
   .fieldset {
     flex-basis: 50%;
+  }
+} */
+@media screen and (max-height: 540px) {
+  .modal {
+    top: 0;
+    transform: translate(-50%, 0);
+  }
+  .modal_form_container {
+    overflow-y: scroll;
+    height: 230px;
+  }
+  #confirm_delete_modal {
+    top: 1%;
   }
 }
