@@ -1438,3 +1438,167 @@ Here's what the dialog looks like now that it's hooked up.
 
 [![Edit Review](assets/images/4-39-small.jpg)](assets/images/4-39.jpg)
 **Figure 38:** Edit Review
+
+## 12. UI/UX Updates
+### 12.1 Update Rating Display
+I've updated the display of the star rating so that it is actually displays the number of stars rather than printing out the an integer.
+
+#### restaurant_info.js
+
+```js
+const createReviewHTML = (review, i) => {
+  const li = document.createElement('li');
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.classList.add('ctrl-div');
+
+  const editBtn = document.createElement('button');
+  editBtn.id = 'review-edit-btn' + i;
+  editBtn.classList.add('review_btn');
+  editBtn.classList.add('review-edit-btn');
+  editBtn.dataset.reviewId = review._id;
+  editBtn.innerHTML = 'Edit';
+  editBtn.setAttribute('aria-label', 'edit review');
+  editBtn.title = 'Edit Review';
+  editBtn.addEventListener('click', (e) => openEditReviewModal(e, review));
+  ctrlDiv.appendChild(editBtn);
+
+  const rating = document.createElement('div');
+  rating.classList.add('static-rate');
+  const star1 = document.createElement('label');
+  const star2 = document.createElement('label');
+  const star3 = document.createElement('label');
+  const star4 = document.createElement('label');
+  const star5 = document.createElement('label');
+  star1.textContent = 'star1';
+  star2.textContent = 'star2';
+  star3.textContent = 'star3';
+  star4.textContent = 'star4';
+  star5.textContent = 'star5';
+  switch (true) {
+    case (review.rating > 4):
+      star5.classList.add('gold');
+    case (review.rating > 3):
+      star4.classList.add('gold');
+    case (review.rating > 2):
+      star3.classList.add('gold');
+    case (review.rating > 1):
+      star2.classList.add('gold');
+    case (review.rating > 0):
+      star1.classList.add('gold');
+  }
+  rating.appendChild(star1);
+  rating.appendChild(star2);
+  rating.appendChild(star3);
+  rating.appendChild(star4);
+  rating.appendChild(star5);
+  rating.dataset.rating = review.rating;
+  ctrlDiv.appendChild(rating);
+
+  const delBtn = document.createElement('button');
+  delBtn.id = 'review-del-btn' + i;
+  delBtn.classList.add('review_btn');
+  delBtn.classList.add('review-del-btn');
+  delBtn.dataset.reviewId = review._id;
+  delBtn.dataset.restaurantId = review._parent_id;
+  delBtn.dataset.reviewName = review.name;
+  delBtn.innerHTML = 'x';
+  delBtn.setAttribute('aria-label', 'delete review');
+  delBtn.title = 'Delete Review';
+  delBtn.addEventListener('click', openConfirmDeleteModal);
+  ctrlDiv.appendChild(delBtn);
+
+  li.appendChild(ctrlDiv);
+  // ... more code
+```
+
+The display now looks like this.
+
+[![Rating display](assets/images/4-41-small.jpg)](assets/images/4-41.jpg)
+**Figure 39:** Rating display
+
+### 12.2 Update Date
+The date displays an updated date when the record has been edited.
+
+#### restaurant_info.js
+
+```js
+const createReviewHTML = (review, i) => {
+  const li = document.createElement('li');
+  const ctrlDiv = document.createElement('div');
+  ctrlDiv.classList.add('ctrl-div');
+
+  // more code...
+
+  const createdAt = document.createElement('p');
+  createdAt.classList.add('createdAt');
+  const createdDate = review._created ?
+    new Date(review._created).toLocaleDateString() :
+    'Pending';
+  createdAt.innerHTML = `<strong>${createdDate}</strong>`;
+  li.appendChild(createdAt);
+
+  if (review._changed > review._created) {
+
+    const updatedAt = document.createElement('p');
+    const updatedDate = review._changed ?
+      new Date(review._changed).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute:'numeric' }) + ', ' +
+      new Date(review._changed).toLocaleDateString({ 
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric' }) :
+      'Pending';
+    updatedAt.innerHTML = `Last updated: <span>${updatedDate}</span>`;
+    updatedAt.classList.add('updatedAt');
+    li.appendChild(updatedAt);
+  }
+```
+
+The UI now shows a cleaner date and time output.
+
+[![Date display](assets/images/4-42-small.jpg)](assets/images/4-42.jpg)
+**Figure 40:** Date display
+
+### 12.3 Device Real Estate
+I had to adjust the input forms to accommodate on-screen keyboards.
+
+```css
+/* adjust for device onscreen keyboards */
+@media screen and (max-height: 540px) {
+  .modal {
+    top: 10px;
+    transform: translate(-50%, 0);
+  }
+  .modal_form_container {
+    overflow-y: scroll;
+    height: 230px;
+  }
+  #confirm_delete_modal {
+    top: 1%;
+  }
+}
+
+@media screen and (max-height: 300px) {
+  .modal_form_container {
+    height: 180px;
+  }
+}
+```
+
+We can see how this translates in the next set of screenshots.
+
+[![Portrait Form](assets/images/4-43-small.jpg)](assets/images/4-43.jpg)
+**Figure 41:** Portrait Form
+
+[![Portrait Form with Keyboard](assets/images/4-44-small.jpg)](assets/images/4-44.jpg)
+**Figure 42:** Portrait Form with Keyboard
+
+[![Landscape Form](assets/images/4-45-small.jpg)](assets/images/4-45.jpg)
+**Figure 43:** Landscape Form
+
+[![Landscape Form with Keyboard](assets/images/4-46-small.jpg)](assets/images/4-46.jpg)
+**Figure 44:** Landscape Form with Keyboard
+
+[![Side by Side](assets/images/4-47-small.jpg)](assets/images/4-47.jpg)
+**Figure 45:** Side by Side
