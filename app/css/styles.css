@@ -778,19 +778,10 @@ button#submit_review_btn {
   }
 }
 
-/* @media screen and (max-height: 500px) {
-  #review_form {
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 500px;
-  }
-  .fieldset {
-    flex-basis: 50%;
-  }
-} */
+/* adjust for device onscreen keyboards */
 @media screen and (max-height: 540px) {
   .modal {
-    top: 0;
+    top: 10px;
     transform: translate(-50%, 0);
   }
   .modal_form_container {
@@ -799,5 +790,11 @@ button#submit_review_btn {
   }
   #confirm_delete_modal {
     top: 1%;
+  }
+}
+
+@media screen and (max-height: 300px) {
+  .modal_form_container {
+    height: 180px;
   }
 }
