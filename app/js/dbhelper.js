@@ -1,3 +1,4 @@
+// require('dotenv').config();
 /**
  * Common database helper functions.
  */
@@ -14,7 +15,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
 
   static get DB_HEADERS() {
     return {
-      'x-apikey': '5bcb662290d83c249da4b370',
+      'x-apikey': '<RESTDB_API_KEY>',
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache'
     };

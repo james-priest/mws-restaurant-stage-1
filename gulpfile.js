@@ -11,6 +11,7 @@ var lazypipe = require('lazypipe');
 var browserSync = require('browser-sync').create();
 
 require('dotenv').config();
+var RESTDB_API_KEY = process.env.RESTDB_API_KEY;
 
 var $ = gulpLoadPlugins();
 var reload = browserSync.reload;
@@ -66,10 +67,11 @@ gulp.task('manifest', function () {
 // Prep assets for dev
 gulp.task('html', function () {
   // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
-  var apiKey = process.env.GM_API_KEY;
+  var GM_API_KEY = process.env.GM_API_KEY;
+  
   
   return gulp.src('app/*.html')
-    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.stringReplace('<API_KEY_HERE>', GM_API_KEY))
     .pipe($.useref())
     .pipe($.if('*.css', $.autoprefixer()))
     .pipe($.if('*.js', $.babel()))
@@ -90,10 +92,10 @@ gulp.task('html', function () {
 // Scan HTML for js & css and optimize them
 gulp.task('html:dist', function () {
   // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
-  var apiKey = process.env.GM_API_KEY;
+  var GM_API_KEY = process.env.GM_API_KEY;
   
   return gulp.src('app/*.html')
-    .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
+    .pipe($.stringReplace('<API_KEY_HERE>', GM_API_KEY))
     .pipe($.size({title: 'html (before)'}))
     .pipe($.useref({},
       lazypipe().pipe($.sourcemaps.init)
@@ -148,11 +150,12 @@ gulp.task('dbhelper', function () {
     './app/js/dbhelper.js'
   ], { debug: false }); // ['1.js', '2.js']
 
-  return bundler
+  return bundler   
     .transform(babelify, {sourceMaps: false})  // required for 'import'
     .bundle()               // concat
     .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
     .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.stringReplace('<RESTDB_API_KEY>', RESTDB_API_KEY))
     .pipe(gulp.dest('.tmp/js/'));
 });
 
@@ -222,6 +225,7 @@ gulp.task('dbhelper:dist', function () {
     .bundle()               // concat
     .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
     .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.stringReplace('<RESTDB_API_KEY>', RESTDB_API_KEY))
     .pipe($.size({ title: 'DBHelper (before)' }))
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.uglifyEs.default())         // minify
