@@ -10,6 +10,8 @@ var runSequence = require('run-sequence');
 var lazypipe = require('lazypipe');
 var browserSync = require('browser-sync').create();
 
+require('dotenv').config();
+
 var $ = gulpLoadPlugins();
 var reload = browserSync.reload;
 
@@ -63,8 +65,9 @@ gulp.task('manifest', function () {
 
 // Prep assets for dev
 gulp.task('html', function () {
-  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
-
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  var apiKey = process.env.GM_API_KEY;
+  
   return gulp.src('app/*.html')
     .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
     .pipe($.useref())
@@ -86,8 +89,9 @@ gulp.task('html', function () {
 
 // Scan HTML for js & css and optimize them
 gulp.task('html:dist', function () {
-  var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
-
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  var apiKey = process.env.GM_API_KEY;
+  
   return gulp.src('app/*.html')
     .pipe($.stringReplace('<API_KEY_HERE>', apiKey))
     .pipe($.size({title: 'html (before)'}))
