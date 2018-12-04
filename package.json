@@ -26,6 +26,7 @@
     "browser-sync": "^2.26.3",
     "browserify": "^16.2.3",
     "del": "^3.0.0",
+    "event-stream": "^4.0.1",
     "grunt": "^1.0.2",
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
