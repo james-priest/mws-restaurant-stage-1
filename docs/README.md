@@ -7,3 +7,5 @@ These notes detail the solutions applied toward solving each stage of the Restau
 - [Stage 2](stage2.html) - Use Cache API & IndexedDB to make the site available offline
 - [Stage 3](stage3.html) - Add HTML forms & expand offline to include data manipulation
 - [Stage 4](stage4.html) - Setup hosted NoSQL DB with RESTful API and update client to use it
+
+![Before After](./assets/images/before_after.jpg)
