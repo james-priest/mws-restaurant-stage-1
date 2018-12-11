@@ -1644,26 +1644,31 @@ This time the security vulnerabilities were gone but I still got the same error.
 
 After doing some research I found out this package was pulled due to a security violation but I had packages that depended on the bad version of the library.
 
-What I did next was install the latest version as a dev dependency with the following command.
+As it turns out, all versions of `event-stream > 3.3.4` are subject to this vulnerability.
+
+[![Package vulnerability message on GitHub](assets/images/4-60-small.jpg)](assets/images/4-60.jpg)
+**Figure 49:** Package vulnerability message on GitHub
+
+What I did next was install a downgraded version of this package as a dev dependency with the following command.
 
 ```bash
-npm install --save-dev event-stream
+npm install --save-dev event-stream@3.3.4
 ```
 
 This now updated my `package.json` with the following.
 
 [![Package.json](assets/images/4-51-small.jpg)](assets/images/4-51.jpg)
-**Figure 49:** Package.json
+**Figure 50:** Package.json
 
 The next log showed me that the build was able to install all dependencies.
 
 [![Dependencies Installed!](assets/images/4-53-small.jpg)](assets/images/4-53.jpg)
-**Figure 50:** Dependencies Installed!
+**Figure 51:** Dependencies Installed!
 
 The only problem is that we still had an error.
 
 [![Deploy Error](assets/images/4-52-small.jpg)](assets/images/4-52.jpg)
-**Figure 51:** Deploy Error
+**Figure 52:** Deploy Error
 
 This was because I had depended on a file I created at the root to hold my Google Maps API key. I specified this file in `.gitignore` so my API key wouldn't be copied to GitHub.
 
@@ -1675,12 +1680,12 @@ I needed to rely on convention and use a `.env` file to hold my API keys.
 The file looks like this in VS code.
 
 [![.env file](assets/images/4-55-small.jpg)](assets/images/4-55.jpg)
-**Figure 52:** .env file
+**Figure 53:** .env file
 
 This would allow me to set the **Build environment variables** option in Netlify to hold my API keys.
 
 [![Netlify Build environment variables](assets/images/4-54-small.jpg)](assets/images/4-54.jpg)
-**Figure 53:** Netlify Build environment variables
+**Figure 54:** Netlify Build environment variables
 
 ### 13.4 dotenv npm package
 Next I had to install a package that would allow me to easily access these values from my `gulpfile.js` build file.
@@ -1692,7 +1697,7 @@ npm install --save-dev dotenv
 ```
 
 [![dotenv in package.json](assets/images/4-56-small.jpg)](assets/images/4-56.jpg)
-**Figure 54:** dotenv in package.json
+**Figure 55:** dotenv in package.json
 
 ### 13.5 Update gulpfile.js
 Now I needed to include the package in `gulpfile.js` and reference it in two places.
@@ -1719,7 +1724,7 @@ Once I committed and pushed my changes, Netlify went to work.
 The log displayed **success** this time. My site was live!
 
 [![Build success](assets/images/4-57-small.jpg)](assets/images/4-57.jpg)
-**Figure 55:** Build Success
+**Figure 56:** Build Success
 
 Since I needed to do the same with the RestDB API key, I cleaned up the code a bit.
 
@@ -1780,9 +1785,9 @@ gulp.task('dbhelper:dist', function () {
 Now when I commit and push my changes this is what Netlify's **Deploys** page shows me.
 
 [![Deploys page](assets/images/4-59-small.jpg)](assets/images/4-59.jpg)
-**Figure 56:** Deploys page
+**Figure 57:** Deploys page
 
 Now when I test the URL I am able to see the site come up.
 
 [![Live Site](assets/images/4-58-small.jpg)](assets/images/4-58.jpg)
-**Figure 57:** Live Site
+**Figure 58:** Live Site
