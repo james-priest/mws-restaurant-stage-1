@@ -1602,3 +1602,187 @@ We can see how this translates in the next set of screenshots.
 
 [![Side by Side](assets/images/4-47-small.jpg)](assets/images/4-47.jpg)
 **Figure 45:** Side by Side
+
+## 13. Deploy to Netlify
+### 13.1 Setup Netlify Deploy
+The first thing I did was click the **New site from git** button. This allowed me to link to my GitHub account and choose a repo I wanted to deploy from.
+
+Once configured the **Site details** tab I was ready to move on to the **Deploy settings** tab.
+
+[![Deploy Settings](assets/images/4-48-small.jpg)](assets/images/4-48.jpg)
+**Figure 46:** Deploy Settings
+
+Here I entered specified the **Build command**, **Publish directory**, and **Production branch** settings.
+
+Once that was done I manually deployed the site with **Deploy** button.
+
+[![Deploy Log](assets/images/4-49-small.jpg)](assets/images/4-49.jpg)
+**Figure 47:** Deploy Log
+
+It quickly failed but it did show what the issue was.
+
+[![Deploy Error](assets/images/4-50-small.jpg)](assets/images/4-50.jpg)
+**Figure 48:** Deploy Error
+
+### 13.2 Update NPM Packages
+The first thing I needed to do was update my NPM packages to fix any security vulnerabilities.
+
+I did this with the following command.
+
+```bash
+npm audit fix
+```
+
+This updated my old compromised packages and updated my `package.json` and `package-lock.json` manifests as well.
+
+I committed my changes and because I had **continuous deploy** set up, Netlify automatically built the site once more, incorporating my changes.
+
+This time the security vulnerabilities were gone but I still got the same error.
+
+[![Deploy Error](assets/images/4-50-small.jpg)](assets/images/4-50.jpg)
+**Figure 48:** Deploy Error
+
+After doing some research I found out this package was pulled due to a security violation but I had packages that depended on the bad version of the library.
+
+What I did next was install the latest version as a dev dependency with the following command.
+
+```bash
+npm install --save-dev event-stream
+```
+
+This now updated my `package.json` with the following.
+
+[![Package.json](assets/images/4-51-small.jpg)](assets/images/4-51.jpg)
+**Figure 49:** Package.json
+
+The next log showed me that the build was able to install all dependencies.
+
+[![Dependencies Installed!](assets/images/4-53-small.jpg)](assets/images/4-53.jpg)
+**Figure 50:** Dependencies Installed!
+
+The only problem is that we still had an error.
+
+[![Deploy Error](assets/images/4-52-small.jpg)](assets/images/4-52.jpg)
+**Figure 51:** Deploy Error
+
+This was because I had depended on a file I created at the root to hold my Google Maps API key. I specified this file in `.gitignore` so my API key wouldn't be copied to GitHub.
+
+The only problem is that Netlify didn't have access to this either.
+
+### 13.3 .env for API keys
+I needed to rely on convention and use a `.env` file to hold my API keys.
+
+The file looks like this in VS code.
+
+[![.env file](assets/images/4-55-small.jpg)](assets/images/4-55.jpg)
+**Figure 52:** .env file
+
+This would allow me to set the **Build environment variables** option in Netlify to hold my API keys.
+
+[![Netlify Build environment variables](assets/images/4-54-small.jpg)](assets/images/4-54.jpg)
+**Figure 53:** Netlify Build environment variables
+
+### 13.4 dotenv npm package
+Next I had to install a package that would allow me to easily access these values from my `gulpfile.js` build file.
+
+This was done with the following command
+
+```bash
+npm install --save-dev dotenv
+```
+
+[![dotenv in package.json](assets/images/4-56-small.jpg)](assets/images/4-56.jpg)
+**Figure 54:** dotenv in package.json
+
+### 13.5 Update gulpfile.js
+Now I needed to include the package in `gulpfile.js` and reference it in two places.
+
+```js
+require('dotenv').config();
+var GM_API_KEY
+
+gulp.task('html', function () {
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  var apiKey = process.env.GM_API_KEY;
+  // more code...
+});
+
+gulp.task('html:dist', function () {
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  var apiKey = process.env.GM_API_KEY;
+  // more code...
+});
+```
+
+Once I committed and pushed my changes, Netlify went to work.
+
+The log displayed **success** this time. My site was live!
+
+[![Build success](assets/images/4-57-small.jpg)](assets/images/4-57.jpg)
+**Figure 55:** Build Success
+
+Since I needed to do the same with the RestDB API key, I cleaned up the code a bit.
+
+```js
+require('dotenv').config();                       // <- new code
+var GM_API_KEY = process.env.GM_API_KEY;          // <- new code
+var RESTDB_API_KEY = process.env.RESTDB_API_KEY;  // <- new code
+
+gulp.task('html', function () {
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', GM_API_KEY))  // <- new code
+    // more code...
+});
+
+gulp.task('html:dist', function () {
+  // var apiKey = fs.readFileSync('GM_API_KEY', 'utf8');
+  
+  return gulp.src('app/*.html')
+    .pipe($.stringReplace('<API_KEY_HERE>', GM_API_KEY))  // <- new code
+    // more code...
+});
+
+// DBHelper
+gulp.task('dbhelper', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js'
+  ], { debug: false }); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: false})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.stringReplace('<RESTDB_API_KEY>', RESTDB_API_KEY))  // <- new code
+    .pipe(gulp.dest('.tmp/js/'));
+});
+
+// Optimize DBHelper
+gulp.task('dbhelper:dist', function () {
+  var bundler = browserify([
+    './app/js/idbhelper.js',
+    './app/js/dbhelper.js'
+  ], {debug: true}); // ['1.js', '2.js']
+
+  return bundler
+    .transform(babelify, {sourceMaps: true})  // required for 'import'
+    .bundle()               // concat
+    .pipe(source('dbhelper.min.js'))  // get text stream w/ destination filename
+    .pipe(buffer())         // required to use stream w/ other plugins
+    .pipe($.stringReplace('<RESTDB_API_KEY>', RESTDB_API_KEY)) // <- new code
+    // more code...
+});
+```
+
+Now when I commit and push my changes this is what Netlify's **Deploys** page shows me.
+
+[![Deploys page](assets/images/4-59-small.jpg)](assets/images/4-59.jpg)
+**Figure 56:** Deploys page
+
+Now when I test the URL I am able to see the site come up.
+
+[![Live Site](assets/images/4-58-small.jpg)](assets/images/4-58.jpg)
+**Figure 57:** Live Site
