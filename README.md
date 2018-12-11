@@ -1,21 +1,33 @@
-# Mobile Web Specialist Certification Course
+# Mobile Web Specialist - Final Project
+
+![Restaurant Review App](docs/assets/images/before_after.jpg)
+
+See [Restaurant Review App Code Notes](https://james-priest.github.io/mws-restaurant-stage-1/) for screenshots and a breakdown of how the app was built.
 
 ---
 > **NOTE:** These are updated README instructions.
 ---
 
-## Restaurant App Stage 3 - client app
+## Restaurant Review App  - mws-restaurant-stage-1
+This client app is split into the following branches.
 
-Stage 1 required that a simple HTTP server be run manually in order to view and test the project. Stage 2 & 3 includes a build system that will automatically serve the optimized site.
+- **Stage 1** requires a simple HTTP server to be run in order to view and test the project.
+- **Stage 2 & 3** includes a build system that will automatically serve the optimized site. (Must be run along side the [mws-stage-restaurant-stage-2](https://github.com/james-priest/mws-restaurant-stage-2) or [mws-restaurant-stage-3](https://github.com/james-priest/mws-restaurant-stage-3) back end project)
+- **Stage 4** is designed to work with [restdb.io](https://restdb.io) as the endpoint provider & data server.
 
 Two things must happen to run this project:
 
-1. Create a file containing a valid Google Maps API key
-2. Run the build system which will serve the optimized site
+1. An `.env` file must be created in the root containing a valid Google Maps API key and RestDB CORS API key.
+2. The Gulp build system must be run which will serve the optimized site.
 
-### Google API Key
+### API Keys
 
-A file named `GM_API_KEY` needs to be created in the root folder (`\`) with a valid Google Maps API key.
+A file named `.env` needs to be created in the root folder (`\`) with a valid Google Maps API key and a valid RestDB CORS API key.
+
+```text
+GM_API_KEY=<key goes here>
+RESTDB_API_KEY=<key goes here>
+```
 
 ### Serve optimized site
 
