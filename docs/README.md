@@ -38,3 +38,8 @@ Here's a partial list of the APIs and technologies we needed use and demonstrate
 [![Audit 1](./assets/images/audit2-small.jpg)](./assets/images/audit2.jpg)
 
 [![Audit 2](./assets/images/audit1-small.jpg)](./assets/images/audit1.jpg)
+
+### Live Demo & GitHub Repo
+
+- [Live Demo](https://restaurant-review-app.netlify.com)
+- [GitHub Repo](https://github.com/james-priest/mws-restaurant-stage-1)

@@ -2,7 +2,7 @@
 
 ![Restaurant Review App](docs/assets/images/hero.jpg)
 
-This is my final project and a proof-of-concept Restaurant Review App. 
+This is my final project and a proof-of-concept Restaurant Review App.
 
 - See [Live Demo](https://restaurant-review-app.netlify.com) of the Restaurant Review App 
 - See [Code Notes](https://james-priest.github.io/mws-restaurant-stage-1/) for screenshots and a breakdown of what the app does and how it was built.
