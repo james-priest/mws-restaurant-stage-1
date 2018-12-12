@@ -413,24 +413,21 @@ const openEditReviewModal = (e, review) => {
   }
   document.querySelector('#reviewComments').value = review.comments;
   
-  const review_id = e.target.dataset.reviewId;
-  // console.log(review_id);
-  // console.log(review);
-
   // submit form
   const form = document.getElementById('review_form');
-  // form.addEventListener('submit', editReview, false);
-  form.addEventListener('submit', (e) => editReview(e, review), false);
+  const review_id = e.target.dataset.reviewId;
+  form.dataset.reviewId = review_id;
+
+  form.addEventListener('submit', editReview, false);
 };
 
-const editReview = (e, review) => {
+const editReview = (e) => {
   e.preventDefault();
+  
   const form = e.target;
+  const review_id = e.target.dataset.reviewId;
 
   if (form.checkValidity()) {
-    const review_id = review._id;
-    console.log(review);
-    
     const restaurant_id = self.restaurant._id;
     const name = document.querySelector('#reviewName').value;
     const rating = document.querySelector('input[name=rate]:checked').value;
@@ -455,7 +452,7 @@ const editReview = (e, review) => {
       }
       idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
         .then(reviews => {
-          console.log('new review', reviews);
+          // console.log('update review', reviews);
           fillReviewsHTML(null, reviews);
           closeEditReviewModal();
         });
@@ -524,19 +521,16 @@ const addReview = (e) => {
       form.reset();
       if (error) {
         console.log('We are offline. Review has been saved to the queue.');
-        // window.location.href = `/restaurant.html?id=${self.restaurant.id}&isOffline=true`;
         showOffline();
       } else {
         console.log('Received updated record from DB Server', review);
         DBHelper.createIDBReview(review); // write record to local IDB store
-        // window.location.href = `/restaurant.html?id=${self.restaurant.id}`;
       }
       idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
         .then(reviews => {
           console.log('new review', reviews);
           fillReviewsHTML(null, reviews);
           closeAddReviewModal();
-          // document.getElementById(focusedElementBeforeModal.id).focus();
         });
     });
   }
@@ -560,7 +554,7 @@ const closeAddReviewModal = () => {
 
   const form = document.getElementById('review_form');
   form.reset();
-  form.removeEventListener('submit', addReview);
+  form.removeEventListener('submit', addReview, false);
 
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();
@@ -574,7 +568,8 @@ const closeEditReviewModal = () => {
 
   const form = document.getElementById('review_form');
   form.reset();
-  form.removeEventListener('submit', editReview);
+  delete form.dataset.reviewId;
+  form.removeEventListener('submit', editReview, false);
 
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();

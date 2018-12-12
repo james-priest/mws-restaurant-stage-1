@@ -79,7 +79,7 @@ class DBHelper {  // eslint-disable-line no-unused-vars
         DBHelper.createIDBReview(data)
           .then(review_key => {
             // Get review_key and save it with review to offline queue
-            console.log('returned review_key', review_key);
+            console.log('Add review to queue: returned review_key', review_key);
             DBHelper.addRequestToQueue(url, headers, method, body, review_key)
               .then(offline_key => console.log('returned offline_key', offline_key));
           });
@@ -113,11 +113,19 @@ class DBHelper {  // eslint-disable-line no-unused-vars
         // Save review to local IDB
         data._id = review_id;
         data._parent_id = restaurant_id; // Add this to provide IDB foreign key
+        // create review object (since it's not coming back from DB)
+        const nowDate = new Date();
+        const review = {
+          name: name,
+          rating: +rating,
+          comments: comments,
+          _changed: nowDate.toISOString()
+        };
         DBHelper.updateIDBReview(review_id, restaurant_id, review)
-          .then(() => {
+          .then((review_key) => {
             // Get review_key and save it with review to offline queue
-            console.log('Add update review to queue');
-            DBHelper.addRequestToQueue(url, headers, method, body)
+            console.log('Update review to queue: returned review_key', review_key);
+            DBHelper.addRequestToQueue(url, headers, method, body, review_key)
               .then(offline_key => console.log('returned offline_key', offline_key));
           });
         callback(err, null);
@@ -204,16 +212,17 @@ class DBHelper {  // eslint-disable-line no-unused-vars
       .then(function nextCursor(cursor) {
         if (!cursor) return;
         var updateData = cursor.value;
-        console.log(cursor.value.name);
+        // console.log(cursor.value.name);
         if (cursor.value._id === review_id) {
-          console.log('we matched');
+          console.log('Local IDB review record matched for update');
 
           updateData.name = review.name;
           updateData.rating = review.rating;
           updateData.comments = review.comments;
           updateData._changed = review._changed;
           cursor.update(updateData);
-          return;
+          console.log('heres the primary key:', cursor.primaryKey);
+          return cursor.primaryKey;
         }
         return cursor.continue().then(nextCursor);
       });
