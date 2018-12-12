@@ -1257,7 +1257,7 @@ const createReviewHTML = (review, i) => {
   editBtn.addEventListener('click',         // <- here
     (e) => openEditReviewModal(e, review)); // <- here
   ctrlDiv.appendChild(editBtn);
-  // ...
+  // more code...
 ```
 
 ### 11.2 Edit Review Modal
@@ -1291,12 +1291,13 @@ const openEditReviewModal = (e, review) => {
       break;
   }
   document.querySelector('#reviewComments').value = review.comments;
-  
-  const review_id = e.target.dataset.reviewId;
 
   // submit form
   const form = document.getElementById('review_form');
-  form.addEventListener('submit', (e) => editReview(e, review), false);  
+  const review_id = e.target.dataset.reviewId;
+  form.dataset.reviewId = review_id;
+
+  form.addEventListener('submit', editReview, false);
 };
 ```
 
@@ -1308,12 +1309,13 @@ The handler makes sure the form is valid and then attempts to save to the databa
 #### restaurant_info.js
 
 ```js
-const editReview = (e, review) => {
+const editReview = (e) => {
   e.preventDefault();
+  
   const form = e.target;
+  const review_id = e.target.dataset.reviewId;
 
   if (form.checkValidity()) {
-    const review_id = review._id;
     const restaurant_id = self.restaurant._id;
     const name = document.querySelector('#reviewName').value;
     const rating = document.querySelector('input[name=rate]:checked').value;
@@ -1333,7 +1335,6 @@ const editReview = (e, review) => {
       }
       idbKeyVal.getAllIdx('reviews', 'restaurant_id', restaurant_id)
         .then(reviews => {
-          console.log('new review', reviews);
           fillReviewsHTML(null, reviews);
           closeEditReviewModal();
         });
@@ -1373,12 +1374,20 @@ static updateRestaurantReview(review_id, restaurant_id, name, rating,
       // Save review to local IDB
       data._id = review_id;
       data._parent_id = restaurant_id; // Add this to provide IDB foreign key
+      // create review object (since it's not coming back from DB)
+      const nowDate = new Date();
+      const review = {
+        name: name,
+        rating: +rating,
+        comments: comments,
+        _changed: nowDate.toISOString()
+      };
       DBHelper.updateIDBReview(review_id, restaurant_id, review)
-        .then(() => {
+        .then((review_key) => {
           // Get review_key and save it with review to offline queue
           console.log('Add update review to queue');
-          DBHelper.addRequestToQueue(url, headers, method, body)
-            .then(offline_key => console.log('offline_key', offline_key));
+          DBHelper.addRequestToQueue(url, headers, method, body, review_key)
+            .then(offline_key => console.log('returned offline_key', offline_key));
         });
       callback(err, null);
     });
@@ -1393,7 +1402,6 @@ static updateIDBReview(review_id, restaurant_id, review) {
     .then(function nextCursor(cursor) {
       if (!cursor) return;
       var updateData = cursor.value;
-      console.log(cursor.value.name);
       if (cursor.value._id === review_id) {
         console.log('we matched');
 
@@ -1402,7 +1410,8 @@ static updateIDBReview(review_id, restaurant_id, review) {
         updateData.comments = review.comments;
         updateData._changed = review._changed;
         cursor.update(updateData);
-        return;
+        console.log('heres the primary key:', cursor.primaryKey);
+        return cursor.primaryKey;
       }
       return cursor.continue().then(nextCursor);
     });
@@ -1423,7 +1432,8 @@ const closeEditReviewModal = () => {
 
   const form = document.getElementById('review_form');
   form.reset();
-  form.removeEventListener('submit', editReview);
+  delete form.dataset.reviewId;
+  form.removeEventListener('submit', editReview, false);
 
   // Set focus back to element that had it before the modal was opened
   focusedElementBeforeModal.focus();
