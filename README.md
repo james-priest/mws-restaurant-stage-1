@@ -1,8 +1,11 @@
-# Mobile Web Specialist - Final Project
+# Mobile Web Specialist - Capstone Project
 
-![Restaurant Review App](docs/assets/images/before_after.jpg)
+![Restaurant Review App](docs/assets/images/hero.jpg)
 
-See [Restaurant Review App Code Notes](https://james-priest.github.io/mws-restaurant-stage-1/) for screenshots and a breakdown of how the app was built.
+This is my final project and a proof-of-concept Restaurant Review App. 
+
+- See [Live Demo](https://restaurant-review-app.netlify.com) of the Restaurant Review App 
+- See [Code Notes](https://james-priest.github.io/mws-restaurant-stage-1/) for screenshots and a breakdown of what the app does and how it was built.
 
 ---
 > **NOTE:** These are updated README instructions.
