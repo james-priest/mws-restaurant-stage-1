@@ -1,36 +1,36 @@
-const staticCacheName = 'restaurant-static-301'; 
+const staticCacheName = 'restaurant-static-302'; 
 
 // list of assets to cache on install
 // cache each restaurant detail page as well
-// self.addEventListener('install', event => {
-//   event.waitUntil(
-//     caches.open(staticCacheName)
-//       .then(cache => {
-//         CL.log('my class');
-//         return cache.addAll([
-//           '/',
-//           '/index.html',
-//           '/css/styles.css',
-//           '/js/index.min.js',
-//           '/js/restaurant.min.js',
-//           '/restaurant.html?id=1',
-//           '/restaurant.html?id=2',
-//           '/restaurant.html?id=3',
-//           '/restaurant.html?id=4',
-//           '/restaurant.html?id=5',
-//           '/restaurant.html?id=6',
-//           '/restaurant.html?id=7',
-//           '/restaurant.html?id=8',
-//           '/restaurant.html?id=9',
-//           '/restaurant.html?id=10',
-//           '/img/fixed/offline_img1.png',
-//           '/img/fixed/icon.png'
-//         ]).catch(error => {
-//           console.log('Caches open failed: ' + error);
-//         });
-//       })
-//   );
-// });
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(staticCacheName)
+      .then(cache => {
+        CL.log('my class');
+        return cache.addAll([
+          '/',
+          '/index.html',
+          '/css/styles.css',
+          '/js/index.min.js',
+          '/js/restaurant.min.js',
+          '/restaurant.html?id=5bcab3cff27689550002e831',
+          '/restaurant.html?id=5bcab495f27689550002e83c',
+          '/restaurant.html?id=5bcab503f27689550002e842',
+          '/restaurant.html?id=5bcb450df27689550002f416',
+          '/restaurant.html?id=5bcb4733f27689550002f431',
+          '/restaurant.html?id=5bcb4874f27689550002f451',
+          '/restaurant.html?id=5bcb4947f27689550002f464',
+          '/restaurant.html?id=5bcb5ca5f27689550002f719',
+          '/restaurant.html?id=5bcb603bf27689550002f74d',
+          '/restaurant.html?id=5bcb60f4f27689550002f75e',
+          '/img/fixed/offline_img1.png',
+          '/img/fixed/icon.png'
+        ]).catch(error => {
+          console.log('Caches open failed: ' + error);
+        });
+      })
+  );
+});
 
 let i = 0;
 // intercept all requests
@@ -62,10 +62,10 @@ self.addEventListener('fetch', event => {
     }
   }
   else {
-    // event.respondWith(cacheResponse(request));
+    event.respondWith(cacheResponse(request));
     
-    event.respondWith(fetch(event.request)
-      .then(response => response));
+    // event.respondWith(fetch(event.request)
+    //   .then(response => response));
   }
 });
 
