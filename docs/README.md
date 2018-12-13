@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD022 MD024 MD032 -->
 # Code Notes
 
+| [Live Demo](https://restaurant-review-app.netlify.com) | [GitHub Repo](https://github.com/james-priest/mws-restaurant-stage-1) |
+
+[![Restaurant Review App](./assets/images/hero-small.jpg)](https://restaurant-review-app.netlify.com/)
+
 These notes detail the solutions applied toward solving each stage of the Restaurant Review App project.
 
 - [Stage 1](stage1.html) - Make the app fully responsive & fully accessible
@@ -8,7 +12,6 @@ These notes detail the solutions applied toward solving each stage of the Restau
 - [Stage 3](stage3.html) - Add HTML forms & expand offline to include data manipulation
 - [Stage 4](stage4.html) - Setup hosted NoSQL DB with RESTful API and update client to use it
 
-[![Restaurant Review App](./assets/images/hero-small.jpg)](./assets/images/hero.jpg)
 
 ### Project Overview
 This app was my capstone project for Udacity's Mobile Web Dev Nanodegree.
@@ -38,8 +41,3 @@ Here's a partial list of the APIs and technologies we needed use and demonstrate
 [![Audit 1](./assets/images/audit2-small.jpg)](./assets/images/audit2.jpg)
 
 [![Audit 2](./assets/images/audit1-small.jpg)](./assets/images/audit1.jpg)
-
-### Live Demo & GitHub Repo
-
-- [Live Demo](https://restaurant-review-app.netlify.com)
-- [GitHub Repo](https://github.com/james-priest/mws-restaurant-stage-1)
