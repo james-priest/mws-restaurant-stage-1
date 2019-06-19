@@ -1,5 +1,7 @@
 # Restaurant Review App
 
+Restaurant Review is a Progressive Web App that allows users to find and review various Restaurants in the New York Metropolitan area. It's an interactive PWA with dynamic offline capabilities.
+
 <!-- [![forthebadge](https://forthebadge.com/images/badges/designed-in-etch-a-sketch.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/made-with-crayons.svg)](https://forthebadge.com) -->
 
 ![Restaurant Review App](docs/assets/images/hero.jpg)
