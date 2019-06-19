@@ -4,7 +4,9 @@
 
 ![Restaurant Review App](docs/assets/images/hero.jpg)
 
-This is a proof-of-concept Progressive Web App. It served as my capstone project for Udacity's Mobile Web Specialist Nanodegree. It was forked from a static master/detail page starter project provided by Udacity.
+This served as my capstone project for Udacity's Mobile Web Specialist Nanodegree. It was forked from a static page and was built to be an optimized and fully responsive Progressive Web App that was tuned for performance, accessibility, and offline access.
+
+![Restaurant Review App](docs/assets/images/audit2-small.jpg)
 
 I documented all my code changes and posted the final working app using Netlify's CI/CD build system.
 
