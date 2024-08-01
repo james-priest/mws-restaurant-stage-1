@@ -12,7 +12,7 @@ This served as my capstone project for Udacity's Mobile Web Specialist Nanodegre
 
 I documented all my code changes and posted the final working app using Netlify's CI/CD build system.
 
-- See [Live Demo](https://restaurant-review-app.netlify.com) of the Restaurant Review App
+- See [Live Demo](https://restaurant-review-app.netlify.app) of the Restaurant Review App
 - See [Code Notes](https://james-priest.github.io/mws-restaurant-stage-1/) with screenshots and a breakdown of what the app does and how it was built.
 
 ## Branches
