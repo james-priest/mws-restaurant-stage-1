@@ -1,135 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" sizes="32x32" href="img/fixed/icon.png" />
+    <meta name="theme-color" content="#790a0a" />
+    <!-- build:css css/styles.css -->
+    <link rel="stylesheet" href="css/styles.css" type="text/css" />
+    <!-- endbuild -->
+    <title>Restaurant Info</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" sizes="32x32" href="img/fixed/icon.png">
-  <meta name="theme-color" content="#790a0a"/>
-  <!-- build:css css/styles.css -->
-  <link rel="stylesheet" href="css/styles.css" type="text/css">
-  <!-- endbuild -->
-  <title>Restaurant Info</title>
-</head>
+  <body class="inside">
+    <!-- Beginning header -->
+    <header role="banner">
+      <!-- Beginning nav -->
+      <nav>
+        <h1><a href="/">Restaurant Reviews</a></h1>
+      </nav>
+      <!-- Beginning breadcrumb -->
+      <ul id="breadcrumb" role="navigation" aria-label="breadcrumb">
+        <li><a href="/">Home</a></li>
+      </ul>
+      <!-- End breadcrumb -->
+      <!-- End nav -->
+    </header>
+    <!-- End header -->
 
-<body class="inside">
-  <!-- Beginning header -->
-  <header role="banner">
-    <!-- Beginning nav -->
-    <nav>
-      <h1><a href="/">Restaurant Reviews</a></h1>
-    </nav>
-    <!-- Beginning breadcrumb -->
-    <ul id="breadcrumb" role="navigation" aria-label="breadcrumb">
-      <li><a href="/">Home</a></li>
-    </ul>
-    <!-- End breadcrumb -->
-    <!-- End nav -->
-  </header>
-  <!-- End header -->
-
-  <!-- Beginning main -->
-  <main id="maincontent" role="main">
-    <!-- Beginning map -->
-    <section id="map-container" role="application" aria-label="Google Map">
-      <div id="map"></div>
-    </section>
-    <!-- End map -->
-    <!-- Beginning restaurant -->
-    <section id="restaurant-container" aria-labelledby="restaurant-name">
-      <h1 id="restaurant-name"></h1>
-      <div id="restaurant-img-container">
-        <button id="restaurant-fav" aria-label="favorite"></button>
-        <img id="restaurant-img">
-      </div>
-      <p id="restaurant-cuisine"></p>
-      <p id="restaurant-address"></p>
-      <table id="restaurant-hours"></table>
-    </section>
-    <!-- end restaurant -->
-    <!-- Beginning reviews -->
-    <section id="reviews-container" aria-label="Reviews">
-      <div id="reviews-header"></div>
-      <ul id="reviews-list"></ul>
-    </section>
-    <!-- End reviews -->
-  </main>
-  <!-- End main -->
-
-  <!-- Beginning footer -->
-  <footer id="footer" role="contentinfo">
-    Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
-  </footer>
-  <!-- End footer -->
-
-  <!-- Beginning modals -->
-  <div id="add_review_modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-review-header">
-    <button class="close-btn" aria-label="close" title="Close">x</button>
-    <div class="modal_form_container">
-      <h2 id="add-review-header"></h2>
-      <form id="review_form">
-        <div class="fieldset">
-          <label for="reviewName">Name</label>
-          <input type="text" name="reviewName" id="reviewName" required>
+    <!-- Beginning main -->
+    <main id="maincontent" role="main">
+      <!-- Beginning map -->
+      <section id="map-container" role="application" aria-label="Google Map">
+        <div id="map"></div>
+      </section>
+      <!-- End map -->
+      <!-- Beginning restaurant -->
+      <section id="restaurant-container" aria-labelledby="restaurant-name">
+        <h1 id="restaurant-name"></h1>
+        <div id="restaurant-img-container">
+          <button id="restaurant-fav" aria-label="favorite"></button>
+          <img id="restaurant-img" />
         </div>
-        <div class="fieldset">
-          <label>Rating</label>
-          <div class="rate">
-            <input type="radio" id="star5" name="rate" value="5" onkeydown="navRadioGroup(event)" onfocus="setFocus(event)" required />
-            <label for="star5" title="5 stars">5 stars</label>
-            <input type="radio" id="star4" name="rate" value="4" onkeydown="navRadioGroup(event)" />
-            <label for="star4" title="4 stars">4 stars</label>
-            <input type="radio" id="star3" name="rate" value="3" onkeydown="navRadioGroup(event)" />
-            <label for="star3" title="3 stars">3 stars</label>
-            <input type="radio" id="star2" name="rate" value="2" onkeydown="navRadioGroup(event)" />
-            <label for="star2" title="2 stars">2 stars</label>
-            <input type="radio" id="star1" name="rate" value="1" onkeydown="navRadioGroup(event)" onfocus="setFocus(event)" />
-            <label for="star1" title="1 star">1 star</label>
-          </div>
-        </div>
-        <div class="fieldset">
-          <label for="reviewComments">Comments</label>
-          <textarea name="reviewComments" id="reviewComments" cols="20" rows="5" required></textarea>
-        </div>
-        <div class="fieldset right">
-          <button id="submit_review_btn">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <div id="confirm_delete_modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-header">
-    <button class="close-btn" aria-label="close" title="Close">x</button>
-    <div class="modal_form_container">
-      <h2 id="confirm-delete-header">Confirm Delete</h2>
-      <div id="confirm_form">
-        <p>Are you sure you wish to delete the review by <b id="review_name"></b>?</p>
-        <div class="confirm-buttons">
+        <p id="restaurant-cuisine"></p>
+        <p id="restaurant-address"></p>
+        <table id="restaurant-hours"></table>
+      </section>
+      <!-- end restaurant -->
+      <!-- Beginning reviews -->
+      <section id="reviews-container" aria-label="Reviews">
+        <div id="reviews-header"></div>
+        <ul id="reviews-list"></ul>
+      </section>
+      <!-- End reviews -->
+    </main>
+    <!-- End main -->
+
+    <!-- Beginning footer -->
+    <footer id="footer" role="contentinfo">
+      Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All
+      Rights Reserved.
+    </footer>
+    <!-- End footer -->
+
+    <!-- Beginning modals -->
+    <div
+      id="add_review_modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-review-header"
+    >
+      <button class="close-btn" aria-label="close" title="Close">x</button>
+      <div class="modal_form_container">
+        <h2 id="add-review-header"></h2>
+        <form id="review_form">
           <div class="fieldset">
-            <button id="cancel_btn">Cancel</button>
+            <label for="reviewName">Name</label>
+            <input type="text" name="reviewName" id="reviewName" required />
+          </div>
+          <div class="fieldset">
+            <label>Rating</label>
+            <div class="rate">
+              <input
+                type="radio"
+                id="star5"
+                name="rate"
+                value="5"
+                onkeydown="navRadioGroup(event)"
+                onfocus="setFocus(event)"
+                required
+              />
+              <label for="star5" title="5 stars">5 stars</label>
+              <input
+                type="radio"
+                id="star4"
+                name="rate"
+                value="4"
+                onkeydown="navRadioGroup(event)"
+              />
+              <label for="star4" title="4 stars">4 stars</label>
+              <input
+                type="radio"
+                id="star3"
+                name="rate"
+                value="3"
+                onkeydown="navRadioGroup(event)"
+              />
+              <label for="star3" title="3 stars">3 stars</label>
+              <input
+                type="radio"
+                id="star2"
+                name="rate"
+                value="2"
+                onkeydown="navRadioGroup(event)"
+              />
+              <label for="star2" title="2 stars">2 stars</label>
+              <input
+                type="radio"
+                id="star1"
+                name="rate"
+                value="1"
+                onkeydown="navRadioGroup(event)"
+                onfocus="setFocus(event)"
+              />
+              <label for="star1" title="1 star">1 star</label>
+            </div>
+          </div>
+          <div class="fieldset">
+            <label for="reviewComments">Comments</label>
+            <textarea
+              name="reviewComments"
+              id="reviewComments"
+              cols="20"
+              rows="5"
+              required
+            ></textarea>
           </div>
           <div class="fieldset right">
-            <button id="delete_confirm_btn">Delete</button>
+            <button id="submit_review_btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div
+      id="confirm_delete_modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-header"
+    >
+      <button class="close-btn" aria-label="close" title="Close">x</button>
+      <div class="modal_form_container">
+        <h2 id="confirm-delete-header">Confirm Delete</h2>
+        <div id="confirm_form">
+          <p>
+            Are you sure you wish to delete the review by
+            <b id="review_name"></b>?
+          </p>
+          <div class="confirm-buttons">
+            <div class="fieldset">
+              <button id="cancel_btn">Cancel</button>
+            </div>
+            <div class="fieldset right">
+              <button id="delete_confirm_btn">Delete</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="modal-overlay"></div>
-  <!-- End modals -->
+    <div class="modal-overlay"></div>
+    <!-- End modals -->
 
-  <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
-    <h3>Offline - not connected to the internet</h3>
-    <p>Your update has been saved and will post to the server once the connection is reestablished.</p>
-  </div>
+    <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
+      <h3>Offline - not connected to the internet</h3>
+      <p>
+        Your update has been saved and will post to the server once the
+        connection is reestablished.
+      </p>
+    </div>
 
-  <!-- <script src="js/idbhelper.js"></script> -->
-  <script src="js/dbhelper.min.js"></script>
-  <!-- build:js js/restaurant.min.js defer -->
-  <script src="js/register_sw.js"></script>
-  <script src="js/restaurant_info.js"></script>
-  <!-- endbuild -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&libraries=places&callback=initMap"></script>
-</body>
-
+    <!-- <script src="js/idbhelper.js"></script> -->
+    <script src="js/dbhelper.min.js"></script>
+    <!-- build:js js/restaurant.min.js defer -->
+    <script src="js/register_sw.js"></script>
+    <script src="js/restaurant_info.js"></script>
+    <!-- endbuild -->
+    <!-- <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&libraries=places&callback=initMap"
+    ></script> -->
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&loading=async&libraries=maps&callback=initMap"
+    ></script>
+  </body>
 </html>

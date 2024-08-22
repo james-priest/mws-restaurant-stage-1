@@ -1,60 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" sizes="32x32" href="img/fixed/icon.png" />
+    <meta name="theme-color" content="#790a0a" />
+    <!-- build:css css/styles.css -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- endbuild -->
+    <title>Restaurant Reviews</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" sizes="32x32" href="img/fixed/icon.png">
-  <meta name="theme-color" content="#790a0a"/>
-  <!-- build:css css/styles.css -->
-  <link rel="stylesheet" href="css/styles.css">
-  <!-- endbuild -->
-  <title>Restaurant Reviews</title>
-</head>
+  <body>
+    <header role="banner">
+      <nav>
+        <h1><a href="/">Restaurant Reviews</a></h1>
+      </nav>
+    </header>
 
-<body>
-  <header role="banner">
-    <nav>
-      <h1><a href="/">Restaurant Reviews</a></h1>
-    </nav>
-  </header>
+    <main id="maincontent" role="main">
+      <section id="map-container" role="application" aria-label="Google Map">
+        <div id="map"></div>
+      </section>
+      <section
+        id="filter-list-container"
+        aria-labelledby="filter-label"
+        role="region"
+      >
+        <div class="filter-options">
+          <h2 id="filter-label">Filter Results</h2>
+          <label for="neighborhoods-select">Neighborhoods Filter</label>
+          <select
+            id="neighborhoods-select"
+            name="neighborhoods"
+            onchange="updateRestaurants()"
+          >
+            <option value="all">All Neighborhoods</option>
+          </select>
+          <label for="cuisines-select">Cuisines Filter</label>
+          <select
+            id="cuisines-select"
+            name="cuisines"
+            onchange="updateRestaurants()"
+          >
+            <option value="all">All Cuisines</option>
+          </select>
+        </div>
+        <ul
+          id="restaurants-list"
+          role="region"
+          aria-label="restaurants list"
+        ></ul>
+      </section>
+    </main>
+    <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
+      <h3>Offline - not connected to the internet</h3>
+      <p>
+        Your update has been saved and will post to the server once the
+        connection is reestablished.
+      </p>
+    </div>
 
-  <main id="maincontent" role="main">
-    <section id="map-container" role="application" aria-label="Google Map">
-      <div id="map"></div>
-    </section>
-    <section id="filter-list-container" aria-labelledby="filter-label" role="region">
-      <div class="filter-options">
-        <h2 id="filter-label">Filter Results</h2>
-        <label for="neighborhoods-select">Neighborhoods Filter</label>
-        <select id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()">
-          <option value="all">All Neighborhoods</option>
-        </select>
-        <label for="cuisines-select">Cuisines Filter</label>
-        <select id="cuisines-select" name="cuisines" onchange="updateRestaurants()">
-          <option value="all">All Cuisines</option>
-        </select>
-      </div>
-      <ul id="restaurants-list" role="region" aria-label="restaurants list"></ul>
-    </section>
-  </main>
-  <div id="offline" role="alert" aria-hidden="true" aria-live="assertive">
-    <h3>Offline - not connected to the internet</h3>
-    <p>Your update has been saved and will post to the server once the connection is reestablished.</p>
-  </div>
-
-  <!-- <script src="js/idbhelper.js"></script> -->
-  <script src="js/dbhelper.min.js"></script>
-  <!-- build:js js/index.min.js defer -->
-  <script src="js/register_sw.js"></script>
-  <script src="js/main.js"></script>
-  <!-- endbuild -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&libraries=places&callback=initMap"></script>
-  <footer id="footer" role="contentinfo">
-    Copyright (c) 2018 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
-  </footer>
-
-</body>
-
+    <!-- <script src="js/idbhelper.js"></script> -->
+    <script src="js/dbhelper.min.js"></script>
+    <!-- build:js js/index.min.js defer -->
+    <script src="js/register_sw.js"></script>
+    <script src="js/main.js"></script>
+    <!-- endbuild -->
+    <!-- <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&libraries=places&callback=initMap"
+    ></script> -->
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=<API_KEY_HERE>&loading=async&libraries=maps&callback=initMap"
+    ></script>
+    <footer id="footer" role="contentinfo">
+      Copyright (c) 2018 <a href="/"><strong>Restaurant Reviews</strong></a> All
+      Rights Reserved.
+    </footer>
+  </body>
 </html>
