@@ -8,39 +8,60 @@ html {
 *::after {
   box-sizing: inherit;
 }
-body,td,th,p{
+body,
+td,
+th,
+p {
   font: 16px/1.6 Arial, Helvetica, sans-serif;
-	color: #333;
+  color: #333;
 }
 body {
-	background-color: #fdfdfd;
-	margin: 0;
-  position:relative;
+  background-color: #fdfdfd;
+  margin: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
 }
 a {
   color: #ffabab;
-	text-decoration: none;
+  text-decoration: none;
 }
-a:hover, a:focus {
-	color: #d85b5b;  
-	text-decoration: none;
+a:hover,
+a:focus {
+  color: #d85b5b;
+  text-decoration: none;
 }
 nav h1 a:hover {
   color: #ff9292;
 }
-a img{
-	border: none 0px #fff;
+a img {
+  border: none 0px #fff;
 }
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0 0 20px;
 }
-article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
-	display: block;
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
 }
-#maincontent, #breadcrumb {
+#maincontent,
+#breadcrumb {
   max-width: 1200px;
   margin: auto;
 }
@@ -50,6 +71,7 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   display: flex;
   flex-wrap: wrap;
   border: 1px solid #999;
+  width: 100%;
 }
 #footer {
   background-color: #444;
@@ -79,37 +101,37 @@ nav h1 a {
   text-transform: uppercase;
 }
 #breadcrumb {
-    padding: 16px 40px;
-    list-style: none;
-    background-color: #eee;
-    border-right: 1px solid #999;
-    border-left: 1px solid #999;
+  padding: 16px 40px;
+  list-style: none;
+  background-color: #eee;
+  border-right: 1px solid #999;
+  border-left: 1px solid #999;
 }
 
 /* Display list items side by side */
 #breadcrumb li {
-    display: inline;
+  display: inline;
 }
 
 /* Add a slash symbol (/) before/behind each list item */
-#breadcrumb li+li:before {
-    padding: 8px;
-    color: black;
-    content: "/\00a0";
+#breadcrumb li + li:before {
+  padding: 8px;
+  color: black;
+  content: '/\00a0';
 }
 
 /* Add a color to all links inside the list */
 #breadcrumb li a {
-    color: #961515;
-    text-decoration: none;
-    border-bottom: 1px dotted #d85b5b;
+  color: #961515;
+  text-decoration: none;
+  border-bottom: 1px dotted #d85b5b;
 }
 
 /* Add a color on mouse-over */
 #breadcrumb li a:hover {
-    color: #333;
-    text-decoration: underline;
-    border: none;
+  color: #333;
+  text-decoration: underline;
+  border: none;
 }
 /* ====================== Map ====================== */
 #map {
@@ -143,7 +165,7 @@ nav h1 a {
 .filter-options select {
   background-color: white;
   border: 1px solid #fff;
-  font-family: Arial,sans-serif;
+  font-family: Arial, sans-serif;
   height: 35px;
   letter-spacing: 0;
   margin: 10px;
@@ -174,7 +196,7 @@ nav h1 a {
 #restaurants-list li {
   background-color: #fff;
   border: 1px solid #999;
-  font-family: Arial,sans-serif;
+  font-family: Arial, sans-serif;
   margin: 15px;
   min-height: 380px;
   padding: 0 0 25px;
@@ -206,7 +228,7 @@ nav h1 a {
   text-indent: -10000px;
   border-radius: 0;
 }
-#restaurants-list .fav-control.active  {
+#restaurants-list .fav-control.active {
   background-position: 8px 9px;
 }
 #restaurants-list .fav-control:hover {
@@ -227,7 +249,7 @@ nav h1 a {
 
 #restaurants-list li h2 {
   color: #ab1a1a;
-  font-family: Arial,sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 1.4em;
   font-weight: 200;
   letter-spacing: 0;
@@ -270,7 +292,7 @@ nav h1 a {
 }
 #restaurant-name {
   color: #d85b5b;
-  font-family: Arial,sans-serif;
+  font-family: Arial, sans-serif;
   font-weight: 200;
   letter-spacing: 0;
   margin: 5px 0 30px;
@@ -330,9 +352,10 @@ nav h1 a {
   padding: 2px 0;
   text-align: center;
   text-transform: uppercase;
-	width: 100%;
+  width: 100%;
 }
-#restaurant-container, #reviews-container {
+#restaurant-container,
+#reviews-container {
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
   padding: 20px 40px;
@@ -369,9 +392,9 @@ nav h1 a {
   min-height: 40px;
   cursor: pointer;
 }
-.review-edit-btn, .review-del-btn {
+.review-edit-btn,
+.review-del-btn {
   font-weight: bold;
-
 }
 #review-add-btn {
   font-size: 1.6em;
@@ -406,27 +429,27 @@ nav h1 a {
 #reviews-list li p.updatedAt {
   /* float: right; */
   clear: both;
-  font-weight: bold
+  font-weight: bold;
 }
 #reviews-list li p.updatedAt span {
   color: #008800;
   font-weight: normal;
   float: right;
 }
-  
+
 #reviews-list li p.rating {
   float: left;
 }
 #reviews-list li p.comments {
   clear: both;
 }
-#reviews-list li p:nth-of-type(3)[data-rating="3"] {
+#reviews-list li p:nth-of-type(3)[data-rating='3'] {
   color: #333;
 }
-#reviews-list li p:nth-of-type(3)[data-rating="2"] {
+#reviews-list li p:nth-of-type(3)[data-rating='2'] {
   color: red;
 }
-#reviews-list li p:nth-of-type(3)[data-rating="1"] {
+#reviews-list li p:nth-of-type(3)[data-rating='1'] {
   color: red;
 }
 #restaurant-hours td {
@@ -452,13 +475,13 @@ nav h1 a {
   border: 1px solid #666;
   border-radius: 10px;
   opacity: 0;
-  transition: all .3s;
+  transition: all 0.3s;
   overflow: hidden;
   background-color: #eee;
   visibility: hidden;
 }
 .show {
-  visibility: visible;  
+  visibility: visible;
   opacity: 1;
 }
 .modal-overlay {
@@ -467,7 +490,7 @@ nav h1 a {
   z-index: 2; /* places the modalOverlay between the main page and the modal dialog */
   background-color: #000;
   opacity: 0;
-  transition: all .3s;
+  transition: all 0.3s;
   position: fixed;
   top: 0;
   left: 0;
@@ -477,7 +500,7 @@ nav h1 a {
 }
 .modal-overlay.show {
   display: block;
-  opacity: 0.5;  
+  opacity: 0.5;
 }
 .modal .close-btn {
   align-self: flex-end;
@@ -507,7 +530,7 @@ textarea {
   /* padding: 8px; */
   padding: 10px;
 }
-input[type="radio"] {
+input[type='radio'] {
   box-shadow: none;
 }
 button {
@@ -518,15 +541,15 @@ button {
   min-width: 48px;
   min-height: 48px;
 }
-button:hover{
+button:hover {
   background-color: #fff;
   border: 1px solid #aaa;
 }
 button:active {
   border-style: ridge;
 }
-button#review-add-btn, 
-button.close-btn, 
+button#review-add-btn,
+button.close-btn,
 button#submit_review_btn {
   min-height: 40px;
 }
@@ -568,7 +591,8 @@ button#submit_review_btn {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-#review_form label, #review_form input {
+#review_form label,
+#review_form input {
   display: block;
 }
 #review_form label {
@@ -576,8 +600,10 @@ button#submit_review_btn {
   margin-bottom: 5px;
 }
 
-#review_form .rate label, #review_form .rate input,
-#review_form .rate1 label, #review_form .rate1 input {
+#review_form .rate label,
+#review_form .rate input,
+#review_form .rate1 label,
+#review_form .rate1 input {
   display: inline-block;
 }
 /* Modified from: https://codepen.io/tammykimkim/pen/yegZRw */
@@ -596,7 +622,8 @@ button#submit_review_btn {
   /* justify-content: flex-end; */
 }
 /* #review_form .rate > label { */
-.rate > label, .static-rate > label {
+.rate > label,
+.static-rate > label {
   margin-bottom: 0;
   margin-top: -5px;
   height: 30px;
@@ -609,32 +636,35 @@ button#submit_review_btn {
   z-index: -10;
 }
 .rate:not(:checked) > label {
-  float:right;
-  width:1em;
-  overflow:hidden;
-  white-space:nowrap;
-  cursor:pointer;
-  font-size:30px;
-  color:#ccc;
+  float: right;
+  width: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 30px;
+  color: #ccc;
 }
 .static-rate > label {
-  float:right;
-  width:1em;
-  overflow:hidden;
-  white-space:nowrap;
-  font-size:30px;
-  color:#ccc;
+  float: right;
+  width: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 30px;
+  color: #ccc;
 }
-.rate:not(:checked) > label::before, .static-rate > label::before {
+.rate:not(:checked) > label::before,
+.static-rate > label::before {
   content: '★ ';
   position: relative;
   top: -10px;
   left: 2px;
 }
-.rate > input:checked ~ label, .static-rate > label.gold {
+.rate > input:checked ~ label,
+.static-rate > label.gold {
   color: #ffc700;
 }
-.rate > input:checked:focus + label, .rate > input:focus + label {
+.rate > input:checked:focus + label,
+.rate > input:focus + label {
   outline: -webkit-focus-ring-color auto 5px;
 }
 .rate:not(:checked) > label:hover,
@@ -665,7 +695,7 @@ button#submit_review_btn {
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   max-width: 400px;
-  transition: top .3s ease-in-out 1s;
+  transition: top 0.3s ease-in-out 1s;
 }
 #offline.show {
   top: 0;
@@ -716,17 +746,20 @@ button#submit_review_btn {
   #restaurants-list li {
     width: 270px;
   }
-}  
+}
 
 @media screen and (max-width: 650px) {
-  #restaurant-container, #reviews-container, #breadcrumb {
+  #restaurant-container,
+  #reviews-container,
+  #breadcrumb {
     padding: 12px;
     width: 100%;
   }
   .filter-options {
     flex-direction: column;
   }
-  #restaurant-container, #reviews-container {
+  #restaurant-container,
+  #reviews-container {
     width: 100%;
   }
   #restaurant-name {
@@ -738,7 +771,9 @@ button#submit_review_btn {
 }
 
 @media screen and (max-width: 400px) {
-  #restaurant-container, #reviews-container, #breadcrumb {
+  #restaurant-container,
+  #reviews-container,
+  #breadcrumb {
     padding: 10px;
   }
   #reviews-container {
@@ -762,7 +797,7 @@ button#submit_review_btn {
     font-size: 28px;
   }
   #reviews-list li p.updatedAt {
-    font-size: .90em;
+    font-size: 0.9em;
   }
   #confirm_form {
     min-width: 250px;
